@@ -1,8 +1,10 @@
 #include <STRHAL.h>
 #include "ECU.h"
 
+#define NODE_ID 1
+
 int main(void) {
-	ECU ecu(6,0xDEADBEEF,100); //6 ECU, 7 PMU, 9 TW
+	ECU ecu(NODE_ID,0xDEADBEEF,100);
 
 	if(ecu.init() != 0)
 		return -1;

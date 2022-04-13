@@ -8,6 +8,7 @@ IMUChannel::IMUChannel(uint8_t id, const STRHAL_SPI_Id_t &spiId, const STRHAL_SP
 	spiId(spiId),
 	spiConf(spiConf) {
 	measDataTail = measDataNum = 0;
+	flash = W25Qxx_Flash::instance(0x1F);
 }
 
 int IMUChannel::init() {
@@ -65,15 +66,18 @@ int IMUChannel::exec() {
 	measData[i].alpha.y = tmp[2] << 8 | tmp[3];
 	measData[i].alpha.z = tmp[4] << 8 | tmp[5];
 
-	/*if(i == BUF_DATA_SIZE-1) {
-		meas_data_n = 0;
-		(void) flash.writeEnable();
-		(void) flash.writeCurrentPage((uint8_t *)meas_data, BUF_DATA_SIZE*sizeof(IMUData));
+	if(i == BUF_DATA_SIZE-1) {
+		measDataNum = 0;
+		uint32_t numWritten = flash->writeNextPage((uint8_t *)measData, BUF_DATA_SIZE*sizeof(IMUData));
+		(void) numWritten;
+		//char buf[64];
+		//sprintf(buf,"%d written\n",numWritten);
+		//STRHAL_UART_Write(buf, strlen(buf));
 	} else {
-		meas_data_n++;
-	}*/
-	measDataNum++;
-	measDataNum %= BUF_DATA_SIZE;
+		measDataNum++;
+	}
+	//measDataNum++;
+	//measDataNum %= BUF_DATA_SIZE;
 
 	return 0;
 }
@@ -85,6 +89,26 @@ uint8_t IMUChannel::whoAmI() const {
 	STRHAL_SPI_Master_Transceive(spiId, &command, 1, 1, &imuId, 1, 100);
 
 	return imuId;
+}
+
+void IMUChannel::printData(uint8_t printDivider) {
+	char kartoffel_buffer[256];
+	uint8_t readData[256];
+	for(int i = LOGGING_BASE >> 8; i < 8192*16; i++) {
+		if(flash->read(i << 8, readData, 252) != 252) {
+			sprintf(kartoffel_buffer, "UNABLE TO READ PAGE!\n");
+			STRHAL_UART_Write(kartoffel_buffer, strlen(kartoffel_buffer));
+			i--;
+			continue;
+		}
+		for(int j = 0; j < 252; j=j+(14*printDivider)) {
+			IMUData * imuData;
+			imuData = (IMUData *) &readData[j];
+			sprintf(kartoffel_buffer, "%d;%d;%d;%d;%d;%d;%d\n", imuData->accel.x,imuData->accel.y,imuData->accel.z,imuData->alpha.x,imuData->alpha.y,imuData->alpha.z,imuData->temp);
+			STRHAL_UART_Write(kartoffel_buffer, strlen(kartoffel_buffer));
+			LL_mDelay(2);
+		}
+	}
 }
 
 int IMUChannel::reset() {

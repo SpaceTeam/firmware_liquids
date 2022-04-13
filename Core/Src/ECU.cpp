@@ -30,7 +30,9 @@ ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	solenoid_1(19, {ADC2, STRHAL_ADC_CHANNEL_18}, {GPIOD, 8, STRHAL_GPIO_TYPE_OPP}, 1),
 	pressure_control(20, press_1, solenoid_1, 1),
 	imu_0(21, STRHAL_SPI_SPI3, {STRHAL_SPI_SPI3_SCK_PC10, STRHAL_SPI_SPI3_MISO_PC11, STRHAL_SPI_SPI3_MOSI_PC12, STRHAL_SPI_SPI3_NSS_PA15, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_HH, 0x7, 0}, 1),
-	speaker(STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PB10)
+	speaker(STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PB10),
+	pyro_sense(0, {ADC1, STRHAL_ADC_CHANNEL_12}, 1),
+	pyro_on_counter(0)
 {
 	cancom = CANCOM::instance(this);
 	flash = W25Qxx_Flash::instance(0x1F);
@@ -55,7 +57,8 @@ ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	registerChannel(&solenoid_0);
 	registerChannel(&solenoid_1);
 	registerChannel(&pressure_control);
-	//registerChannel(&imu_0);
+	registerChannel(&imu_0);
+	registerChannel(&pyro_sense);
 }
 
 int ECU::init() {
@@ -72,13 +75,13 @@ int ECU::init() {
 	if(flash->init() != 0)
 		return -1;
 
-	if(cancom == nullptr)
+	/*if(cancom == nullptr)
 		return -1;
 
 	CANState = cancom->init();
 	if(CANState != COMState::SBY)
 		return -1;
-
+	*/
 
 	if(GenericChannel::init() != 0)
 		return -1;
@@ -94,23 +97,79 @@ int ECU::exec() {
 	STRHAL_ADC_Run();
 	STRHAL_QSPI_Run();
 
-	CANState = cancom->exec();
+	/*CANState = cancom->exec();
 	if(CANState != COMState::RUN)
-		return -1;
+		return -1;*/
 
 	STRHAL_GPIO_Write(&ledRed, STRHAL_GPIO_VALUE_H);
 	STRHAL_UART_Write("RUNNING\n",8);
 
 	speaker.beep(2, 400, 300);
 
-	while(1) {
+	for(int c = 0; c <= 1000; c++) {
+		while(checkPyroVoltageHigh())
+			readoutMode();
+	}
+
+	pyro_on_counter = 0;
+
+	while(42) {
+		readoutMode();
+		if(checkPyroVoltageHigh()) {
+			speaker.beep(2, 2000, 1000);
+			loggingMode();
+		}
+	}
+
+	/*while(1) {
 		if(GenericChannel::exec() != 0)
 			return -1;
-	}
+	}*/
 
 	speaker.beep(6, 100, 100);
 
 	return 0;
+}
+
+bool ECU::checkPyroVoltageHigh() {
+	if(pyro_sense.getMeasurement() > 400)
+		pyro_on_counter++;
+	else
+		pyro_on_counter = 0;
+	return (pyro_on_counter >= 50);
+}
+
+void ECU::readoutMode() {
+	STRHAL_UART_Listen();
+	char read[64];
+	int32_t n = STRHAL_UART_Read(read, 2);
+	if(n > 0) {
+		if(read[0] <= 'a') { // fast reading mode
+			speaker.beep(5, 150, 150);
+			STRHAL_UART_Write("READING MODE!\n", 14);
+			imu_0.printData(1);
+			STRHAL_UART_Write("DONE PRINTING!\n", 14);
+			STRHAL_UART_FlushReception();
+		} else if(read[0] > 'a') {
+			speaker.beep(5, 300, 300); // slow reading mode
+			STRHAL_UART_Write("READING MODE!\n", 14);
+			imu_0.printData(5);
+			STRHAL_UART_Write("DONE PRINTING!\n", 14);
+			STRHAL_UART_FlushReception();
+		} else {
+			STRHAL_UART_Write("WRONG CHAR!\n", 12);
+			STRHAL_UART_FlushReception();
+		}
+	}
+}
+
+void ECU::loggingMode() {
+	STRHAL_UART_Write("LOGGING MODE!\n", 14);
+	if(!flash->sectorErase(LOGGING_BASE >> 12))
+		STRHAL_UART_Write("FAILED TO ERASE FIRST SECTOR\n", 29);
+	while(1) {
+		(void) imu_0.exec();
+	}
 }
 
 void ECU::testServo(ServoChannel &servo) {

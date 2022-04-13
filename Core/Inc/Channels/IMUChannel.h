@@ -48,6 +48,7 @@ class IMUChannel : public AbstractChannel {
 		bool getMeasurement(IMUData &x);
 
 		uint8_t whoAmI() const;
+		void printData(uint8_t printDivider);
 
 		int processMessage(uint8_t commandId, uint8_t *returnData, uint8_t &n) override;
 
@@ -69,6 +70,8 @@ class IMUChannel : public AbstractChannel {
 		IMUData measData[BUF_DATA_SIZE] = {0};
 		uint32_t measDataTail, measDataNum;
 		uint64_t timeLastSample = 0;
+
+		W25Qxx_Flash *flash;
 };
 
 #endif /*IMUCHANNEL_H*/

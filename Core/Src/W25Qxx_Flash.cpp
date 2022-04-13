@@ -6,7 +6,7 @@
 
 W25Qxx_Flash* W25Qxx_Flash::flash = nullptr;
 
-W25Qxx_Flash::W25Qxx_Flash(uint8_t size_2n) : size_2n(size_2n & 0x3F), pageCount(0), sectorCount(0) {
+W25Qxx_Flash::W25Qxx_Flash(uint8_t size_2n) : size_2n(size_2n & 0x3F), pageCount(0), sectorCount(LOGGING_BASE>>12) {
 }
 
 W25Qxx_Flash* W25Qxx_Flash::instance(uint8_t size_2n) {
@@ -225,21 +225,16 @@ uint32_t W25Qxx_Flash::writeNextPage(const uint8_t * data, uint32_t n) {
 		return 0;
 	}
 
-	if(pageCount == 0) {
-		if(!writeEnable())
-			return 0;
-		if(!sectorErase(sectorCount))
-			return 0;
-	}
-
 	uint32_t numWritten = write((pageCount << 8) | (sectorCount << 12),data,n);
 
-	if(numWritten == n)
+	if(numWritten != n)
 		return 0;
 
 	if(pageCount == 15) {
 		pageCount = 0;
 		sectorCount++;
+		if(!sectorErase(sectorCount))
+			return 0;
 	} else {
 		pageCount++;
 	}

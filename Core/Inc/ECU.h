@@ -46,6 +46,13 @@ class ECU : public GenericChannel {
 		IMUChannel imu_0;
 
 		Speaker speaker;
+
+		ADCChannel pyro_sense;
+
+		bool checkPyroVoltageHigh();
+		void readoutMode();
+		void loggingMode();
+		uint32_t pyro_on_counter;
 };
 
 #endif /*ECU_H*/

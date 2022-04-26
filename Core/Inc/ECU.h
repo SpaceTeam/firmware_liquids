@@ -39,12 +39,10 @@ class ECU : public GenericChannel {
 		ADCChannel press_0, press_1, press_2, press_3, press_4, press_5;
 		ADCChannel temp_0, temp_1, temp_2;
 		ServoChannel servo_0, servo_1, servo_2;
-		DigitalInChannel pyro0_cont, pyro1_cont, pyro2_cont;
-		PyroChannel pyro_igniter0, pyro_igniter1, pyro_igniter2;
 		DigitalOutChannel solenoid_0, solenoid_1;
 		PressureControlChannel pressure_control;
 		IMUChannel imu_0;
-
+		DigitalOutChannel io_0, io_1, io_3, io_4, io_6, io_7;
 		Speaker speaker;
 };
 

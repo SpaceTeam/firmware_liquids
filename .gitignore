@@ -37,6 +37,7 @@
 *.hex
 
 # Debug files
+Debug_G491/
 Debug_H7xx/
 Release_H7xx/
 Debug_G4xx/

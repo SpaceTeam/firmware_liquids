@@ -20,16 +20,16 @@ ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	servo_0(9, 0, STRHAL_TIM_TIM4, STRHAL_TIM_TIM4_CH2_PB7, {ADC1, STRHAL_ADC_CHANNEL_9}, {ADC1, STRHAL_ADC_CHANNEL_1}, {GPIOC, 13, STRHAL_GPIO_TYPE_OPP}, 1),
 	servo_1(10, 1, STRHAL_TIM_TIM4, STRHAL_TIM_TIM4_CH3_PB8, {ADC1, STRHAL_ADC_CHANNEL_2}, {ADC1, STRHAL_ADC_CHANNEL_3}, {GPIOC, 14, STRHAL_GPIO_TYPE_OPP}, 1),
 	servo_2(11, 2, STRHAL_TIM_TIM4, STRHAL_TIM_TIM4_CH4_PB9, {ADC1, STRHAL_ADC_CHANNEL_4}, {ADC2, STRHAL_ADC_CHANNEL_17}, {GPIOC, 15, STRHAL_GPIO_TYPE_OPP}, 1),
-	pyro0_cont(13, {GPIOA, 10, STRHAL_GPIO_TYPE_IHZ}, 1),
-	pyro1_cont(15, {GPIOA, 8, STRHAL_GPIO_TYPE_IHZ}, 1),
-	pyro2_cont(17, {GPIOC, 8, STRHAL_GPIO_TYPE_IHZ}, 1),
-	pyro_igniter0(12, {ADC3, STRHAL_ADC_CHANNEL_2}, {GPIOA, 9, STRHAL_GPIO_TYPE_OPP}, pyro0_cont, 1),
-	pyro_igniter1(14, {ADC3, STRHAL_ADC_CHANNEL_6}, {GPIOC, 9, STRHAL_GPIO_TYPE_OPP}, pyro1_cont, 1),
-	pyro_igniter2(16, {ADC3, STRHAL_ADC_CHANNEL_4}, {GPIOC, 7, STRHAL_GPIO_TYPE_OPP}, pyro2_cont, 1),
 	solenoid_0(18, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOD, 9, STRHAL_GPIO_TYPE_OPP}, 1),
 	solenoid_1(19, {ADC2, STRHAL_ADC_CHANNEL_18}, {GPIOD, 8, STRHAL_GPIO_TYPE_OPP}, 1),
-	pressure_control(20, press_1, solenoid_1, 1),
+	pressure_control(20, press_0, solenoid_0, 1),
 	imu_0(21, STRHAL_SPI_SPI3, {STRHAL_SPI_SPI3_SCK_PC10, STRHAL_SPI_SPI3_MISO_PC11, STRHAL_SPI_SPI3_MOSI_PC12, STRHAL_SPI_SPI3_NSS_PA15, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_HH, 0x7, 0}, 1),
+	io_0(22, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOA, 9, STRHAL_GPIO_TYPE_OPP}, 1), // TODO: reused adc channel, switch to output without feedback, same for below
+	io_1(23, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOA, 10, STRHAL_GPIO_TYPE_OPP}, 1),
+	io_3(25, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOC, 9, STRHAL_GPIO_TYPE_OPP}, 1),
+	io_4(26, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOA, 8, STRHAL_GPIO_TYPE_OPP}, 1),
+	io_6(28, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOC, 7, STRHAL_GPIO_TYPE_OPP}, 1),
+	io_7(29, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOC, 8, STRHAL_GPIO_TYPE_OPP}, 1),
 	speaker(STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PB10)
 {
 	cancom = CANCOM::instance(this);
@@ -46,16 +46,16 @@ ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	registerChannel(&servo_0);
 	registerChannel(&servo_1);
 	registerChannel(&servo_2);
-	registerChannel(&pyro0_cont);
-	registerChannel(&pyro1_cont);
-	registerChannel(&pyro2_cont);
-	registerChannel(&pyro_igniter0);
-	registerChannel(&pyro_igniter1);
-	registerChannel(&pyro_igniter2);
 	registerChannel(&solenoid_0);
 	registerChannel(&solenoid_1);
 	registerChannel(&pressure_control);
 	//registerChannel(&imu_0);
+	registerChannel(&io_0);
+	registerChannel(&io_1);
+	registerChannel(&io_3);
+	registerChannel(&io_4);
+	registerChannel(&io_6);
+	registerChannel(&io_7);
 }
 
 int ECU::init() {

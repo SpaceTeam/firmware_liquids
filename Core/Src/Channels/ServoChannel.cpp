@@ -86,7 +86,7 @@ int ServoChannel::exec() {
 				targetHitCount++;
 			}
 
-			if(targetHitCount >= TARG_HIT_MIN || time - timeLastCommand > 800) {
+			if(targetHitCount >= TARG_HIT_MIN || time - timeLastCommand > 3000) {
 				servoState = ServoState::IDLE;
 			}
 			break;

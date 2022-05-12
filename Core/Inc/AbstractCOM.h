@@ -10,6 +10,12 @@ enum class COMState : int {
 	ERR,
 };
 
+enum class COMMode : int {
+	STANDARD_COM_MODE,
+	BRIDGE_COM_MODE
+};
+
+
 class AbstractCOM {
 	public:
 		AbstractCOM(uint32_t nodeId);

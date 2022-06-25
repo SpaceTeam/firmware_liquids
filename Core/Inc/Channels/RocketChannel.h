@@ -24,7 +24,7 @@ enum class IgnitionSequence : int {
 
 class RocketChannel : public AbstractChannel {
 	public:
-		RocketChannel(uint8_t id, const ADCChannel &oxPressureChannel, const ADCChannel &fuelPressureChannel, const ADCChannel &chamberPressureChannel, ServoChannel &oxServoChannel, ServoChannel &fuelServoChannel, PyroChannel &igniter0Channel, PyroChannel &igniter1Channel, uint32_t refreshDivider);
+		RocketChannel(uint8_t id, ADCChannel *oxPressureChannel, ADCChannel *fuelPressureChannel, ADCChannel *chamberPressureChannel, ServoChannel *oxServoChannel, ServoChannel *fuelServoChannel, PyroChannel *igniter0Channel, PyroChannel *igniter1Channel, uint32_t refreshDivider);
 
 		RocketChannel(const RocketChannel &other) = delete;
 		RocketChannel& operator=(const RocketChannel &other) = delete;
@@ -62,13 +62,13 @@ class RocketChannel : public AbstractChannel {
 		void setRocketState(uint8_t *data, uint8_t &n);
 		void getRocketState(uint8_t *data, uint8_t &n);
 
-		const ADCChannel &oxPressureChannel;
-		const ADCChannel &fuelPressureChannel;
-		const ADCChannel &chamberPressureChannel;
-		ServoChannel &oxServoChannel;
-		ServoChannel &fuelServoChannel;
-		PyroChannel &igniter0Channel;
-		PyroChannel &igniter1Channel;
+		ADCChannel *oxPressureChannel;
+		ADCChannel *fuelPressureChannel;
+		ADCChannel *chamberPressureChannel;
+		ServoChannel *oxServoChannel;
+		ServoChannel *fuelServoChannel;
+		PyroChannel *igniter0Channel;
+		PyroChannel *igniter1Channel;
 		ROCKET_STATE state;
 		IgnitionSequence ignitionState;
 

@@ -157,13 +157,13 @@ ROCKET_STATE RocketChannel::ignitionSequence(uint64_t time) {
 			}
 			break;
 		case IgnitionSequence::IGNITION0_ON: // T-2.5 - Ignition
-				if(time - timeLastTransition > 7500) {
+				if(time - timeLastTransition > 8000) {
 					(void) igniter0Channel->setState(65000);
 					ignitionState = IgnitionSequence::IGNITION1_ON;
 				}
 				break;
 		case IgnitionSequence::IGNITION1_ON: // T-1.5 - Ignition
-			if(time - timeLastTransition > 8500) {
+			if(time - timeLastTransition > 9000) {
 				(void) igniter1Channel->setState(65000);
 				ignitionState = IgnitionSequence::T_0;
 			}

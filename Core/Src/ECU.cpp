@@ -1,11 +1,11 @@
 #include "../Inc/ECU.h"
-#include "../Inc/CANCOM.h"
 
 #include <cstdio>
 #include <cstring>
 
 ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	GenericChannel(node_id, fw_version, refresh_divider),
+	flash(W25Qxx_Flash::instance()),
 	ledRed({GPIOD, 1, STRHAL_GPIO_TYPE_OPP}),
 	ledGreen({GPIOD, 2, STRHAL_GPIO_TYPE_OPP}),
 	press_0(0, {ADC2, STRHAL_ADC_CHANNEL_15}, 1),
@@ -20,20 +20,18 @@ ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	servo_0(9, 0, STRHAL_TIM_TIM4, STRHAL_TIM_TIM4_CH2_PB7, {ADC1, STRHAL_ADC_CHANNEL_9}, {ADC1, STRHAL_ADC_CHANNEL_1}, {GPIOC, 13, STRHAL_GPIO_TYPE_OPP}, 1),
 	servo_1(10, 1, STRHAL_TIM_TIM4, STRHAL_TIM_TIM4_CH3_PB8, {ADC1, STRHAL_ADC_CHANNEL_2}, {ADC1, STRHAL_ADC_CHANNEL_3}, {GPIOC, 14, STRHAL_GPIO_TYPE_OPP}, 1),
 	servo_2(11, 2, STRHAL_TIM_TIM4, STRHAL_TIM_TIM4_CH4_PB9, {ADC1, STRHAL_ADC_CHANNEL_4}, {ADC2, STRHAL_ADC_CHANNEL_17}, {GPIOC, 15, STRHAL_GPIO_TYPE_OPP}, 1),
-	solenoid_0(18, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOD, 9, STRHAL_GPIO_TYPE_OPP}, 1),
-	solenoid_1(19, {ADC2, STRHAL_ADC_CHANNEL_18}, {GPIOD, 8, STRHAL_GPIO_TYPE_OPP}, 1),
+	solenoid_0(18, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOD, 9, STRHAL_GPIO_TYPE_OPP}, STRHAL_ADC_INTYPE_OPAMP, 1),
+	solenoid_1(19, {ADC2, STRHAL_ADC_CHANNEL_18}, {GPIOD, 8, STRHAL_GPIO_TYPE_OPP}, STRHAL_ADC_INTYPE_OPAMP, 1),
 	pressure_control(20, press_0, solenoid_0, 1),
-	imu_0(21, STRHAL_SPI_SPI3, {STRHAL_SPI_SPI3_SCK_PC10, STRHAL_SPI_SPI3_MISO_PC11, STRHAL_SPI_SPI3_MOSI_PC12, STRHAL_SPI_SPI3_NSS_PA15, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_HH, 0x7, 0}, 1),
-	io_0(22, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOA, 9, STRHAL_GPIO_TYPE_OPP}, 1), // TODO: reused adc channel, switch to output without feedback, same for below
-	io_1(23, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOA, 10, STRHAL_GPIO_TYPE_OPP}, 1),
-	io_3(25, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOC, 9, STRHAL_GPIO_TYPE_OPP}, 1),
-	io_4(26, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOA, 8, STRHAL_GPIO_TYPE_OPP}, 1),
-	io_6(28, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOC, 7, STRHAL_GPIO_TYPE_OPP}, 1),
-	io_7(29, {ADC2, STRHAL_ADC_CHANNEL_16}, {GPIOC, 8, STRHAL_GPIO_TYPE_OPP}, 1),
+	io_0(22, {GPIOA, 9, STRHAL_GPIO_TYPE_OPP}, 1),
+	io_1(23, {GPIOA, 10, STRHAL_GPIO_TYPE_OPP}, 1),
+	io_3(25, {GPIOC, 9, STRHAL_GPIO_TYPE_OPP}, 1),
+	io_4(26, {GPIOA, 8, STRHAL_GPIO_TYPE_OPP}, 1),
+	io_6(28, {GPIOC, 7, STRHAL_GPIO_TYPE_OPP}, 1),
+	io_7(29, {GPIOC, 8, STRHAL_GPIO_TYPE_OPP}, 1),
+	can(Can::instance(node_id)),
 	speaker(STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PB10)
 {
-	cancom = CANCOM::instance(this);
-	flash = W25Qxx_Flash::instance(0x1F);
 	registerChannel(&press_0);
 	registerChannel(&press_1);
 	registerChannel(&press_2);
@@ -56,31 +54,27 @@ ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	registerChannel(&io_4);
 	registerChannel(&io_6);
 	registerChannel(&io_7);
+
+	registerModule(&flash);
 }
 
-int ECU::init() {
-	if(STRHAL_Init(STRHAL_SYSCLK_SRC_EXT, 8000000) != STRHAL_NOICE)
+int ECU::init()
+{
+	if (STRHAL_Init(STRHAL_SYSCLK_SRC_EXT, 8000000) != STRHAL_NOICE)
 		return -1;
 
 	// init status LEDs
 	STRHAL_GPIO_SingleInit(&ledRed, STRHAL_GPIO_TYPE_OPP);
 	STRHAL_GPIO_SingleInit(&ledGreen, STRHAL_GPIO_TYPE_OPP);
 
-	if(flash == nullptr)
+	// init debug uart
+	if (STRHAL_UART_Instance_Init(STRHAL_UART_DEBUG) != 0)
 		return -1;
 
-	if(flash->init() != 0)
+	if (can.init(receptor, heartbeatCan, COMMode::STANDARD_COM_MODE) != 0)
 		return -1;
 
-	if(cancom == nullptr)
-		return -1;
-
-	CANState = cancom->init();
-	if(CANState != COMState::SBY)
-		return -1;
-
-
-	if(GenericChannel::init() != 0)
+	if (GenericChannel::init() != 0)
 		return -1;
 
 	speaker.init();
@@ -89,22 +83,65 @@ int ECU::init() {
 	return 0;
 }
 
-int ECU::exec() {
+int ECU::exec()
+{
 	STRHAL_OPAMP_Run();
 	STRHAL_ADC_Run();
 	STRHAL_QSPI_Run();
 
-	CANState = cancom->exec();
-	if(CANState != COMState::RUN)
+	if (can.exec() != 0)
 		return -1;
 
 	STRHAL_GPIO_Write(&ledRed, STRHAL_GPIO_VALUE_H);
-	STRHAL_UART_Write("RUNNING\n",8);
+	STRHAL_UART_Debug_Write_Blocking("RUNNING\n", 8, 50);
 
 	speaker.beep(2, 400, 300);
 
-	while(1) {
-		if(GenericChannel::exec() != 0)
+#ifdef UART_DEBUG
+	STRHAL_UART_Listen(STRHAL_UART_DEBUG);
+
+	uint8_t msgBuf[128] =
+	{ 0 };
+	uint8_t bufIndex = 0;
+	bool msgStarted = false;
+#endif
+	while (1)
+	{
+
+		//detectReadoutMode();
+#ifdef UART_DEBUG
+
+		uint8_t tempBuf[64] =
+		{ 0 };
+		int32_t ret = STRHAL_UART_Read(STRHAL_UART_DEBUG, (char *) tempBuf, 64);
+		if(ret > 0) {
+			if(msgStarted) {
+				memcpy(&msgBuf[bufIndex-1], tempBuf, ret);
+				bufIndex += ret;
+				if(tempBuf[ret-1] == 0x0A) { // msg ended
+					msgStarted = false;
+					bufIndex = 0;
+					receptor((uint32_t) (msgBuf[0] << 11), &msgBuf[1], bufIndex - 1);
+					memset(msgBuf, 0, 128);
+				}
+			} else {
+				if(tempBuf[0] == 0x3A) { // start byte
+					if(tempBuf[ret-1] == 0x0A) { // msg ended
+						memcpy(msgBuf, tempBuf, ret - 1);
+						receptor((uint32_t) (msgBuf[0] << 11), &msgBuf[1], ret - 1);
+						memset(msgBuf, 0, 128);
+					}
+					bufIndex += ret;
+					msgStarted = true;
+					if(ret > 1)
+						memcpy(msgBuf, &tempBuf[1], ret-1);
+				}
+				// else ignore msg
+			}
+
+		}
+#endif
+		if (GenericChannel::exec() != 0)
 			return -1;
 	}
 
@@ -113,93 +150,113 @@ int ECU::exec() {
 	return 0;
 }
 
-void ECU::testServo(ServoChannel &servo) {
+void ECU::testServo(ServoChannel &servo)
+{
 	servo.setTargetPos(0);
 	servo.getPos();
 
 	char buf[64];
 	uint64_t t_last_sample = 0;
 	uint8_t state = 0;
-	while(1) {
+	while (1)
+	{
 		uint64_t t = STRHAL_Systick_GetTick();
-		if((t - t_last_sample) > 3000) {
+		if ((t - t_last_sample) > 3000)
+		{
 			t_last_sample = t;
-			if(state == 0) {
+			if (state == 0)
+			{
 				servo.setTargetPos(63000);
 				state = 1;
-			} else {
+			}
+			else
+			{
 				servo.setTargetPos(0);
 				state = 0;
 			}
 
 		}
-		sprintf(buf,"%d, %d, %d\n",servo.getCurrentMeasurement(),servo.getFeedbackMeasurement(), servo.getPos());
-		STRHAL_UART_Write(buf, strlen(buf));
-		if(GenericChannel::exec() != 0)
+		sprintf(buf, "%d, %d, %d\n", servo.getCurrentMeasurement(), servo.getFeedbackMeasurement(), servo.getPos());
+		STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
+		if (GenericChannel::exec() != 0)
 			return;
 	}
 }
 
-void ECU::testChannels() {
+void ECU::testChannels()
+{
 	char read[256], write[256];
 	uint8_t state = 0;
-	STRHAL_UART_Listen();
-	while(1) {
-		int32_t n = STRHAL_UART_Read(read, 2);
-		if(n > 0) {
+	STRHAL_UART_Listen(STRHAL_UART_DEBUG);
+	while (1)
+	{
+		int32_t n = STRHAL_UART_Read(STRHAL_UART_DEBUG, read, 2);
+		if (n > 0)
+		{
 			AbstractChannel *channel = GenericChannel::channels[state];
 			CHANNEL_TYPE type = channel->getChannelType();
-			if(type == CHANNEL_TYPE_ADC16) {
-				ADCChannel * adc = (ADCChannel *) channel;
+			if (type == CHANNEL_TYPE_ADC16)
+			{
+				ADCChannel *adc = (ADCChannel*) channel;
 				int nn = 0;
-				while(nn == 0) {
-					nn = STRHAL_UART_Read(read, 2);
-					std::sprintf(write,"ChanneSTRHAL: %d, ChannelType: %d, Measurement: %d\n",channel->getChanneSTRHAL(),type,adc->getMeasurement());
-					STRHAL_UART_Write(write, strlen(write));
+				while (nn == 0)
+				{
+					nn = STRHAL_UART_Read(STRHAL_UART_DEBUG, read, 2);
+					std::sprintf(write, "ChannelId: %d, ChannelType: %d, Measurement: %d\n", channel->getChannelId(), type, adc->getMeasurement());
+					STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
 					STRHAL_Systick_BusyWait(500);
 				}
-			} else if(type == CHANNEL_TYPE_DIGITAL_OUT) {
+			}
+			else if (type == CHANNEL_TYPE_DIGITAL_OUT)
+			{
 				SetMsg_t set_msg =
 				{ 0 };
 				set_msg.variable_id = DIGITAL_OUT_STATE;
 				set_msg.value = 1;
 				uint8_t ret_n = 0;
-				std::sprintf(write,"ChanneSTRHAL: %d, ChannelType: %d\n",state,type);
-				STRHAL_UART_Write(write, strlen(write));
+				std::sprintf(write, "ChannelId: %d, ChannelType: %d\n", state, type);
+				STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
 				STRHAL_Systick_BusyWait(1000);
-				STRHAL_UART_Write("..Setting Output for 10s in\n", 28);
+				STRHAL_UART_Debug_Write_Blocking("..Setting Output for 10s in\n", 28, 50);
 				STRHAL_Systick_BusyWait(500);
-				STRHAL_UART_Write("..3s\n", 5);
+				STRHAL_UART_Debug_Write_Blocking("..3s\n", 5, 50);
 				STRHAL_Systick_BusyWait(1000);
-				STRHAL_UART_Write("..2s\n", 5);
+				STRHAL_UART_Debug_Write_Blocking("..2s\n", 5, 50);
 				STRHAL_Systick_BusyWait(1000);
-				STRHAL_UART_Write("..1s\n", 5);
+				STRHAL_UART_Debug_Write_Blocking("..1s\n", 5, 50);
 				STRHAL_Systick_BusyWait(1000);
-				channel->processMessage(COMMON_REQ_SET_VARIABLE, (uint8_t *) &set_msg, ret_n);
-				for(int i = 0; i < 5; i++) {
+				channel->processMessage(COMMON_REQ_SET_VARIABLE, (uint8_t*) &set_msg, ret_n);
+				for (int i = 0; i < 5; i++)
+				{
 					uint8_t n = 0;
 					uint8_t meas[2];
 					channel->getSensorData(meas, n);
-					std::sprintf(write,"...Output ON, Measurement: %d\n",meas[0] << 8 | meas[1]);
-					STRHAL_UART_Write(write, strlen(write));
+					std::sprintf(write, "...Output ON, Measurement: %d\n", meas[0] << 8 | meas[1]);
+					STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
 					STRHAL_Systick_BusyWait(2000);
 				}
 				set_msg.variable_id = DIGITAL_OUT_STATE;
 				set_msg.value = 0;
-				channel->processMessage(COMMON_REQ_SET_VARIABLE, (uint8_t *) &set_msg, ret_n);
-				STRHAL_UART_Write("..Output OFF\n", 13);
-			} else if(type == CHANNEL_TYPE_PNEUMATIC_VALVE) {
-				std::sprintf(write,"Channel %d/type: %d not implemented\n",state,type);
-				STRHAL_UART_Write(write, strlen(write));
-				STRHAL_UART_Write("Channel not implemented\n", 24);
-			} else if(type == CHANNEL_TYPE_SERVO) {
-				std::sprintf(write,"Channel %d/type: %d not implemented\n",state,type);
-				STRHAL_UART_Write(write, strlen(write));
-			} else {
-				std::sprintf(write,"Channel %d/type: %d not implemented\n",state,type);
-				STRHAL_UART_Write(write, strlen(write));
+				channel->processMessage(COMMON_REQ_SET_VARIABLE, (uint8_t*) &set_msg, ret_n);
+				STRHAL_UART_Debug_Write_Blocking("..Output OFF\n", 13, 50);
 			}
-			state = (state == 20) ? 0 : (state+1);
+			else if (type == CHANNEL_TYPE_PNEUMATIC_VALVE)
+			{
+				std::sprintf(write, "Channel %d/type: %d not implemented\n", state, type);
+				STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
+				STRHAL_UART_Debug_Write_Blocking("Channel not implemented\n", 24, 50);
+			}
+			else if (type == CHANNEL_TYPE_SERVO)
+			{
+				std::sprintf(write, "Channel %d/type: %d not implemented\n", state, type);
+				STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
+			}
+			else
+			{
+				std::sprintf(write, "Channel %d/type: %d not implemented\n", state, type);
+				STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
+			}
+			state = (state == 20) ? 0 : (state + 1);
 		}
 		STRHAL_Systick_BusyWait(500);
 	}

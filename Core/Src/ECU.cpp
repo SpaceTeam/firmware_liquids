@@ -8,6 +8,7 @@ ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	flash(W25Qxx_Flash::instance()),
 	ledRed({GPIOD, 1, STRHAL_GPIO_TYPE_OPP}),
 	ledGreen({GPIOD, 2, STRHAL_GPIO_TYPE_OPP}),
+	tof_sens(STRHAL_I2C3, {GPIOE, 8, STRHAL_GPIO_TYPE_OPP}),
 	press_0(0, {ADC2, STRHAL_ADC_CHANNEL_15}, 1),
 	press_1(1, {ADC3, STRHAL_ADC_CHANNEL_5}, 1),
 	press_2(2, {ADC1, STRHAL_ADC_CHANNEL_14}, 1),
@@ -29,6 +30,7 @@ ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	io_4(26, {GPIOA, 8, STRHAL_GPIO_TYPE_OPP}, 1),
 	io_6(28, {GPIOC, 7, STRHAL_GPIO_TYPE_OPP}, 1),
 	io_7(29, {GPIOC, 8, STRHAL_GPIO_TYPE_OPP}, 1),
+	tank_level(30, &tof_sens.measurement, 1),
 	can(Can::instance(node_id)),
 	speaker(STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PB10)
 {
@@ -54,8 +56,10 @@ ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	registerChannel(&io_4);
 	registerChannel(&io_6);
 	registerChannel(&io_7);
+	registerChannel(&tank_level);
 
 	registerModule(&flash);
+	registerModule(&tof_sens);
 }
 
 int ECU::init()
@@ -66,6 +70,10 @@ int ECU::init()
 	// init status LEDs
 	STRHAL_GPIO_SingleInit(&ledRed, STRHAL_GPIO_TYPE_OPP);
 	STRHAL_GPIO_SingleInit(&ledGreen, STRHAL_GPIO_TYPE_OPP);
+
+	// init i2c
+	if (STRHAL_I2C_Instance_Init(STRHAL_I2C3) != 0)
+		return -1;
 
 	// init debug uart
 	if (STRHAL_UART_Instance_Init(STRHAL_UART_DEBUG) != 0)

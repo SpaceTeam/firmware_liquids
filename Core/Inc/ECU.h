@@ -12,6 +12,7 @@
 #include <Channels/IMUChannel.h>
 #include <Can.h>
 #include "../Modules/W25Qxx_Flash.h"
+#include "../Modules/VL53L1X.h"
 #include <Speaker.h>
 #include <STRHAL.h>
 
@@ -34,6 +35,9 @@ class ECU: public GenericChannel
 
 		STRHAL_GPIO_t ledRed, ledGreen;
 
+		// Modules
+		VL53L1X tof_sens;
+
 		// Channels
 		ADCChannel press_0, press_1, press_2, press_3, press_4, press_5;
 		ADCChannel temp_0, temp_1, temp_2;
@@ -42,6 +46,7 @@ class ECU: public GenericChannel
 		PressureControlChannel pressure_control;
 		//IMUChannel imu_0;
 		DigitalOutChannel io_0, io_1, io_3, io_4, io_6, io_7;
+		ADCChannel tank_level;
 
 		// Coms
 		Can &can;

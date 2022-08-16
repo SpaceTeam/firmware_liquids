@@ -297,16 +297,16 @@ int VL53L1X::read()
 bool VL53L1X::setDistanceMode()
 {
 	bool ret = true;
-	// timing config
-	ret &= writeRegister8(RANGE_CONFIG__VCSEL_PERIOD_A, 0x0F);
-	ret &= writeRegister8(RANGE_CONFIG__VCSEL_PERIOD_B, 0x0D);
-	ret &= writeRegister8(RANGE_CONFIG__VALID_PHASE_HIGH, 0xB8);
+    // timing config
+	ret &= writeRegister8(RANGE_CONFIG__VCSEL_PERIOD_A, 0x07);
+	ret &= writeRegister8(RANGE_CONFIG__VCSEL_PERIOD_B, 0x05);
+	ret &= writeRegister8(RANGE_CONFIG__VALID_PHASE_HIGH, 0x38);
 
-	// dynamic config
-	ret &= writeRegister8(SD_CONFIG__WOI_SD0, 0x0F);
-	ret &= writeRegister8(SD_CONFIG__WOI_SD1, 0x0D);
-	ret &= writeRegister8(SD_CONFIG__INITIAL_PHASE_SD0, 14); // tuning parm default
-	ret &= writeRegister8(SD_CONFIG__INITIAL_PHASE_SD1, 14); // tuning parm default
+    // dynamic config
+	ret &= writeRegister8(SD_CONFIG__WOI_SD0, 0x07);
+	ret &= writeRegister8(SD_CONFIG__WOI_SD1, 0x05);
+	ret &= writeRegister8(SD_CONFIG__INITIAL_PHASE_SD0, 6); // tuning parm default
+	ret &= writeRegister8(SD_CONFIG__INITIAL_PHASE_SD1, 6); // tuning parm default
 
 	return 0;
 }

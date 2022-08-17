@@ -56,13 +56,17 @@ int ServoChannel::exec() {
 
 	timeLastSample = time;
 
+
+	static bool powerNeeded = false;
+	static bool powerOn = false;
+
 	feedbackPositionLast = feedbackPosition;
-	feedbackPosition = tPosToCanonic(*feedbackMeasurement, adcRef);
+	if(powerOn) feedbackPosition = tPosToCanonic(*feedbackMeasurement, adcRef);
 
 	if(targetPosition != targetPositionLast) {
 		STRHAL_TIM_PWM_SetDuty(&pwmChannel, tPosFromCanonic(targetPosition, pwmRef));
 		STRHAL_TIM_PWM_Enable(&pwmChannel, true);
-		STRHAL_GPIO_Write(&led, STRHAL_GPIO_VALUE_H);
+		powerNeeded = true;
 		targetPositionLast = targetPosition;
 		targetHitCount = 0;
 		timeLastCommand = time;
@@ -78,7 +82,7 @@ int ServoChannel::exec() {
 		case ServoState::IDLE:
 		case ServoState::READY:
 			STRHAL_TIM_PWM_Enable(&pwmChannel, false);
-			STRHAL_GPIO_Write(&led, STRHAL_GPIO_VALUE_L);
+			powerNeeded = false;
 			break;
 
 		case ServoState::MOVIN:
@@ -86,7 +90,7 @@ int ServoChannel::exec() {
 				targetHitCount++;
 			}
 
-			if(targetHitCount >= TARG_HIT_MIN || time - timeLastCommand > 3000) {
+			if(targetHitCount >= TARG_HIT_MIN || time - timeLastCommand > SERVO_TIMEOUT) {
 				servoState = ServoState::IDLE;
 			}
 			break;
@@ -119,6 +123,18 @@ int ServoChannel::exec() {
 		default:
 			return -1;
 	}
+
+	if(powerNeeded || (time % SERVO_POWERCYCLE_PERIOD > SERVO_POWERCYCLE_OFFTIME))
+	{
+		powerOn = true;
+		STRHAL_GPIO_Write(&led, STRHAL_GPIO_VALUE_H);
+	}
+	else
+	{
+		powerOn = false;
+		STRHAL_GPIO_Write(&led, STRHAL_GPIO_VALUE_L);
+	}
+
 	return 0;
 }
 

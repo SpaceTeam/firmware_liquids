@@ -8,6 +8,12 @@
 #include <STRHAL.h>
 #include <W25Qxx_Flash.h>
 
+
+#define SERVO_TIMEOUT 3000
+#define SERVO_POWERCYCLE_PERIOD 5000
+#define SERVO_POWERCYCLE_OFFTIME 500
+
+
 struct ServoRefPos {
 	uint16_t start;
 	uint16_t end;

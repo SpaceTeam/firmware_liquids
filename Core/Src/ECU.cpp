@@ -149,12 +149,6 @@ int ECU::exec()
 
 		}
 #endif
-		if(STRHAL_Systick_GetTick() - lastTick > 200)
-		{
-			lastTick = STRHAL_Systick_GetTick();
-			sprintf(buf, "%d\n", tof_sens.measurement);
-			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
-		}
 
 		if (GenericChannel::exec() != 0)
 			return -1;

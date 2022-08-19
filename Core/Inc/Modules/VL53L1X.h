@@ -20,7 +20,7 @@ class VL53L1X: public AbstractModule
 		volatile uint16_t measurement = 0;
 
 		static constexpr uint8_t SLAVE_ADDR = 0b01010010;
-		static constexpr uint64_t EXEC_SAMPLE_TICKS = 200;
+		static constexpr uint64_t EXEC_SAMPLE_TICKS = 10;
 	    static constexpr uint32_t TimingGuard = 4528;
 	    static constexpr uint16_t TargetRate = 0x0A00;
 

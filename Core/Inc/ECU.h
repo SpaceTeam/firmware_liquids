@@ -45,7 +45,7 @@ class ECU: public GenericChannel
 		DigitalOutChannel solenoid_0, solenoid_1;
 		PressureControlChannel pressure_control;
 		//IMUChannel imu_0;
-		DigitalOutChannel io_0, io_1, io_3, io_4, io_6, io_7;
+		DigitalOutChannel io_0, io_1, io_6, io_7;
 		ADCChannel tank_level;
 
 		// Coms

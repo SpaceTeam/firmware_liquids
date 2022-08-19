@@ -20,7 +20,7 @@ class VL53L1X: public AbstractModule
 		volatile uint16_t measurement = 0;
 
 		static constexpr uint8_t SLAVE_ADDR = 0b01010010;
-		static constexpr uint64_t EXEC_SAMPLE_TICKS = 500;
+		static constexpr uint64_t EXEC_SAMPLE_TICKS = 200;
 	    static constexpr uint32_t TimingGuard = 4528;
 	    static constexpr uint16_t TargetRate = 0x0A00;
 
@@ -1215,13 +1215,14 @@ class VL53L1X: public AbstractModule
 			SHADOW_PHASECAL_RESULT__REFERENCE_PHASE_LO                                 = 0x0FFF,
 		};
 
+		uint8_t readRegister8(uint16_t reg);
+		uint16_t readRegister16(uint16_t reg);
+		uint32_t readRegister32(uint16_t reg);
+
 	private:
 		bool writeRegister8(uint16_t reg, uint8_t value);
 		bool writeRegister16(uint16_t reg, uint16_t value);
 		bool writeRegister32(uint16_t reg, uint32_t value);
-		uint8_t readRegister8(uint16_t reg);
-		uint16_t readRegister16(uint16_t reg);
-		uint32_t readRegister32(uint16_t reg);
 		bool startContinuous(uint32_t period_ms);
 		bool setDistanceMode();
 		bool setMeasurementTimingBudget(uint32_t budget_us);
@@ -1233,6 +1234,8 @@ class VL53L1X: public AbstractModule
 
 		STRHAL_I2C_Id_t i2cId;
 		const STRHAL_GPIO_t enablePin;
+	    uint16_t fast_osc_frequency = 0;
+	    uint16_t osc_calibrate_val = 0;
 
 		uint64_t timeLastSample = 0;
 };

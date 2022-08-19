@@ -26,8 +26,6 @@ ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	pressure_control(20, press_0, solenoid_0, 1),
 	io_0(22, {GPIOA, 9, STRHAL_GPIO_TYPE_OPP}, 1),
 	io_1(23, {GPIOA, 10, STRHAL_GPIO_TYPE_OPP}, 1),
-	io_3(25, {GPIOC, 9, STRHAL_GPIO_TYPE_OPP}, 1),
-	io_4(26, {GPIOA, 8, STRHAL_GPIO_TYPE_OPP}, 1),
 	io_6(28, {GPIOC, 7, STRHAL_GPIO_TYPE_OPP}, 1),
 	io_7(29, {GPIOC, 8, STRHAL_GPIO_TYPE_OPP}, 1),
 	tank_level(30, &tof_sens.measurement, 1),
@@ -52,8 +50,6 @@ ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	//registerChannel(&imu_0);
 	registerChannel(&io_0);
 	registerChannel(&io_1);
-	registerChannel(&io_3);
-	registerChannel(&io_4);
 	registerChannel(&io_6);
 	registerChannel(&io_7);
 	registerChannel(&tank_level);
@@ -85,8 +81,6 @@ int ECU::init()
 	if (GenericChannel::init() != 0)
 		return -1;
 
-	tof_sens.init();
-
 	speaker.init();
 
 	STRHAL_GPIO_Write(&ledGreen, STRHAL_GPIO_VALUE_H);
@@ -115,6 +109,10 @@ int ECU::exec()
 	uint8_t bufIndex = 0;
 	bool msgStarted = false;
 #endif
+	char buf[32] =
+	{ 0 };
+	uint64_t lastTick = STRHAL_Systick_GetTick();
+
 	while (1)
 	{
 
@@ -151,6 +149,13 @@ int ECU::exec()
 
 		}
 #endif
+		if(STRHAL_Systick_GetTick() - lastTick > 200)
+		{
+			lastTick = STRHAL_Systick_GetTick();
+			sprintf(buf, "%d\n", tof_sens.measurement);
+			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
+		}
+
 		if (GenericChannel::exec() != 0)
 			return -1;
 	}

@@ -12,28 +12,12 @@ VL53L1X::VL53L1X(const STRHAL_I2C_Id_t &i2cId, const STRHAL_GPIO_t &enablePin) :
 
 int VL53L1X::init()
 {
-	// Uncomment if baro interrupt should be used
-	/*STRHAL_GPIO_SingleInit(&dataReadyPin, STRHAL_GPIO_TYPE_IHZ);
-	 LL_EXTI_InitTypeDef EXTI_InitStruct = {0};
-	 EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_3;
-	 EXTI_InitStruct.Line_32_63 = LL_EXTI_LINE_NONE;
-	 EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
-	 EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_RISING;
-	 EXTI_InitStruct.LineCommand = ENABLE;
-	 if(LL_EXTI_Init(&EXTI_InitStruct) != 0)
-	 return -1;
-
-	 LL_SYSCFG_SetEXTISource(LL_SYSCFG_EXTI_PORTC, LL_SYSCFG_EXTI_LINE3);
-
-	 NVIC_SetPriority(EXTI3_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 3, 1));
-	 NVIC_EnableIRQ(EXTI3_IRQn);*/
-
-	STRHAL_GPIO_SingleInit(&enablePin, STRHAL_GPIO_TYPE_OPP);
+	//STRHAL_GPIO_SingleInit(&enablePin, STRHAL_GPIO_TYPE_OPP);
 
 	if (STRHAL_I2C_Instance_Init(i2cId) < 0)
 		return -1;
 
-	reset();
+	//reset();
 
 	bool ret = true;
 
@@ -45,6 +29,8 @@ int VL53L1X::init()
 	// call below and the Arduino 101 doesn't seem to handle that well
 	LL_mDelay(1);
 
+	writeRegister8(PAD_I2C_HV__EXTSUP_CONFIG, readRegister8(PAD_I2C_HV__EXTSUP_CONFIG) | 0x01);
+
 	// VL53L1_StaticInit() begin
 
 	// VL53L1_set_preset_mode() begin
@@ -53,6 +39,9 @@ int VL53L1X::init()
 
 	// values labeled "tuning parm default" are from vl53l1_tuning_parm_defaults.h
 	// (API uses these in VL53L1_init_tuning_parm_storage_struct())
+
+	fast_osc_frequency = readRegister16(OSC_MEASURED__FAST_OSC__FREQUENCY);
+	osc_calibrate_val = readRegister16(RESULT__OSC_CALIBRATE_VAL);
 
 	// static config
 	ret &= writeRegister16(DSS_CONFIG__TARGET_TOTAL_RATE_MCPS, TargetRate); // should already be this value after reset
@@ -108,7 +97,7 @@ int VL53L1X::init()
 	// measurement is started; assumes MM1 and MM2 are disabled
 	ret &= writeRegister16(ALGO__PART_TO_PART_RANGE_OFFSET_MM, readRegister16(MM_CONFIG__OUTER_OFFSET_MM) * 4);
 
-	ret &= startContinuous(300);
+	//ret &= startContinuous(500);
 
 	return 0;
 }
@@ -148,7 +137,7 @@ bool VL53L1X::writeRegister8(uint16_t reg, uint8_t value)
 bool VL53L1X::writeRegister16(uint16_t reg, uint16_t value)
 {
 	uint8_t data[] = { (uint8_t)(reg >> 8), (uint8_t)(reg), (uint8_t)(value >> 8), (uint8_t)(value) };
-	uint8_t sent = STRHAL_I2C_Transmit(i2cId, SLAVE_ADDR, data, 3);
+	uint8_t sent = STRHAL_I2C_Transmit(i2cId, SLAVE_ADDR, data, 4);
 
 	return (sent == 4);
 }
@@ -157,7 +146,7 @@ bool VL53L1X::writeRegister16(uint16_t reg, uint16_t value)
 bool VL53L1X::writeRegister32(uint16_t reg, uint32_t value)
 {
 	uint8_t data[] = { (uint8_t)(reg >> 8), (uint8_t)(reg), (uint8_t)(value >> 24), (uint8_t)(value >> 16), (uint8_t)(value >> 8), (uint8_t)(value) };
-	uint8_t sent = STRHAL_I2C_Transmit(i2cId, SLAVE_ADDR, data, 3);
+	uint8_t sent = STRHAL_I2C_Transmit(i2cId, SLAVE_ADDR, data, 6);
 
 	return (sent == 6);
 }
@@ -167,8 +156,8 @@ uint8_t VL53L1X::readRegister8(uint16_t reg)
 {
 	uint8_t value;
 	uint8_t data[] = { (uint8_t)(reg >> 8), (uint8_t)(reg) };
-	STRHAL_I2C_Transmit(i2cId, SLAVE_ADDR, data, 3);
-	STRHAL_I2C_Receive(i2cId, SLAVE_ADDR, &value, 1);
+	STRHAL_I2C_Transmit(i2cId, SLAVE_ADDR, data, 2);
+	STRHAL_I2C_Receive(i2cId, (SLAVE_ADDR | 0x1), &value, 1);
 
 	return value;
 }
@@ -178,8 +167,8 @@ uint16_t VL53L1X::readRegister16(uint16_t reg)
 {
 	uint8_t value[2];
 	uint8_t data[] = { (uint8_t)(reg >> 8), (uint8_t)(reg) };
-	STRHAL_I2C_Transmit(i2cId, SLAVE_ADDR, data, 3);
-	STRHAL_I2C_Receive(i2cId, SLAVE_ADDR, value, 2);
+	STRHAL_I2C_Transmit(i2cId, SLAVE_ADDR, data, 2);
+	STRHAL_I2C_Receive(i2cId, (SLAVE_ADDR | 0x1), value, 2);
 
 	return ( (value[0] << 8) | value[1] );
 }
@@ -189,8 +178,8 @@ uint32_t VL53L1X::readRegister32(uint16_t reg)
 {
 	uint8_t value[4];
 	uint8_t data[] = { (uint8_t)(reg >> 8), (uint8_t)(reg) };
-	STRHAL_I2C_Transmit(i2cId, SLAVE_ADDR, data, 3);
-	STRHAL_I2C_Receive(i2cId, SLAVE_ADDR, value, 2);
+	STRHAL_I2C_Transmit(i2cId, SLAVE_ADDR, data, 2);
+	STRHAL_I2C_Receive(i2cId, (SLAVE_ADDR | 0x1), value, 4);
 
 	return ( (value[0] << 24) | (value[1] << 16) | (value[2] << 8) | value[3] );
 }
@@ -199,7 +188,7 @@ bool VL53L1X::startContinuous(uint32_t period_ms)
 {
 	bool ret = true;
 	// from VL53L1_set_inter_measurement_period_ms()
-	ret &= writeRegister32(SYSTEM__INTERMEASUREMENT_PERIOD, period_ms * readRegister16(RESULT__OSC_CALIBRATE_VAL));
+	ret &= writeRegister32(SYSTEM__INTERMEASUREMENT_PERIOD, period_ms * osc_calibrate_val);
 
 	ret &= writeRegister8(SYSTEM__INTERRUPT_CLEAR, 0x01); // sys_interrupt_clear_range
 	ret &= writeRegister8(SYSTEM__MODE_START, 0x40); // mode_range__timed
@@ -214,6 +203,9 @@ bool VL53L1X::startContinuous(uint32_t period_ms)
 // measurement)
 int VL53L1X::read()
 {
+	(void) writeRegister8(SYSTEM__INTERRUPT_CLEAR, 0x01); // sys_interrupt_clear_range
+	(void) writeRegister8(SYSTEM__MODE_START, 0x10); // mode_range__timed
+
 	uint8_t req[] = { (uint8_t)(RESULT__DSS_ACTUAL_EFFECTIVE_SPADS_SD0 >> 8), (uint8_t)(RESULT__DSS_ACTUAL_EFFECTIVE_SPADS_SD0) };
 	uint8_t sent = STRHAL_I2C_Transmit(i2cId, SLAVE_ADDR, req, 2);
 	if (sent != 2)
@@ -222,7 +214,7 @@ int VL53L1X::read()
 	uint8_t rec[15] =
 	{ 0 };
 
-	(void) STRHAL_I2C_Receive(i2cId, SLAVE_ADDR, rec, 15);
+	(void) STRHAL_I2C_Receive(i2cId, (SLAVE_ADDR | 0x1), rec, 15);
 
 	uint16_t dss_actual_effective_spads_sd0  = (uint16_t) rec[0] << 8;
 	dss_actual_effective_spads_sd0 |= rec[1];
@@ -427,7 +419,7 @@ uint32_t VL53L1X::calcMacroPeriod(uint8_t vcsel_period)
 {
 	// from VL53L1_calc_pll_period_us()
 	// fast osc frequency in 4.12 format; PLL period in 0.24 format
-	uint32_t pll_period_us = ((uint32_t)0x01 << 30) / readRegister16(OSC_MEASURED__FAST_OSC__FREQUENCY);
+	uint32_t pll_period_us = ((uint32_t)0x01 << 30) / fast_osc_frequency;
 
 	// from VL53L1_decode_vcsel_period()
 	uint8_t vcsel_period_pclks = (vcsel_period + 1) << 1;

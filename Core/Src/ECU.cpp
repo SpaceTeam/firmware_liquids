@@ -85,6 +85,8 @@ int ECU::init()
 	if (GenericChannel::init() != 0)
 		return -1;
 
+	tof_sens.init();
+
 	speaker.init();
 
 	STRHAL_GPIO_Write(&ledGreen, STRHAL_GPIO_VALUE_H);

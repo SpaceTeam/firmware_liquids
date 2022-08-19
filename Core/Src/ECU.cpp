@@ -5,7 +5,8 @@
 
 ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	GenericChannel(node_id, fw_version, refresh_divider),
-	flash(W25Qxx_Flash::instance()),
+	//can(Can::instance(node_id)),
+	//flash(W25Qxx_Flash::instance()),
 	ledRed({GPIOD, 1, STRHAL_GPIO_TYPE_OPP}),
 	ledGreen({GPIOD, 2, STRHAL_GPIO_TYPE_OPP}),
 	tof_sens(STRHAL_I2C3, {GPIOE, 8, STRHAL_GPIO_TYPE_OPP}),
@@ -29,7 +30,6 @@ ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	io_6(28, {GPIOC, 7, STRHAL_GPIO_TYPE_OPP}, 1),
 	io_7(29, {GPIOC, 8, STRHAL_GPIO_TYPE_OPP}, 1),
 	tank_level(30, &tof_sens.measurement, 1),
-	can(Can::instance(node_id)),
 	speaker(STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PB10)
 {
 	registerChannel(&press_0);
@@ -109,9 +109,6 @@ int ECU::exec()
 	uint8_t bufIndex = 0;
 	bool msgStarted = false;
 #endif
-	char buf[32] =
-	{ 0 };
-	uint64_t lastTick = STRHAL_Systick_GetTick();
 
 	while (1)
 	{

@@ -6,6 +6,7 @@
 #include <STRHAL.h>
 #include <Radio.h>
 #include "../Modules/W25Qxx_Flash.h"
+#include <Can.h>
 
 class GenericChannel: public AbstractChannel
 {
@@ -49,6 +50,9 @@ class GenericChannel: public AbstractChannel
 		static void receptor(uint32_t id, uint8_t *data, uint32_t n);
 		static void receptorLora(uint32_t id, uint8_t *data, uint32_t n);
 
+		Can& can;
+		W25Qxx_Flash& flash;
+
 	private:
 		uint32_t nodeId;
 		uint32_t firmwareVersion;
@@ -56,7 +60,6 @@ class GenericChannel: public AbstractChannel
 		uint8_t loggingEnabled = 0;
 		uint8_t moduleIndex = 0;
 
-		W25Qxx_Flash& flash;
 };
 
 #endif /*GENERICCHANNEL_H*/

@@ -31,8 +31,6 @@ class ECU: public GenericChannel
 		void testServo(ServoChannel &servo);
 
 	private:
-		W25Qxx_Flash &flash;
-
 		STRHAL_GPIO_t ledRed, ledGreen;
 
 		// Modules
@@ -47,9 +45,6 @@ class ECU: public GenericChannel
 		//IMUChannel imu_0;
 		DigitalOutChannel io_0, io_1, io_6, io_7;
 		ADCChannel tank_level;
-
-		// Coms
-		Can &can;
 
 		Speaker speaker;
 };

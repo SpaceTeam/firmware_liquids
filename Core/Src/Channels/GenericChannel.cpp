@@ -7,7 +7,7 @@ GenericChannel* GenericChannel::gcPtr = nullptr; // necessary for static callbac
 bool GenericChannel::loraActive = false;
 
 GenericChannel::GenericChannel(uint32_t nodeId, uint32_t firmwareVersion, uint32_t refreshDivider) :
-		AbstractChannel(CHANNEL_TYPE_NODE_GENERIC, GENERIC_CHANNEL_ID, refreshDivider), nodeId(nodeId), firmwareVersion(GIT_COMMIT_HASH_VALUE), flash(W25Qxx_Flash::instance())
+		AbstractChannel(CHANNEL_TYPE_NODE_GENERIC, GENERIC_CHANNEL_ID, refreshDivider), can(Can::instance(nodeId)), flash(W25Qxx_Flash::instance()), nodeId(nodeId), firmwareVersion(GIT_COMMIT_HASH_VALUE)
 {
 	gcPtr = this;
 }
@@ -96,6 +96,8 @@ int GenericChannel::processMessage(uint8_t commandId, uint8_t *returnData, uint8
 {
 	for (AbstractChannel *channel : channels)
 	{
+		if (channel == nullptr)
+			continue;
 		if (channel->IsChannelId(channelId))
 		{
 			if (channel->processMessage(commandId, returnData, n) != 0)

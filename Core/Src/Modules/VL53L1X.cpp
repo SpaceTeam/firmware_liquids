@@ -29,6 +29,9 @@ int VL53L1X::init()
 	// call below and the Arduino 101 doesn't seem to handle that well
 	LL_mDelay(1);
 
+	if (readRegister16(IDENTIFICATION__MODEL_ID) != 0xEACC) // return if sensor not connected
+		return 0;
+
 	writeRegister8(PAD_I2C_HV__EXTSUP_CONFIG, readRegister8(PAD_I2C_HV__EXTSUP_CONFIG) | 0x01);
 
 	// VL53L1_StaticInit() begin
@@ -419,7 +422,9 @@ uint32_t VL53L1X::calcMacroPeriod(uint8_t vcsel_period)
 {
 	// from VL53L1_calc_pll_period_us()
 	// fast osc frequency in 4.12 format; PLL period in 0.24 format
-	uint32_t pll_period_us = ((uint32_t)0x01 << 30) / fast_osc_frequency;
+	uint32_t pll_period_us = 0;
+	if (vcsel_period != 0)
+		pll_period_us = ((uint32_t)0x01 << 30) / fast_osc_frequency;
 
 	// from VL53L1_decode_vcsel_period()
 	uint8_t vcsel_period_pclks = (vcsel_period + 1) << 1;

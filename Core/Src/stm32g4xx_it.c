@@ -1,4 +1,5 @@
 #include "stm32g4xx_it.h"
+#include <STRHAL.h>
 
 void NMI_Handler(void)
 {
@@ -6,8 +7,16 @@ void NMI_Handler(void)
 
 void HardFault_Handler(void)
 {
+	uint8_t alt = 0;
 	while (1)
 	{
+		if (alt)
+			LL_GPIO_SetOutputPin(GPIOD, (1 << 1));
+		else
+			LL_GPIO_ResetOutputPin(GPIOD, (1 << 1));
+
+		alt = !alt;
+
 	}
 }
 

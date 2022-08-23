@@ -55,7 +55,7 @@ ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	registerChannel(&tank_level);
 
 	registerModule(&flash);
-	registerModule(&tof_sens);
+	//registerModule(&tof_sens);
 }
 
 int ECU::init()

@@ -37,18 +37,11 @@
 *.hex
 
 # Debug files
-Debug_G491/
-Debug_H7xx/
-Release_H7xx/
-Debug_G491/
-Debug_G491_ECU/
-Debug_G491_PMU/
-Debug_G491_RCU/
-Debug_Uart_G491_ECU/
-Debug_Uart_G491_RCU/
-Debug_H7xx_IOB/
-Debug_H7xx_LCB/
-Release_G491/
+compile_commands.json
+.cache
+.vscode/*.log
+.vscode/.cortex-debug*
+build/
 *.dSYM/
 *.su
 *.idb

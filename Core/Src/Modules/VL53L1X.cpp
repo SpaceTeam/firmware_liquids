@@ -91,7 +91,7 @@ int VL53L1X::init()
 	// default to long range, 50 ms timing budget
 	// note that this is different than what the API defaults to
 	ret &= setDistanceMode();
-	ret &= setMeasurementTimingBudget(30000);
+	ret &= setMeasurementTimingBudget(10000);
 
 	// VL53L1_StaticInit() end
 
@@ -115,7 +115,7 @@ int VL53L1X::exec()
 	if (read() != 0)
 		timeoutCounter++;
 
-	if (timeoutCounter > 5)
+	if (timeoutCounter > 50)
 	{
 		//STRHAL_UART_Debug_Write_Blocking("RESET\n", 6, 100);
 		LL_I2C_DeInit(I2C3);
@@ -318,9 +318,7 @@ int VL53L1X::read()
 		// Basically, this appears to scale the result by 2011/2048, or about 98%
 		// (with the 1024 added for proper rounding).
 		measurement = (uint16_t) (((uint32_t)range * 2011 + 0x0400) / 0x0800);
-		//char buf[32];
-		//sprintf(buf, "%d\n", measurement);
-		//STRHAL_UART_Debug_Write_Blocking(buf, strlen(buf), 100);
+		timeoutCounter = 0;
 		(void) writeRegister8(SYSTEM__INTERRUPT_CLEAR, 0x01); // sys_interrupt_clear_range
 
 		state = Ready;

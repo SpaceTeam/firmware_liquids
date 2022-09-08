@@ -4,6 +4,19 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "GenHash",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "gen_git_hash.sh"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
             "label": "Build",
             "type": "shell",
             "command": "compiledb",

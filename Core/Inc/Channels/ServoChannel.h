@@ -26,7 +26,7 @@ enum class ServoState : int
 class ServoChannel: public AbstractChannel
 {
 	public:
-		ServoChannel(uint8_t id, uint8_t servoId, const STRHAL_TIM_TimerId_t &pwmTimer, const STRHAL_TIM_ChannelId_t &control, const STRHAL_ADC_Channel_t &feedbackChannel, const STRHAL_ADC_Channel_t &currentChannel, const STRHAL_GPIO_t &led, uint32_t refreshDivider);
+		ServoChannel(uint8_t id, uint8_t servoId, const STRHAL_TIM_TimerId_t &pwmTimer, const STRHAL_TIM_ChannelId_t &ctrlChannelId, const STRHAL_ADC_Channel_t &feedbackChannel, const STRHAL_ADC_Channel_t &currentChannel, const STRHAL_GPIO_t &led, uint32_t refreshDivider);
 
 		int init() override;
 		int reset() override;
@@ -85,6 +85,7 @@ class ServoChannel: public AbstractChannel
 
 		uint16_t targetPosition = 0;
 		uint16_t feedbackPosition = 0;
+		uint16_t feedbackPositionOff = 0;
 		uint16_t finalPosition = 0;
 		int16_t step = 0;
 

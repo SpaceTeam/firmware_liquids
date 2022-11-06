@@ -1,4 +1,5 @@
 #include "../Inc/Channels/ServoChannel.h"
+#include "STRHAL_GPIO.h"
 
 #include <STRHAL.h>
 #include <cstring>
@@ -53,7 +54,13 @@ int ServoChannel::exec()
 	timeLastSample = time;
 
 	feedbackPositionLast = feedbackPosition;
-	feedbackPosition = tPosToCanonic(*feedbackMeasurement, adcRef);
+
+	// If LED on (= Servo has power) set to Servo feedback, else use feedback value from last active cycle
+	if (STRHAL_GPIO_ReadOutput(&led) == STRHAL_GPIO_VALUE_H)
+		feedbackPosition = tPosToCanonic(*feedbackMeasurement, adcRef);
+	else
+		feedbackPosition = feedbackPositionOff;
+	
 	if (step != 0)
 	{
 		if (finalPosition != targetPosition)
@@ -104,6 +111,7 @@ int ServoChannel::exec()
 			if(targetHitCount >= TARG_HIT_MIN || time - timeLastCommand > 3000)
 			{
 				servoState = ServoState::IDLE;
+				feedbackPositionOff = feedbackPosition; // Servo will be shutdown by LED next cycle, so save current fdbk pos
 			}
 			break;
 

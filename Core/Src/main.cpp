@@ -14,9 +14,9 @@ int main(void)
 
 #ifdef ECU_BOARD
 #ifdef UART_DEBUG
-	ECU ecu(6,GIT_COMMIT_HASH_VALUE,100); //6 ECU, 7 PMU, 9 TW
+	ECU ecu(6,GIT_COMMIT_HASH_VALUE,1000); //6 ECU, 7 PMU, 9 TW
 #else
-	ECU ecu(6,GIT_COMMIT_HASH_VALUE,2);
+	ECU ecu(6,GIT_COMMIT_HASH_VALUE, 1);
 #endif
 
 	if(ecu.init() != 0)

@@ -10,3 +10,6 @@
 [submodule "Drivers/STM32G474/STRHAL"]
 	path = Drivers/STM32G474/STRHAL
 	url = git@github.com:SpaceTeam/STRHAL.git
+[submodule "Drivers/STM32G431/STRHAL"]
+	path = Drivers/STM32G431/STRHAL
+	url = https://github.com/SpaceTeam/STRHAL.git

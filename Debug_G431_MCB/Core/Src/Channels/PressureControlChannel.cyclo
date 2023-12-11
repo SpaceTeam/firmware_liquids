@@ -1,0 +1,10 @@
+PressureControlChannel.cpp:4:1:PressureControlChannel::PressureControlChannel(uint8_t, GenericChannel&, uint8_t, DigitalOutChannel&, uint32_t)	1
+PressureControlChannel.cpp:9:5:virtual int PressureControlChannel::init()	1
+PressureControlChannel.cpp:15:5:virtual int PressureControlChannel::exec()	8
+PressureControlChannel.cpp:49:5:virtual int PressureControlChannel::reset()	1
+PressureControlChannel.cpp:54:5:virtual int PressureControlChannel::processMessage(uint8_t, uint8_t*, uint8_t&)	1
+PressureControlChannel.cpp:63:5:virtual int PressureControlChannel::getSensorData(uint8_t*, uint8_t&)	1
+PressureControlChannel.cpp:72:5:virtual int PressureControlChannel::setVariable(uint8_t, int32_t)	12
+PressureControlChannel.cpp:107:5:virtual int PressureControlChannel::getVariable(uint8_t, int32_t&) const	8
+PressureControlChannel.h:11:7:PressureControlChannel::~PressureControlChannel()	1
+PressureControlChannel.h:11:7:virtual PressureControlChannel::~PressureControlChannel()	1

@@ -584,7 +584,7 @@ bool W25Qxx_Flash::configErase()
 	return sectorErase(CONFIG_BASE >> 12);
 }
 
-// Resets config, i.e. sets all config registers to 0x000
+// Resets config, i.e. sets all config registers to 0x0000
 bool W25Qxx_Flash::configReset()
 {
 	for (int i = 0; i < PAGE_SIZE / 4; i++)

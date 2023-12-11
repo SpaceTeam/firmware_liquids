@@ -20,7 +20,7 @@ class Data32Channel: public AbstractChannel
 		int exec() override;
 		int getSensorData(uint8_t *data, uint8_t &n) override;
 
-		int32_t getMeasurement() const;
+		int32_t getMeasure() const;
 
 		int processMessage(uint8_t commandId, uint8_t *returnData, uint8_t &n) override;
 

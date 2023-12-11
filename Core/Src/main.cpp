@@ -68,9 +68,10 @@ int main(void)
 	iob.exec();
 #elif defined(IOBv4_BOARD)
 #ifdef UART_DEBUG
-	IOBv4 iob(10,GIT_COMMIT_HASH_VALUE,100); // TODO disregard node ID and read dipswitches in IOB/LCB class
+	// Ox 10, Fuel 11
+	IOBv4 iob(11,GIT_COMMIT_HASH_VALUE,100); // TODO disregard node ID and read dipswitches in IOB/LCB class
 #else
-	IOBv4 iob(10,GIT_COMMIT_HASH_VALUE,1); // TODO disregard node ID and read dipswitches in IOB/LCB class
+	IOBv4 iob(11,GIT_COMMIT_HASH_VALUE,1); // TODO disregard node ID and read dipswitches in IOB/LCB class
 #endif
 	if(iob.init() != 0)
 			return -1;

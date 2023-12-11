@@ -1,3 +1,0 @@
-AbstractControlOutputChannel.cpp:5:1:AbstractControlOutputChannel::AbstractControlOutputChannel()	1
-AbstractControlOutputChannel.cpp:9:1:AbstractControlOutputChannel::~AbstractControlOutputChannel()	1
-AbstractControlOutputChannel.cpp:9:1:virtual AbstractControlOutputChannel::~AbstractControlOutputChannel()	1

@@ -7,9 +7,9 @@ DigitalOutChannel.cpp:37:5:virtual int DigitalOutChannel::processMessage(uint8_t
 DigitalOutChannel.cpp:46:5:virtual int DigitalOutChannel::getSensorData(uint8_t*, uint8_t&)	2
 DigitalOutChannel.cpp:55:5:virtual int DigitalOutChannel::setVariable(uint8_t, int32_t)	6
 DigitalOutChannel.cpp:78:5:virtual int DigitalOutChannel::getVariable(uint8_t, int32_t&) const	5
-DigitalOutChannel.cpp:99:10:virtual uint32_t DigitalOutChannel::getState() const	1
-DigitalOutChannel.cpp:104:5:virtual int DigitalOutChannel::setState(uint32_t)	2
-DigitalOutChannel.cpp:118:6:virtual bool DigitalOutChannel::isAnalog()	1
-DigitalOutChannel.cpp:123:10:uint16_t DigitalOutChannel::getMeasurement() const	1
-DigitalOutChannel.h:9:7:DigitalOutChannel::~DigitalOutChannel()	1
-DigitalOutChannel.h:9:7:virtual DigitalOutChannel::~DigitalOutChannel()	1
+DigitalOutChannel.cpp:99:10:uint32_t DigitalOutChannel::getState() const	1
+DigitalOutChannel.cpp:104:5:int DigitalOutChannel::setState(uint32_t)	2
+DigitalOutChannel.cpp:118:6:bool DigitalOutChannel::isAnalog()	1
+DigitalOutChannel.cpp:123:10:virtual uint16_t DigitalOutChannel::getMeasurement() const	1
+DigitalOutChannel.h:8:7:DigitalOutChannel::~DigitalOutChannel()	1
+DigitalOutChannel.h:8:7:virtual DigitalOutChannel::~DigitalOutChannel()	1

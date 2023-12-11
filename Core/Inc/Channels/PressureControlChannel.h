@@ -3,7 +3,6 @@
 
 #include "./Channels/AbstractChannel.h"
 #include "./Channels/GenericChannel.h"
-#include "./Channels/AbstractControlOutputChannel.h"
 #include "./Channels/DigitalOutChannel.h"
 #include "./Channels/ADCChannel.h"
 #include <can_houbolt/channels/control_channel_def.h>
@@ -12,7 +11,7 @@
 class PressureControlChannel: public AbstractChannel
 {
 	public:
-		PressureControlChannel(uint8_t id, GenericChannel &parent, uint8_t inputChannelId, AbstractControlOutputChannel &solenoidChannel, uint32_t refreshDivider);
+		PressureControlChannel(uint8_t id, GenericChannel &parent, uint8_t inputChannelId, DigitalOutChannel &solenoidChannel, uint32_t refreshDivider);
 
 		PressureControlChannel(const PressureControlChannel &other) = delete;
 		PressureControlChannel& operator=(const PressureControlChannel &other) = delete;
@@ -40,7 +39,7 @@ class PressureControlChannel: public AbstractChannel
 		uint16_t hysteresis = 0;
 		GenericChannel &parent;
 		uint8_t inputChannelId;
-		AbstractControlOutputChannel &solenoidChannel;
+		DigitalOutChannel &solenoidChannel;
 
 		uint64_t timeLastSample = 0;
 

@@ -68,7 +68,7 @@ int Data32Channel::getVariable(uint8_t variableId, int32_t &data) const
 	}
 }
 
-int32_t Data32Channel::getMeasurement() const
+int32_t Data32Channel::getMeasure() const
 {
 	return *dataPtr;
 }

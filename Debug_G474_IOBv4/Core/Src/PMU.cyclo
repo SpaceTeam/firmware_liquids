@@ -9,7 +9,7 @@ ADCChannel.h:8:7:ADCChannel::~ADCChannel()	1
 ADCChannel.h:8:7:virtual ADCChannel::~ADCChannel()	1
 DigitalInChannel.h:8:7:DigitalInChannel::~DigitalInChannel()	1
 DigitalInChannel.h:8:7:virtual DigitalInChannel::~DigitalInChannel()	1
-DigitalOutChannel.h:9:7:DigitalOutChannel::~DigitalOutChannel()	1
-DigitalOutChannel.h:9:7:virtual DigitalOutChannel::~DigitalOutChannel()	1
+DigitalOutChannel.h:8:7:DigitalOutChannel::~DigitalOutChannel()	1
+DigitalOutChannel.h:8:7:virtual DigitalOutChannel::~DigitalOutChannel()	1
 IMUChannel.h:9:7:IMUChannel::~IMUChannel()	1
 IMUChannel.h:9:7:virtual IMUChannel::~IMUChannel()	1

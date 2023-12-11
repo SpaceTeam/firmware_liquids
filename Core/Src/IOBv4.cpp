@@ -49,7 +49,7 @@ IOBv4::IOBv4(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	registerChannel(&channel9);
 	registerChannel(&channel10);
 	registerChannel(&channel11);
-
+	registerChannel(&pressurecontrol0);
 	registerModule(&flash);
 
 }

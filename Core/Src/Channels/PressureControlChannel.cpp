@@ -1,7 +1,7 @@
 #include <Channels/PressureControlChannel.h>
 
 
-PressureControlChannel::PressureControlChannel(uint8_t id, GenericChannel &parent, uint8_t inputChannelId, AbstractControlOutputChannel &solenoidChannel, uint32_t refreshDivider):
+PressureControlChannel::PressureControlChannel(uint8_t id, GenericChannel &parent, uint8_t inputChannelId, DigitalOutChannel &solenoidChannel, uint32_t refreshDivider):
 		AbstractChannel(CHANNEL_TYPE_CONTROL, id, refreshDivider), parent(parent),inputChannelId(inputChannelId), solenoidChannel(solenoidChannel)
 {
 }
@@ -20,24 +20,25 @@ int PressureControlChannel::exec()
 
 	timeLastSample = time;
 
-	uint16_t pressure = parent.getControlInputChannel(inputChannelId)->getMeasurement(); //pressureChannel.getMeasurement();
 	if (enabled == 1)
 	{
+
+		uint16_t pressure = (parent.getControlInputChannel(inputChannelId))->getMeasurement(); //pressureChannel.getMeasurement();
 		if (pressure > threshold)
 		{ // pressure too high
 			threshold = targetPressure - hysteresis;
-			if (solenoidChannel.getState() != 1)
+			if (solenoidChannel.getState() != 0)// if not already closed -> close
 			{
-				if (solenoidChannel.setState(1) != 0) // if not already open -> open
+				if (solenoidChannel.setState(0) != 0)
 					return -1;
 			}
 		}
 		else
 		{ // pressure below threshold
 			threshold = targetPressure;
-			if (solenoidChannel.getState() != 0)
+			if (solenoidChannel.getState() != 1)// if not already open -> open
 			{
-				if (solenoidChannel.setState(0) != 0) // if not already closed -> close
+				if (solenoidChannel.setState(1) != 0)
 					return -1;
 			}
 		}
@@ -89,6 +90,11 @@ int PressureControlChannel::setVariable(uint8_t variableId, int32_t data)
 		case CONTROL_HYSTERESIS:
 			hysteresis = data * 4095 / UINT16_MAX;
 			return 0;
+		case CONTROL_ACTUATOR_CHANNEL_ID:
+			return -1;
+		case CONTROL_SENSOR_CHANNEL_ID:
+			inputChannelId = data;
+			return 0;
 		case CONTROL_REFRESH_DIVIDER:
 			refreshDivider = data;
 			refreshCounter = 0;
@@ -113,6 +119,12 @@ int PressureControlChannel::getVariable(uint8_t variableId, int32_t &data) const
 			return 0;
 		case CONTROL_HYSTERESIS:
 			data = hysteresis * UINT16_MAX / 4095;
+			return 0;
+		case CONTROL_ACTUATOR_CHANNEL_ID:
+			data = solenoidChannel.getChannelId();
+			return -1;
+		case CONTROL_SENSOR_CHANNEL_ID:
+			data = (int32_t) inputChannelId;
 			return 0;
 		case CONTROL_REFRESH_DIVIDER:
 			data = (int32_t) refreshDivider;

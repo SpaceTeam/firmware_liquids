@@ -47,14 +47,14 @@ int ADCChannel::getSensorData(uint8_t *data, uint8_t &n)
 	uint16_t *out = (uint16_t*) (data + n);
 //	*out = *adcMeasurement << 4; // shift it to 16bit full scale
 	*out = *adcMeasurement; // with Oversampling enabled
-
-/*char buf[32];
+/*
+	char buf[32];
 	if (n == 6)
 	{
-	 sprintf(buf,"%d\n", *adcMeasurement);
+	 sprintf(buf,"%d\n", *out);
 	 STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
 	}
-	*/
+*/
 	n += ADC16_DATA_N_BYTES;
 	return 0;
 }

@@ -9,6 +9,7 @@
 #include <Channels/GenericChannel.h>
 #include <Can.h>
 #include <Speaker.h>
+#include <Modules/TempExt.h>
 
 #include <STRHAL.h>
 
@@ -29,6 +30,7 @@ class IOBv4: public GenericChannel
 		DigitalOutChannel channel0, /*channel1, channel2,*/ channel3, channel4, channel5, channel6, channel7, channel8, channel9, channel10, channel11;//, channel12;
 		PressureControlChannel pressurecontrol0;
 		Speaker speaker;
+		TempExt tempext;
 
 };
 

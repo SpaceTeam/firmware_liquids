@@ -30,7 +30,8 @@ IOBv4::IOBv4(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		channel11(11,{ ADC1, STRHAL_ADC_CHANNEL_7 },	{ GPIOB,  3, STRHAL_GPIO_TYPE_OPP }, STRHAL_ADC_INTYPE_REGULAR, 1),
 		pressurecontrol0(12, (GenericChannel&)*this, 4, channel9, 1),
 
-		speaker(STRHAL_TIM_TIM8, STRHAL_TIM_TIM8_CH4_PC9)
+		speaker(STRHAL_TIM_TIM8, STRHAL_TIM_TIM8_CH4_PC9),
+		tempext(STRHAL_SPI_SPI3,{ STRHAL_SPI_SPI3_SCK_PC10, STRHAL_SPI_SPI3_MISO_PC11, STRHAL_SPI_SPI3_MOSI_PC12, STRHAL_SPI_SPI3_NSS_PA15, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_HH, 0x7, 0 }, { GPIOD, 0, STRHAL_GPIO_TYPE_IHZ }, 0xAF)
 {
 
 	//registerChannel(&servo0);
@@ -51,6 +52,7 @@ IOBv4::IOBv4(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	registerChannel(&channel11);
 
 	registerModule(&flash);
+	registerModule(&tempext);
 
 }
 

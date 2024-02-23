@@ -8,7 +8,7 @@
 class TempExt: public AbstractModule
 {
 	public:
-		TempExt(const STRHAL_SPI_Id_t &spiId, const STRHAL_SPI_Config_t &spiConf, const STRHAL_GPIO_t &dataReadyPin, uint8_t deviceID);
+		TempExt(const STRHAL_SPI_Id_t &spiId, const STRHAL_SPI_Config_t &spiConf, uint8_t deviceID);
 
 		int init() override;
 		int exec() override;
@@ -17,7 +17,6 @@ class TempExt: public AbstractModule
 	private:
 		STRHAL_SPI_Id_t spiId;
 		STRHAL_SPI_Config_t spiConf;
-		const STRHAL_GPIO_t dataReadyPin;
 		uint8_t deviceID;
 
 };

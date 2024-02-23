@@ -3,8 +3,8 @@
 #include <cstring>
 #include <STRHAL.h>
 
-TempExt::TempExt(const STRHAL_SPI_Id_t &spiId, const STRHAL_SPI_Config_t &spiConf, const STRHAL_GPIO_t &dataReadyPin, uint8_t deviceID) :
-		spiId(spiId), spiConf(spiConf), dataReadyPin(dataReadyPin), deviceID(deviceID)
+TempExt::TempExt(const STRHAL_SPI_Id_t &spiId, const STRHAL_SPI_Config_t &spiConf, uint8_t deviceID) :
+		spiId(spiId), spiConf(spiConf), deviceID(deviceID)
 {
 }
 

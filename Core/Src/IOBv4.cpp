@@ -31,7 +31,18 @@ IOBv4::IOBv4(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		pressurecontrol0(12, (GenericChannel&)*this, 4, channel9, 1),
 
 		speaker(STRHAL_TIM_TIM8, STRHAL_TIM_TIM8_CH4_PC9),
-		tempext({ GPIOB, 13, STRHAL_GPIO_TYPE_OPP }, { GPIOB, 12, STRHAL_GPIO_TYPE_OPP }, {GPIOE, 9, STRHAL_GPIO_TYPE_OPP }, {GPIOE, 8, STRHAL_GPIO_TYPE_OPP })
+		tempext(
+				{ GPIOB, 13, STRHAL_GPIO_TYPE_OPP },
+				{ GPIOB, 12, STRHAL_GPIO_TYPE_OPP },
+				{ GPIOE, 9, STRHAL_GPIO_TYPE_OPP },
+				{ GPIOE, 8, STRHAL_GPIO_TYPE_OPP },
+				STRHAL_GPIO_VALUE_H,
+				STRHAL_GPIO_VALUE_L,
+				STRHAL_GPIO_VALUE_H,
+				STRHAL_GPIO_VALUE_L,
+				{ GPIOE, 10, STRHAL_GPIO_TYPE_OPP },
+				{ GPIOE, 11, STRHAL_GPIO_TYPE_OPP }
+		)
 {
 
 	//registerChannel(&servo0);

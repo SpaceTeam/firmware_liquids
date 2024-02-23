@@ -48,6 +48,8 @@ Debug_Uart_G491_ECU/
 Debug_Uart_G491_RCU/
 Debug_H7xx_IOB/
 Debug_H7xx_LCB/
+Debug_G474_IOBv4/
+Debug_UART_G474_IOBv3/
 Release_G491/
 *.dSYM/
 *.su

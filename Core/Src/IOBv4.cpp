@@ -36,18 +36,19 @@ IOBv4::IOBv4(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 				{ GPIOB, 12, STRHAL_GPIO_TYPE_OPP },
 				{ GPIOE, 9, STRHAL_GPIO_TYPE_OPP },
 				{ GPIOE, 8, STRHAL_GPIO_TYPE_OPP },
-				STRHAL_GPIO_VALUE_H,
 				STRHAL_GPIO_VALUE_L,
-				STRHAL_GPIO_VALUE_H,
+				STRHAL_GPIO_VALUE_L,
+				STRHAL_GPIO_VALUE_L,
 				STRHAL_GPIO_VALUE_L,
 				{ GPIOE, 10, STRHAL_GPIO_TYPE_OPP },
-				{ GPIOE, 11, STRHAL_GPIO_TYPE_OPP }
+				STRHAL_SPI_SPI1,
+				{ STRHAL_SPI_SPI4_SCK_PE12,  STRHAL_SPI_SPI4_MISO_PE13, STRHAL_SPI_SPI4_MOSI_PE14, STRHAL_SPI_SPI4_NSS_PE11, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_HH}
 		)
 {
 
 	//registerChannel(&servo0);
-	registerChannel(&servo1);
-	registerChannel(&servo2);
+	// registerChannel(&servo1);  # TODO: uncomment
+	// registerChannel(&servo2);
 
 	registerChannel(&channel0);
 	//registerChannel(&channel1);

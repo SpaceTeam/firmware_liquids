@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstring>
 #include <STRHAL.h>
+#include <iostream>
 
 TempExt::TempExt(
 		const STRHAL_GPIO_t &addrPin0,
@@ -45,8 +46,14 @@ int TempExt::init()
 	STRHAL_GPIO_Write(&addrPin3, addr3);
 	STRHAL_GPIO_Write(&muxEnable, STRHAL_GPIO_VALUE_L);
 
+	STRHAL_SPI_Init();
 	if (STRHAL_SPI_Master_Init(spiId, &spiConf) < 0)
 		return -1;
+
+	STRHAL_SPI_Master_Run(spiId);
+
+	uint8_t config = 0xC0;
+	writeReg(TempExtAddr::CONFIG, config, 50);
 
 	return 0;
 }
@@ -54,32 +61,58 @@ int TempExt::init()
 int TempExt::exec()
 {
 	uint64_t time = STRHAL_Systick_GetTick();
-	if ((time - timeLastSample) < EXEC_SAMPLE_TICKS)
+
+	if ((time - timeLastSample) > EXEC_SAMPLE_TICKS){
+		timeLastSample = time;
+		return read();
+
+	}
 		return 0;
-
-	timeLastSample = time;
-	(void) read();
-
-	return 0;
 }
 
 int TempExt::read()
 {
-	uint8_t data;
-	if(readReg(TempExtAddr::DATA_MSB, &data) < 0){
+	uint8_t data[2] = {0};
+	if(readReg(TempExtAddr::DATA_LSB, &data[0]) < 0){
 		STRHAL_UART_Debug_Write_Blocking("SPI ERROR\n", 9, 50);
 		return -1;
 	}
-	const char data_char = (const char)data;
-	STRHAL_UART_Debug_Write_Blocking("SPI READ\n", 9, 50);
-	STRHAL_UART_Debug_Write_Blocking(&data_char, 9, 50);
+
+	if(readReg(TempExtAddr::DATA_MSB, &data[1]) < 0){
+		STRHAL_UART_Debug_Write_Blocking("SPI ERROR\n", 9, 50);
+		return -1;
+	}
+
+	STRHAL_UART_Debug_Write_Blocking((const char*)data, 1, 50);
+	STRHAL_UART_Debug_Write_Blocking((const char*)(data + 1), 1, 50);
+
+	STRHAL_UART_Debug_Write_Blocking("\n", 2, 50);
+	return 0;
 }
 
-bool TempExt::readReg(const TempExtAddr &address, uint8_t *reg)
+int TempExt::readReg(const TempExtAddr &address, uint8_t *reg)
 {
 	uint8_t cmd = static_cast<uint8_t>(address);
+	uint32_t value;
 
-	return STRHAL_SPI_Master_Transceive(spiId, &cmd, 1, 0, reg, 1, 100);
+	if (STRHAL_SPI_Master_Transceive(spiId, &cmd, 1, 0, (uint8_t*)&value, 4, 500) < 0){
+		return -1;
+	}
+	uint8_t mydata = (uint8_t)(value >> 16);
+	*reg = mydata;
+}
+
+int TempExt::writeReg(const TempExtAddr &address, uint8_t val, uint16_t delay) {
+	uint8_t cmd[2];
+
+	cmd[0] = static_cast<uint8_t>(address);
+	cmd[1] = val;
+
+	if (STRHAL_SPI_Master_Transceive(spiId, cmd, 2, 2, nullptr, 0, 100) != 0)
+		return -1;
+
+	LL_mDelay(delay);
+	return 0;
 }
 
 int TempExt::reset()

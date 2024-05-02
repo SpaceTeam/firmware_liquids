@@ -73,12 +73,12 @@ int TempExt::exec()
 int TempExt::read()
 {
 	uint8_t data[2] = {0};
-	if(readReg(TempExtAddr::DATA_LSB, &data[0]) < 0){
+	if(readReg(TempExtAddr::DATA_LSB, &data[0], 32) < 0){
 		STRHAL_UART_Debug_Write_Blocking("SPI ERROR\n", 9, 50);
 		return -1;
 	}
 
-	if(readReg(TempExtAddr::DATA_MSB, &data[1]) < 0){
+	if(readReg(TempExtAddr::DATA_MSB, &data[1], 16) < 0){
 		STRHAL_UART_Debug_Write_Blocking("SPI ERROR\n", 9, 50);
 		return -1;
 	}
@@ -90,7 +90,7 @@ int TempExt::read()
 	return 0;
 }
 
-int TempExt::readReg(const TempExtAddr &address, uint8_t *reg)
+int TempExt::readReg(const TempExtAddr &address, uint8_t *reg, uint8_t shift)
 {
 	uint8_t cmd = static_cast<uint8_t>(address);
 	uint32_t value;
@@ -98,7 +98,7 @@ int TempExt::readReg(const TempExtAddr &address, uint8_t *reg)
 	if (STRHAL_SPI_Master_Transceive(spiId, &cmd, 1, 0, (uint8_t*)&value, 4, 500) < 0){
 		return -1;
 	}
-	uint8_t mydata = (uint8_t)(value >> 16);
+	uint8_t mydata = (uint8_t)(value >> shift);
 	*reg = mydata;
 }
 

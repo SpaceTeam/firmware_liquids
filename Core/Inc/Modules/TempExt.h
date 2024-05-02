@@ -37,7 +37,7 @@ class TempExt: public AbstractModule
 		static constexpr uint64_t EXEC_SAMPLE_TICKS = 1000;
 
 	private:
-		int readReg(const TempExtAddr &address, uint8_t *reg);
+		int readReg(const TempExtAddr &address, uint8_t *reg, uint8_t shift);
 		int writeReg(const TempExtAddr &address, uint8_t val, uint16_t delay);
 
 		uint8_t deviceID;

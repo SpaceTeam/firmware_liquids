@@ -73,7 +73,7 @@ int TempExt::exec()
 int TempExt::read()
 {
 	uint8_t data[2] = {0};
-	if(readReg(TempExtAddr::DATA_LSB, &data[0], 32) < 0){
+	if(readReg(TempExtAddr::DATA_LSB, &data[0], 8) < 0){
 		STRHAL_UART_Debug_Write_Blocking("SPI ERROR\n", 9, 50);
 		return -1;
 	}

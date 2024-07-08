@@ -1,6 +1,6 @@
 "./Core/Src/AbstractCom.o"
 "./Core/Src/Can.o"
-"./Core/Src/ECU.o"
+"./Core/Src/ECU_uHb.o"
 "./Core/Src/IOBv1.o"
 "./Core/Src/IOBv3.o"
 "./Core/Src/IOBv4.o"

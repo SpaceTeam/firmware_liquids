@@ -1,5 +1,5 @@
-#ifndef ECU_H
-#define ECU_H
+#ifndef ECU_UHB_H
+#define ECU_UHB_H
 
 #include <Channels/ADCChannel.h>
 #include <Channels/DigitalOutChannel.h>
@@ -14,12 +14,12 @@
 #include <Speaker.h>
 #include <STRHAL.h>
 
-class ECU: public GenericChannel
+class ECU_uHb: public GenericChannel
 {
 	public:
-		ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider);
-		ECU(const ECU &other) = delete;
-		ECU& operator=(const ECU &other) = delete;
+		ECU_uHb(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider);
+		ECU_uHb(const ECU_uHb &other) = delete;
+		ECU_uHb& operator=(const ECU_uHb &other) = delete;
 
 		int init() override;
 		//int reset() override;
@@ -44,4 +44,4 @@ class ECU: public GenericChannel
 		Speaker speaker;
 };
 
-#endif /*ECU_H*/
+#endif /*ECU_UHB_H*/

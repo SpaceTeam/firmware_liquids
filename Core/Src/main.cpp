@@ -1,9 +1,9 @@
+#include "ECU_uHb.h"
 #include "IOBv1.h"
 #include "IOBv3.h"
 #include "IOBv4.h"
 
 #include <STRHAL.h>
-#include "ECU.h"
 #include "PMU.h"
 #include "RCU.h"
 #include "LCB.h"
@@ -12,11 +12,11 @@
 int main(void)
 {
 
-#ifdef ECU_BOARD
+#ifdef ECU_UHB_BOARD
 #ifdef UART_DEBUG
-	ECU ecu(6,GIT_COMMIT_HASH_VALUE,1000); //6 ECU, 7 PMU, 9 TW
+	ECU_uHb ecu(6,GIT_COMMIT_HASH_VALUE,1000); //6 ECU, 7 PMU, 9 TW
 #else
-	ECU ecu(6,GIT_COMMIT_HASH_VALUE, 1);
+	ECU_uHb ecu(6,GIT_COMMIT_HASH_VALUE, 1);
 #endif
 
 	if(ecu.init() != 0)

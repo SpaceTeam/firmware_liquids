@@ -42,6 +42,7 @@ Release_H7xx/
 Debug_G474_IOBv3/
 Debug_G491/
 Debug_G491_ECU/
+Debug_G491_ECU_UHB/
 Debug_G491_PMU/
 Debug_G491_RCU/
 Debug_Uart_G491_ECU/

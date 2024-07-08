@@ -1,9 +1,9 @@
-#include "../Inc/ECU.h"
+#include "../Inc/ECU_uHb.h"
 
 #include <cstdio>
 #include <cstring>
 
-ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
+ECU_uHb::ECU_uHb(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		GenericChannel(node_id, fw_version, refresh_divider),
 		ledRed({ GPIOD, 1, STRHAL_GPIO_TYPE_OPP }),
 		ledGreen({ GPIOD, 2, STRHAL_GPIO_TYPE_OPP }),
@@ -59,7 +59,7 @@ ECU::ECU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	registerModule(&flash);
 }
 
-int ECU::init()
+int ECU_uHb::init()
 {
 	if (STRHAL_Init(STRHAL_SYSCLK_SRC_EXT, 8000000) != STRHAL_NOICE)
 		return -1;
@@ -84,7 +84,7 @@ int ECU::init()
 	return 0;
 }
 
-int ECU::exec()
+int ECU_uHb::exec()
 {
 	STRHAL_OPAMP_Run();
 	STRHAL_ADC_Run();
@@ -152,7 +152,7 @@ int ECU::exec()
 	return 0;
 }
 
-void ECU::testServo(ServoChannel &servo)
+void ECU_uHb::testServo(ServoChannel &servo)
 {
 	servo.setTargetPos(0);
 	servo.getPos();
@@ -185,7 +185,7 @@ void ECU::testServo(ServoChannel &servo)
 	}
 }
 
-void ECU::testChannels()
+void ECU_uHb::testChannels()
 {
 	char read[256], write[256];
 	uint8_t state = 0;

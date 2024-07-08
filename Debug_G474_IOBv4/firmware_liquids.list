@@ -29,21 +29,21 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY
  12 .debug_info   00027027  00000000  00000000  000207b4  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 0000665b  00000000  00000000  000477db  2**0
+ 13 .debug_abbrev 00006622  00000000  00000000  000477db  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 00001888  00000000  00000000  0004de38  2**3
+ 14 .debug_aranges 00001888  00000000  00000000  0004de00  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_ranges 00001670  00000000  00000000  0004f6c0  2**3
+ 15 .debug_ranges 00001670  00000000  00000000  0004f688  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  0002ae49  00000000  00000000  00050d30  2**0
+ 16 .debug_macro  0002ae51  00000000  00000000  00050cf8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   00019448  00000000  00000000  0007bb79  2**0
+ 17 .debug_line   0001b6ed  00000000  00000000  0007bb49  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000df6ac  00000000  00000000  00094fc1  2**0
+ 18 .debug_str    000df6dd  00000000  00000000  00097236  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000050  00000000  00000000  0017466d  2**0
+ 19 .comment      00000050  00000000  00000000  00176913  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00006a58  00000000  00000000  001746c0  2**2
+ 20 .debug_frame  00006a58  00000000  00000000  00176964  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -230,7 +230,7 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
  800030a:	2b00      	cmp	r3, #0
  800030c:	d102      	bne.n	8000314 <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x1c>
 		return -1;
- 800030e:	f04f 33ff 	mov.w	r3, #4294967295
+ 800030e:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8000312:	e17a      	b.n	800060a <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x312>
 
 	standardReceptor = receptor;
@@ -250,19 +250,19 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
  800032c:	2b00      	cmp	r3, #0
  800032e:	d002      	beq.n	8000336 <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x3e>
 		return -1;
- 8000330:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000330:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8000334:	e169      	b.n	800060a <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x312>
 
 	//if (STRHAL_CAN_Instance_Init(STRHAL_FDCAN2) != 0)
 	//	return -1;
 
-	if (STRHAL_TIM_Heartbeat_Init(STRHAL_TIM_TIM7, 1600, 1000) != 100)
- 8000336:	f44f 727a 	mov.w	r2, #1000	; 0x3e8
- 800033a:	f44f 61c8 	mov.w	r1, #1600	; 0x640
- 800033e:	2001      	movs	r0, #1
- 8000340:	f008 fbb2 	bl	8008aa8 <STRHAL_TIM_Heartbeat_Init>
- 8000344:	4603      	mov	r3, r0
- 8000346:	2b64      	cmp	r3, #100	; 0x64
+	if (STRHAL_TIM_Heartbeat_Init(STRHAL_TIM_TIM7, 1600, 100) != 1000)
+ 8000336:	2264      	movs	r2, #100	; 0x64
+ 8000338:	f44f 61c8 	mov.w	r1, #1600	; 0x640
+ 800033c:	2001      	movs	r0, #1
+ 800033e:	f008 fbb3 	bl	8008aa8 <STRHAL_TIM_Heartbeat_Init>
+ 8000342:	4603      	mov	r3, r0
+ 8000344:	f5b3 7f7a 	cmp.w	r3, #1000	; 0x3e8
  8000348:	bf14      	ite	ne
  800034a:	2301      	movne	r3, #1
  800034c:	2300      	moveq	r3, #0
@@ -270,7 +270,7 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
  8000350:	2b00      	cmp	r3, #0
  8000352:	d002      	beq.n	800035a <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x62>
 		return -1;
- 8000354:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000354:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8000358:	e157      	b.n	800060a <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x312>
 
 	if (STRHAL_TIM_Heartbeat_Subscribe(STRHAL_TIM_TIM7, heartbeat) != 0)
@@ -286,7 +286,7 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
  800036e:	2b00      	cmp	r3, #0
  8000370:	d002      	beq.n	8000378 <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x80>
 		return -1;
- 8000372:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000372:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8000376:	e148      	b.n	800060a <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x312>
 
 	if (mode == COMMode::STANDARD_COM_MODE)
@@ -392,7 +392,7 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
  8000452:	2b00      	cmp	r3, #0
  8000454:	f000 80d8 	beq.w	8000608 <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x310>
 			return -1;
- 8000458:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000458:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  800045c:	e0d5      	b.n	800060a <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x312>
 	}
 	else if (mode == COMMode::LISTENER_COM_MODE)
@@ -555,7 +555,7 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
  800059a:	2b00      	cmp	r3, #0
  800059c:	d034      	beq.n	8000608 <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x310>
 			return -1;
- 800059e:	f04f 33ff 	mov.w	r3, #4294967295
+ 800059e:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80005a2:	e032      	b.n	800060a <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x312>
 	}
 	else if (mode == COMMode::BRIDGE_COM_MODE)
@@ -590,7 +590,7 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
  80005d6:	2b00      	cmp	r3, #0
  80005d8:	d002      	beq.n	80005e0 <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x2e8>
 			return -1;
- 80005da:	f04f 33ff 	mov.w	r3, #4294967295
+ 80005da:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80005de:	e014      	b.n	800060a <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x312>
 
 		if (STRHAL_CAN_Subscribe(STRHAL_FDCAN2, STRHAL_FDCAN_RX0, mainFilter, 1, Can::externalReceptor) != 1)
@@ -610,7 +610,7 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
  80005fe:	2b00      	cmp	r3, #0
  8000600:	d002      	beq.n	8000608 <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x310>
 			return -1;
- 8000602:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000602:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8000606:	e000      	b.n	800060a <_ZN3Can4initEPFvmPhmEPFvvE7COMMode+0x312>
 	}
 
@@ -648,7 +648,7 @@ int Can::exec()
  800063e:	2b00      	cmp	r3, #0
  8000640:	d002      	beq.n	8000648 <_ZN3Can4execEv+0x28>
 		return -1;
- 8000642:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000642:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8000646:	e000      	b.n	800064a <_ZN3Can4execEv+0x2a>
 
 	return 0;
@@ -1524,7 +1524,7 @@ int IOBv4::init()
  8000dc4:	2b00      	cmp	r3, #0
  8000dc6:	d002      	beq.n	8000dce <_ZN5IOBv44initEv+0x26>
 		return -1;
- 8000dc8:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000dc8:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8000dcc:	e053      	b.n	8000e76 <_ZN5IOBv44initEv+0xce>
 
 	// init status LEDs
@@ -1563,7 +1563,7 @@ int IOBv4::init()
  8000e04:	2b00      	cmp	r3, #0
  8000e06:	d002      	beq.n	8000e0e <_ZN5IOBv44initEv+0x66>
 		return -1;
- 8000e08:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000e08:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8000e0c:	e033      	b.n	8000e76 <_ZN5IOBv44initEv+0xce>
 
 	if (can.init(receptor, heartbeatCan, COMMode::STANDARD_COM_MODE) != 0)
@@ -1582,7 +1582,7 @@ int IOBv4::init()
  8000e2a:	2b00      	cmp	r3, #0
  8000e2c:	d002      	beq.n	8000e34 <_ZN5IOBv44initEv+0x8c>
 		return -1;
- 8000e2e:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000e2e:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8000e32:	e020      	b.n	8000e76 <_ZN5IOBv44initEv+0xce>
 
 	if (GenericChannel::init() != 0)
@@ -1598,7 +1598,7 @@ int IOBv4::init()
  8000e48:	2b00      	cmp	r3, #0
  8000e4a:	d002      	beq.n	8000e52 <_ZN5IOBv44initEv+0xaa>
 		return -1;
- 8000e4c:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000e4c:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8000e50:	e011      	b.n	8000e76 <_ZN5IOBv44initEv+0xce>
 
 	speaker.init();
@@ -1667,7 +1667,7 @@ int IOBv4::exec()
  8000ec6:	2b00      	cmp	r3, #0
  8000ec8:	d002      	beq.n	8000ed0 <_ZN5IOBv44execEv+0x40>
 		return -1;
- 8000eca:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000eca:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8000ece:	e01b      	b.n	8000f08 <_ZN5IOBv44execEv+0x78>
 
 
@@ -1699,7 +1699,7 @@ int IOBv4::exec()
  8000f00:	2b00      	cmp	r3, #0
  8000f02:	d0f3      	beq.n	8000eec <_ZN5IOBv44execEv+0x5c>
 			return -1;
- 8000f04:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000f04:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
 	}
 
 	speaker.beep(6, 100, 100);
@@ -1854,7 +1854,7 @@ int Speaker::init()
  800103e:	2b00      	cmp	r3, #0
  8001040:	d002      	beq.n	8001048 <_ZN7Speaker4initEv+0x28>
 		return -1;
- 8001042:	f04f 33ff 	mov.w	r3, #4294967295
+ 8001042:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8001046:	e023      	b.n	8001090 <_ZN7Speaker4initEv+0x70>
 
 	if (STRHAL_TIM_PWM_AddChannel(&pwmChannel, ctrlChannelId, STRHAL_TIM_PWM_CHANNELTYPE_SO) < 0)
@@ -1871,7 +1871,7 @@ int Speaker::init()
  800105e:	2b00      	cmp	r3, #0
  8001060:	d002      	beq.n	8001068 <_ZN7Speaker4initEv+0x48>
 		return -1;
- 8001062:	f04f 33ff 	mov.w	r3, #4294967295
+ 8001062:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8001066:	e013      	b.n	8001090 <_ZN7Speaker4initEv+0x70>
 
 	if (STRHAL_TIM_PWM_SetDuty(&pwmChannel, 1800) != 1800)
@@ -1890,7 +1890,7 @@ int Speaker::init()
  8001086:	d002      	beq.n	800108e <_ZN7Speaker4initEv+0x6e>
 	{
 		return -1;
- 8001088:	f04f 33ff 	mov.w	r3, #4294967295
+ 8001088:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  800108c:	e000      	b.n	8001090 <_ZN7Speaker4initEv+0x70>
 	}
 
@@ -1998,7 +1998,7 @@ int main(void)
  8001120:	2b00      	cmp	r3, #0
  8001122:	d006      	beq.n	8001132 <main+0x3a>
 			return -1;
- 8001124:	f04f 34ff 	mov.w	r4, #4294967295
+ 8001124:	f04f 34ff 	mov.w	r4, #4294967295	; 0xffffffff
 	IOBv4 iob(11,GIT_COMMIT_HASH_VALUE,1); // TODO disregard node ID and read dipswitches in IOB/LCB class
  8001128:	463b      	mov	r3, r7
  800112a:	4618      	mov	r0, r3
@@ -2028,7 +2028,7 @@ int main(void)
  800114e:	46bd      	mov	sp, r7
  8001150:	bd90      	pop	{r4, r7, pc}
  8001152:	bf00      	nop
- 8001154:	a06dd235 	.word	0xa06dd235
+ 8001154:	c51002d0 	.word	0xc51002d0
  8001158:	08009c5c 	.word	0x08009c5c
 
 0800115c <STRHAL_OofHandler>:
@@ -2211,7 +2211,7 @@ int _kill(int pid, int sig)
  8001210:	2216      	movs	r2, #22
  8001212:	601a      	str	r2, [r3, #0]
 	return -1;
- 8001214:	f04f 33ff 	mov.w	r3, #4294967295
+ 8001214:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
 }
  8001218:	4618      	mov	r0, r3
  800121a:	3708      	adds	r7, #8
@@ -2227,7 +2227,7 @@ void _exit(int status)
  8001224:	af00      	add	r7, sp, #0
  8001226:	6078      	str	r0, [r7, #4]
 	_kill(status, -1);
- 8001228:	f04f 31ff 	mov.w	r1, #4294967295
+ 8001228:	f04f 31ff 	mov.w	r1, #4294967295	; 0xffffffff
  800122c:	6878      	ldr	r0, [r7, #4]
  800122e:	f7ff ffe7 	bl	8001200 <_kill>
 	while (1)
@@ -2548,7 +2548,7 @@ int AbstractChannel::processMessage(uint8_t commandId, uint8_t *returnData, uint
  8001408:	68f8      	ldr	r0, [r7, #12]
  800140a:	4798      	blx	r3
  800140c:	4603      	mov	r3, r0
- 800140e:	f1b3 3fff 	cmp.w	r3, #4294967295
+ 800140e:	f1b3 3fff 	cmp.w	r3, #4294967295	; 0xffffffff
  8001412:	bf0c      	ite	eq
  8001414:	2301      	moveq	r3, #1
  8001416:	2300      	movne	r3, #0
@@ -2556,7 +2556,7 @@ int AbstractChannel::processMessage(uint8_t commandId, uint8_t *returnData, uint
  800141a:	2b00      	cmp	r3, #0
  800141c:	d002      	beq.n	8001424 <_ZN15AbstractChannel14processMessageEhPhRh+0xb0>
 				return -1;
- 800141e:	f04f 33ff 	mov.w	r3, #4294967295
+ 800141e:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8001422:	e01d      	b.n	8001460 <_ZN15AbstractChannel14processMessageEhPhRh+0xec>
 			status = getVariable(setMsg->variable_id, temp);
  8001424:	68fb      	ldr	r3, [r7, #12]
@@ -2593,7 +2593,7 @@ int AbstractChannel::processMessage(uint8_t commandId, uint8_t *returnData, uint
 
 		default:
 			return -1;
- 800145c:	f04f 33ff 	mov.w	r3, #4294967295
+ 800145c:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
 	}
 }
  8001460:	4618      	mov	r0, r3
@@ -2712,7 +2712,7 @@ int DigitalOutChannel::init()
  8001528:	2b00      	cmp	r3, #0
  800152a:	d102      	bne.n	8001532 <_ZN17DigitalOutChannel4initEv+0x46>
 			return -1;
- 800152c:	f04f 33ff 	mov.w	r3, #4294967295
+ 800152c:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8001530:	e000      	b.n	8001534 <_ZN17DigitalOutChannel4initEv+0x48>
 	}
 
@@ -2876,7 +2876,7 @@ int DigitalOutChannel::setVariable(uint8_t variableId, int32_t data)
  8001626:	2b00      	cmp	r3, #0
  8001628:	d002      	beq.n	8001630 <_ZN17DigitalOutChannel11setVariableEhl+0x50>
 				return -1;
- 800162a:	f04f 33ff 	mov.w	r3, #4294967295
+ 800162a:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  800162e:	e017      	b.n	8001660 <_ZN17DigitalOutChannel11setVariableEhl+0x80>
 			return 0;
  8001630:	2300      	movs	r3, #0
@@ -2913,7 +2913,7 @@ int DigitalOutChannel::setVariable(uint8_t variableId, int32_t data)
  800165a:	e001      	b.n	8001660 <_ZN17DigitalOutChannel11setVariableEhl+0x80>
 		default:
 			return -1;
- 800165c:	f04f 33ff 	mov.w	r3, #4294967295
+ 800165c:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
 	}
 }
  8001660:	4618      	mov	r0, r3
@@ -2988,7 +2988,7 @@ int DigitalOutChannel::getVariable(uint8_t variableId, int32_t &data) const
  80016d2:	e001      	b.n	80016d8 <_ZNK17DigitalOutChannel11getVariableEhRl+0x70>
 		default:
 			return -1;
- 80016d4:	f04f 33ff 	mov.w	r3, #4294967295
+ 80016d4:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
 	}
 }
  80016d8:	4618      	mov	r0, r3
@@ -3153,7 +3153,7 @@ GenericChannel::GenericChannel(uint32_t nodeId, uint32_t firmwareVersion, uint32
  80017dc:	bd80      	pop	{r7, pc}
  80017de:	bf00      	nop
  80017e0:	08009d78 	.word	0x08009d78
- 80017e4:	a06dd235 	.word	0xa06dd235
+ 80017e4:	c51002d0 	.word	0xc51002d0
  80017e8:	20000818 	.word	0x20000818
 
 080017ec <_ZNK14GenericChannel9getNodeIdEv>:
@@ -3219,7 +3219,7 @@ int GenericChannel::init()
  8001848:	2b00      	cmp	r3, #0
  800184a:	d003      	beq.n	8001854 <_ZN14GenericChannel4initEv+0x4e>
 			return -1;
- 800184c:	f04f 33ff 	mov.w	r3, #4294967295
+ 800184c:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8001850:	e02d      	b.n	80018ae <_ZN14GenericChannel4initEv+0xa8>
 			continue;
  8001852:	bf00      	nop
@@ -3269,7 +3269,7 @@ int GenericChannel::init()
  800189a:	d003      	beq.n	80018a4 <_ZN14GenericChannel4initEv+0x9e>
 		{
 			return -1;
- 800189c:	f04f 33ff 	mov.w	r3, #4294967295
+ 800189c:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80018a0:	e005      	b.n	80018ae <_ZN14GenericChannel4initEv+0xa8>
 			continue;
  80018a2:	bf00      	nop
@@ -3335,7 +3335,7 @@ int GenericChannel::exec()
  80018fa:	2b00      	cmp	r3, #0
  80018fc:	d003      	beq.n	8001906 <_ZN14GenericChannel4execEv+0x50>
 			return -1;
- 80018fe:	f04f 33ff 	mov.w	r3, #4294967295
+ 80018fe:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8001902:	e02d      	b.n	8001960 <_ZN14GenericChannel4execEv+0xaa>
 			continue;
  8001904:	bf00      	nop
@@ -3384,7 +3384,7 @@ int GenericChannel::exec()
  800194a:	2b00      	cmp	r3, #0
  800194c:	d003      	beq.n	8001956 <_ZN14GenericChannel4execEv+0xa0>
 			return -1;
- 800194e:	f04f 33ff 	mov.w	r3, #4294967295
+ 800194e:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8001952:	e005      	b.n	8001960 <_ZN14GenericChannel4execEv+0xaa>
 			continue;
  8001954:	bf00      	nop
@@ -3629,7 +3629,7 @@ int GenericChannel::processMessage(uint8_t commandId, uint8_t *returnData, uint8
  8001b00:	2b00      	cmp	r3, #0
  8001b02:	d002      	beq.n	8001b0a <_ZN14GenericChannel14processMessageEhPhRhh+0x6e>
 				return -1;
- 8001b04:	f04f 33ff 	mov.w	r3, #4294967295
+ 8001b04:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8001b08:	e008      	b.n	8001b1c <_ZN14GenericChannel14processMessageEhPhRhh+0x80>
 			return 0;
  8001b0a:	2300      	movs	r3, #0
@@ -3645,7 +3645,7 @@ int GenericChannel::processMessage(uint8_t commandId, uint8_t *returnData, uint8
 
 	}
 	return -1;
- 8001b18:	f04f 33ff 	mov.w	r3, #4294967295
+ 8001b18:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
 }
  8001b1c:	4618      	mov	r0, r3
  8001b1e:	3724      	adds	r7, #36	; 0x24
@@ -3741,7 +3741,7 @@ int GenericChannel::setVariable(uint8_t variableId, int32_t data)
  8001ba2:	e001      	b.n	8001ba8 <_ZN14GenericChannel11setVariableEhl+0x84>
 		default:
 			return -1;
- 8001ba4:	f04f 33ff 	mov.w	r3, #4294967295
+ 8001ba4:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
 	}
 }
  8001ba8:	4618      	mov	r0, r3
@@ -3813,7 +3813,7 @@ int GenericChannel::getVariable(uint8_t variableId, int32_t &data) const
  8001c08:	e001      	b.n	8001c0e <_ZNK14GenericChannel11getVariableEhRl+0x5e>
 		default:
 			return -1;
- 8001c0a:	f04f 33ff 	mov.w	r3, #4294967295
+ 8001c0a:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
 	}
 }
  8001c0e:	4618      	mov	r0, r3
@@ -3847,7 +3847,7 @@ int GenericChannel::getSensorData(uint8_t *data, uint8_t &n)
  8001c3c:	2b00      	cmp	r3, #0
  8001c3e:	d002      	beq.n	8001c46 <_ZN14GenericChannel13getSensorDataEPhRh+0x26>
 		return -1;
- 8001c40:	f04f 33ff 	mov.w	r3, #4294967295
+ 8001c40:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8001c44:	e06f      	b.n	8001d26 <_ZN14GenericChannel13getSensorDataEPhRh+0x106>
 
 	DataMsg_t *dataMsg = (DataMsg_t*) data;
@@ -3908,7 +3908,7 @@ int GenericChannel::getSensorData(uint8_t *data, uint8_t &n)
  8001caa:	6978      	ldr	r0, [r7, #20]
  8001cac:	4798      	blx	r3
  8001cae:	4603      	mov	r3, r0
- 8001cb0:	f1b3 3fff 	cmp.w	r3, #4294967295
+ 8001cb0:	f1b3 3fff 	cmp.w	r3, #4294967295	; 0xffffffff
  8001cb4:	bf0c      	ite	eq
  8001cb6:	2301      	moveq	r3, #1
  8001cb8:	2300      	movne	r3, #0
@@ -4736,7 +4736,7 @@ int PressureControlChannel::exec()
  8002244:	2b00      	cmp	r3, #0
  8002246:	d024      	beq.n	8002292 <_ZN22PressureControlChannel4execEv+0xf8>
 					return -1;
- 8002248:	f04f 33ff 	mov.w	r3, #4294967295
+ 8002248:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  800224c:	e022      	b.n	8002294 <_ZN22PressureControlChannel4execEv+0xfa>
 			}
 		}
@@ -4776,7 +4776,7 @@ int PressureControlChannel::exec()
  8002288:	2b00      	cmp	r3, #0
  800228a:	d002      	beq.n	8002292 <_ZN22PressureControlChannel4execEv+0xf8>
 					return -1;
- 800228c:	f04f 33ff 	mov.w	r3, #4294967295
+ 800228c:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8002290:	e000      	b.n	8002294 <_ZN22PressureControlChannel4execEv+0xfa>
 			}
 		}
@@ -4941,7 +4941,7 @@ int PressureControlChannel::setVariable(uint8_t variableId, int32_t data)
  8002390:	2b00      	cmp	r3, #0
  8002392:	d002      	beq.n	800239a <_ZN22PressureControlChannel11setVariableEhl+0x82>
 					return -1;
- 8002394:	f04f 33ff 	mov.w	r3, #4294967295
+ 8002394:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8002398:	e045      	b.n	8002426 <_ZN22PressureControlChannel11setVariableEhl+0x10e>
 			}
 			return 0;
@@ -4981,7 +4981,7 @@ int PressureControlChannel::setVariable(uint8_t variableId, int32_t data)
  80023d8:	e025      	b.n	8002426 <_ZN22PressureControlChannel11setVariableEhl+0x10e>
 		case CONTROL_THRESHOLD: //cannot set threshold
 			return -1;
- 80023da:	f04f 33ff 	mov.w	r3, #4294967295
+ 80023da:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80023de:	e022      	b.n	8002426 <_ZN22PressureControlChannel11setVariableEhl+0x10e>
 		case CONTROL_HYSTERESIS:
 			hysteresis = data * 4095 / UINT16_MAX;
@@ -5003,7 +5003,7 @@ int PressureControlChannel::setVariable(uint8_t variableId, int32_t data)
  80023fe:	e012      	b.n	8002426 <_ZN22PressureControlChannel11setVariableEhl+0x10e>
 		case CONTROL_ACTUATOR_CHANNEL_ID:
 			return -1;
- 8002400:	f04f 33ff 	mov.w	r3, #4294967295
+ 8002400:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8002404:	e00f      	b.n	8002426 <_ZN22PressureControlChannel11setVariableEhl+0x10e>
 		case CONTROL_SENSOR_CHANNEL_ID:
 			inputChannelId = data;
@@ -5028,7 +5028,7 @@ int PressureControlChannel::setVariable(uint8_t variableId, int32_t data)
  8002420:	e001      	b.n	8002426 <_ZN22PressureControlChannel11setVariableEhl+0x10e>
 		default:
 			return -1;
- 8002422:	f04f 33ff 	mov.w	r3, #4294967295
+ 8002422:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
 	}
 }
  8002426:	4618      	mov	r0, r3
@@ -5142,7 +5142,7 @@ int PressureControlChannel::getVariable(uint8_t variableId, int32_t &data) const
  80024ee:	687b      	ldr	r3, [r7, #4]
  80024f0:	601a      	str	r2, [r3, #0]
 			return -1;
- 80024f2:	f04f 33ff 	mov.w	r3, #4294967295
+ 80024f2:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80024f6:	e00f      	b.n	8002518 <_ZNK22PressureControlChannel11getVariableEhRl+0xe4>
 		case CONTROL_SENSOR_CHANNEL_ID:
 			data = (int32_t) inputChannelId;
@@ -5166,7 +5166,7 @@ int PressureControlChannel::getVariable(uint8_t variableId, int32_t &data) const
  8002512:	e001      	b.n	8002518 <_ZNK22PressureControlChannel11getVariableEhRl+0xe4>
 		default:
 			return -1;
- 8002514:	f04f 33ff 	mov.w	r3, #4294967295
+ 8002514:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
 	}
 }
  8002518:	4618      	mov	r0, r3
@@ -5319,7 +5319,7 @@ int ServoChannel::init()
  800264a:	2b00      	cmp	r3, #0
  800264c:	d002      	beq.n	8002654 <_ZN12ServoChannel4initEv+0x34>
 		return -1;
- 800264e:	f04f 33ff 	mov.w	r3, #4294967295
+ 800264e:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8002652:	e0a7      	b.n	80027a4 <_ZN12ServoChannel4initEv+0x184>
 
 	if (STRHAL_TIM_PWM_AddChannel(&pwmChannel, ctrlChannelId, STRHAL_TIM_PWM_CHANNELTYPE_SO) < 0)
@@ -5336,7 +5336,7 @@ int ServoChannel::init()
  800266c:	2b00      	cmp	r3, #0
  800266e:	d002      	beq.n	8002676 <_ZN12ServoChannel4initEv+0x56>
 		return -1;
- 8002670:	f04f 33ff 	mov.w	r3, #4294967295
+ 8002670:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8002674:	e096      	b.n	80027a4 <_ZN12ServoChannel4initEv+0x184>
 
 
@@ -5376,7 +5376,7 @@ int ServoChannel::init()
  80026b4:	2b00      	cmp	r3, #0
  80026b6:	d002      	beq.n	80026be <_ZN12ServoChannel4initEv+0x9e>
 		return -1;
- 80026b8:	f04f 33ff 	mov.w	r3, #4294967295
+ 80026b8:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80026bc:	e072      	b.n	80027a4 <_ZN12ServoChannel4initEv+0x184>
 
 	// Read config values starting from the servos config register start address
@@ -5482,7 +5482,7 @@ int ServoChannel::init()
  8002784:	2b00      	cmp	r3, #0
  8002786:	d002      	beq.n	800278e <_ZN12ServoChannel4initEv+0x16e>
 			return -1;;
- 8002788:	f04f 33ff 	mov.w	r3, #4294967295
+ 8002788:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  800278c:	e00a      	b.n	80027a4 <_ZN12ServoChannel4initEv+0x184>
 	}
 
@@ -5492,7 +5492,7 @@ int ServoChannel::init()
  8002792:	2b00      	cmp	r3, #0
  8002794:	d102      	bne.n	800279c <_ZN12ServoChannel4initEv+0x17c>
 		return -1;
- 8002796:	f04f 33ff 	mov.w	r3, #4294967295
+ 8002796:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  800279a:	e003      	b.n	80027a4 <_ZN12ServoChannel4initEv+0x184>
 
 	servoState = ServoState::READY;
@@ -5910,7 +5910,7 @@ int ServoChannel::exec()
  8002a76:	e004      	b.n	8002a82 <_ZN12ServoChannel4execEv+0x2ce>
 		default:
 			return -1;
- 8002a78:	f04f 33ff 	mov.w	r3, #4294967295
+ 8002a78:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8002a7c:	e003      	b.n	8002a86 <_ZN12ServoChannel4execEv+0x2d2>
 			break;
  8002a7e:	bf00      	nop
@@ -6191,7 +6191,7 @@ int ServoChannel::setVariable(uint8_t variable_id, int32_t data)
 
 		default:
 			return -1;
- 8002c56:	f04f 33ff 	mov.w	r3, #4294967295
+ 8002c56:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
 	}
 }
  8002c5a:	4618      	mov	r0, r3
@@ -6323,7 +6323,7 @@ int ServoChannel::getVariable(uint8_t variable_id, int32_t &data) const
 
 		default:
 			return -1;
- 8002d58:	f04f 33ff 	mov.w	r3, #4294967295
+ 8002d58:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
 	}
 }
  8002d5c:	4618      	mov	r0, r3
@@ -6766,7 +6766,7 @@ int W25Qxx_Flash::init()
  800304c:	2b00      	cmp	r3, #0
  800304e:	d002      	beq.n	8003056 <_ZN12W25Qxx_Flash4initEv+0x56>
 		return -1;
- 8003050:	f04f 33ff 	mov.w	r3, #4294967295
+ 8003050:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8003054:	e029      	b.n	80030aa <_ZN12W25Qxx_Flash4initEv+0xaa>
 
 	STRHAL_QSPI_Run();
@@ -6782,7 +6782,7 @@ int W25Qxx_Flash::init()
  800306a:	d002      	beq.n	8003072 <_ZN12W25Qxx_Flash4initEv+0x72>
 	{
 		return -1;
- 800306c:	f04f 33ff 	mov.w	r3, #4294967295
+ 800306c:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8003070:	e01b      	b.n	80030aa <_ZN12W25Qxx_Flash4initEv+0xaa>
 	}
 
@@ -6796,7 +6796,7 @@ int W25Qxx_Flash::init()
  8003082:	d002      	beq.n	800308a <_ZN12W25Qxx_Flash4initEv+0x8a>
 	{
 		return -1;
- 8003084:	f04f 33ff 	mov.w	r3, #4294967295
+ 8003084:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8003088:	e00f      	b.n	80030aa <_ZN12W25Qxx_Flash4initEv+0xaa>
 	}
 
@@ -6810,7 +6810,7 @@ int W25Qxx_Flash::init()
  800309a:	d002      	beq.n	80030a2 <_ZN12W25Qxx_Flash4initEv+0xa2>
 	{
 		return -1;
- 800309c:	f04f 33ff 	mov.w	r3, #4294967295
+ 800309c:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80030a0:	e003      	b.n	80030aa <_ZN12W25Qxx_Flash4initEv+0xaa>
 	}
 
@@ -7973,7 +7973,7 @@ uint32_t W25Qxx_Flash::read(uint32_t address, uint8_t *data, uint32_t n)
  8003796:	eb4b 0509 	adc.w	r5, fp, r9
  800379a:	4b17      	ldr	r3, [pc, #92]	; (80037f8 <_ZN12W25Qxx_Flash4readEmPhm+0xa0>)
  800379c:	429c      	cmp	r4, r3
- 800379e:	f175 33ff 	sbcs.w	r3, r5, #4294967295
+ 800379e:	f175 33ff 	sbcs.w	r3, r5, #4294967295	; 0xffffffff
  80037a2:	d302      	bcc.n	80037aa <_ZN12W25Qxx_Flash4readEmPhm+0x52>
 		n = 0xFFFFFFFF - address;
  80037a4:	68bb      	ldr	r3, [r7, #8]
@@ -8580,7 +8580,7 @@ int W25Qxx_Flash::waitForSREGFlag(uint8_t flag, bool state, uint16_t tot)
  8003b6e:	2b00      	cmp	r3, #0
  8003b70:	d002      	beq.n	8003b78 <_ZN12W25Qxx_Flash15waitForSREGFlagEhbt+0x48>
 				return -1;
- 8003b72:	f04f 33ff 	mov.w	r3, #4294967295
+ 8003b72:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8003b76:	e045      	b.n	8003c04 <_ZN12W25Qxx_Flash15waitForSREGFlagEhbt+0xd4>
 
 			if (STRHAL_Systick_GetTick() - start > 100)
@@ -8597,7 +8597,7 @@ int W25Qxx_Flash::waitForSREGFlag(uint8_t flag, bool state, uint16_t tot)
  8003b98:	2b00      	cmp	r3, #0
  8003b9a:	d002      	beq.n	8003ba2 <_ZN12W25Qxx_Flash15waitForSREGFlagEhbt+0x72>
 				return -1;
- 8003b9c:	f04f 33ff 	mov.w	r3, #4294967295
+ 8003b9c:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8003ba0:	e030      	b.n	8003c04 <_ZN12W25Qxx_Flash15waitForSREGFlagEhbt+0xd4>
 		} while (!(sreg1 & flag));
  8003ba2:	7bfa      	ldrb	r2, [r7, #15]
@@ -8624,7 +8624,7 @@ int W25Qxx_Flash::waitForSREGFlag(uint8_t flag, bool state, uint16_t tot)
  8003bc4:	2b00      	cmp	r3, #0
  8003bc6:	d002      	beq.n	8003bce <_ZN12W25Qxx_Flash15waitForSREGFlagEhbt+0x9e>
 				return -1;
- 8003bc8:	f04f 33ff 	mov.w	r3, #4294967295
+ 8003bc8:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8003bcc:	e01a      	b.n	8003c04 <_ZN12W25Qxx_Flash15waitForSREGFlagEhbt+0xd4>
 
 			if (STRHAL_Systick_GetTick() - start > 100)
@@ -8641,7 +8641,7 @@ int W25Qxx_Flash::waitForSREGFlag(uint8_t flag, bool state, uint16_t tot)
  8003bea:	2b00      	cmp	r3, #0
  8003bec:	d002      	beq.n	8003bf4 <_ZN12W25Qxx_Flash15waitForSREGFlagEhbt+0xc4>
 				return -1;
- 8003bee:	f04f 33ff 	mov.w	r3, #4294967295
+ 8003bee:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8003bf2:	e007      	b.n	8003c04 <_ZN12W25Qxx_Flash15waitForSREGFlagEhbt+0xd4>
 		} while (sreg1 & flag);
  8003bf4:	7bfa      	ldrb	r2, [r7, #15]
@@ -13357,7 +13357,7 @@ void LL_mDelay(uint32_t Delay)
   /* Add a period to guaranty minimum wait */
   if(tmpDelay < LL_MAX_DELAY)
  8005650:	68fb      	ldr	r3, [r7, #12]
- 8005652:	f1b3 3fff 	cmp.w	r3, #4294967295
+ 8005652:	f1b3 3fff 	cmp.w	r3, #4294967295	; 0xffffffff
  8005656:	d00c      	beq.n	8005672 <LL_mDelay+0x36>
   {
     tmpDelay++;
@@ -16555,7 +16555,7 @@ __STATIC_INLINE uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t P
 
   return (
            ((PreemptPriority & (uint32_t)((1UL << (PreemptPriorityBits)) - 1UL)) << SubPriorityBits) |
- 8006c0c:	f04f 32ff 	mov.w	r2, #4294967295
+ 8006c0c:	f04f 32ff 	mov.w	r2, #4294967295	; 0xffffffff
  8006c10:	69bb      	ldr	r3, [r7, #24]
  8006c12:	fa02 f303 	lsl.w	r3, r2, r3
  8006c16:	43da      	mvns	r2, r3
@@ -16564,7 +16564,7 @@ __STATIC_INLINE uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t P
  8006c1c:	697b      	ldr	r3, [r7, #20]
  8006c1e:	409a      	lsls	r2, r3
            ((SubPriority     & (uint32_t)((1UL << (SubPriorityBits    )) - 1UL)))
- 8006c20:	f04f 31ff 	mov.w	r1, #4294967295
+ 8006c20:	f04f 31ff 	mov.w	r1, #4294967295	; 0xffffffff
  8006c24:	697b      	ldr	r3, [r7, #20]
  8006c26:	fa01 f303 	lsl.w	r3, r1, r3
  8006c2a:	43d9      	mvns	r1, r3
@@ -16776,7 +16776,7 @@ int STRHAL_CAN_Instance_Init(STRHAL_FDCAN_Id_t fdcan_id)
  8006d60:	2b01      	cmp	r3, #1
  8006d62:	d902      	bls.n	8006d6a <STRHAL_CAN_Instance_Init+0x16>
 		return -1;
- 8006d64:	f04f 33ff 	mov.w	r3, #4294967295
+ 8006d64:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8006d68:	e0e9      	b.n	8006f3e <STRHAL_CAN_Instance_Init+0x1ea>
 
 	_fdcans[fdcan_id].state = STRHAL_CAN_STATE_INITIALISING;
@@ -16831,7 +16831,7 @@ int STRHAL_CAN_Instance_Init(STRHAL_FDCAN_Id_t fdcan_id)
  8006db4:	4293      	cmp	r3, r2
  8006db6:	d902      	bls.n	8006dbe <STRHAL_CAN_Instance_Init+0x6a>
 			return -1;
- 8006db8:	f04f 33ff 	mov.w	r3, #4294967295
+ 8006db8:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8006dbc:	e0bf      	b.n	8006f3e <STRHAL_CAN_Instance_Init+0x1ea>
 	while ((can->CCCR & FDCAN_CCCR_CSA) == FDCAN_CCCR_CSA)
  8006dbe:	68bb      	ldr	r3, [r7, #8]
@@ -16862,7 +16862,7 @@ int STRHAL_CAN_Instance_Init(STRHAL_FDCAN_Id_t fdcan_id)
  8006de2:	4293      	cmp	r3, r2
  8006de4:	d902      	bls.n	8006dec <STRHAL_CAN_Instance_Init+0x98>
 			return -1;
- 8006de6:	f04f 33ff 	mov.w	r3, #4294967295
+ 8006de6:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8006dea:	e0a8      	b.n	8006f3e <STRHAL_CAN_Instance_Init+0x1ea>
 	while ((can->CCCR & FDCAN_CCCR_INIT) == 0U)
  8006dec:	68bb      	ldr	r3, [r7, #8]
@@ -16893,7 +16893,7 @@ int STRHAL_CAN_Instance_Init(STRHAL_FDCAN_Id_t fdcan_id)
  8006e10:	4293      	cmp	r3, r2
  8006e12:	d902      	bls.n	8006e1a <STRHAL_CAN_Instance_Init+0xc6>
 			return -1;
- 8006e14:	f04f 33ff 	mov.w	r3, #4294967295
+ 8006e14:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8006e18:	e091      	b.n	8006f3e <STRHAL_CAN_Instance_Init+0x1ea>
 	while ((can->CCCR & FDCAN_CCCR_CCE) == 0U)
  8006e1a:	68bb      	ldr	r3, [r7, #8]
@@ -17078,7 +17078,7 @@ int STRHAL_CAN_Subscribe(STRHAL_FDCAN_Id_t fdcan_id, STRHAL_FDCAN_Rx_Id_t rx_id,
  8006f74:	2b01      	cmp	r3, #1
  8006f76:	d902      	bls.n	8006f7e <STRHAL_CAN_Subscribe+0x22>
 		return -1;
- 8006f78:	f04f 33ff 	mov.w	r3, #4294967295
+ 8006f78:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8006f7c:	e0bd      	b.n	80070fa <STRHAL_CAN_Subscribe+0x19e>
 
 	STRHAL_CAN_Handle_t *fdcan = &_fdcans[fdcan_id];
@@ -17097,7 +17097,7 @@ int STRHAL_CAN_Subscribe(STRHAL_FDCAN_Id_t fdcan_id, STRHAL_FDCAN_Rx_Id_t rx_id,
  8006f94:	2b01      	cmp	r3, #1
  8006f96:	d002      	beq.n	8006f9e <STRHAL_CAN_Subscribe+0x42>
 		return -1;
- 8006f98:	f04f 33ff 	mov.w	r3, #4294967295
+ 8006f98:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8006f9c:	e0ad      	b.n	80070fa <STRHAL_CAN_Subscribe+0x19e>
 
 	if (filter == NULL || receptor == NULL) // Nullptr check
@@ -17135,7 +17135,7 @@ int STRHAL_CAN_Subscribe(STRHAL_FDCAN_Id_t fdcan_id, STRHAL_FDCAN_Rx_Id_t rx_id,
  8006fd6:	2b00      	cmp	r3, #0
  8006fd8:	d002      	beq.n	8006fe0 <STRHAL_CAN_Subscribe+0x84>
 		return -1;
- 8006fda:	f04f 33ff 	mov.w	r3, #4294967295
+ 8006fda:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8006fde:	e08c      	b.n	80070fa <STRHAL_CAN_Subscribe+0x19e>
 
 	Can_Message_RAM *can_ram = fdcan->can_ram;
@@ -17194,7 +17194,7 @@ int STRHAL_CAN_Subscribe(STRHAL_FDCAN_Id_t fdcan_id, STRHAL_FDCAN_Rx_Id_t rx_id,
  8007026:	2302      	movs	r3, #2
  8007028:	60bb      	str	r3, [r7, #8]
 			return -1;
- 800702a:	f04f 33ff 	mov.w	r3, #4294967295
+ 800702a:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  800702e:	e064      	b.n	80070fa <STRHAL_CAN_Subscribe+0x19e>
 	{
 		can_ram->std_filters[i].S0.bit.SFEC = sfec;
@@ -17337,7 +17337,7 @@ int32_t STRHAL_CAN_Send(STRHAL_FDCAN_Id_t fdcan_id, uint32_t id, const uint8_t *
  8007136:	2b01      	cmp	r3, #1
  8007138:	d902      	bls.n	8007140 <STRHAL_CAN_Send+0x1c>
 		return -1;
- 800713a:	f04f 33ff 	mov.w	r3, #4294967295
+ 800713a:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  800713e:	e0b8      	b.n	80072b2 <STRHAL_CAN_Send+0x18e>
 
 	if (n == 0)
@@ -17377,7 +17377,7 @@ int32_t STRHAL_CAN_Send(STRHAL_FDCAN_Id_t fdcan_id, uint32_t id, const uint8_t *
  800717a:	2b00      	cmp	r3, #0
  800717c:	d102      	bne.n	8007184 <STRHAL_CAN_Send+0x60>
 		return -1;
- 800717e:	f04f 33ff 	mov.w	r3, #4294967295
+ 800717e:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8007182:	e096      	b.n	80072b2 <STRHAL_CAN_Send+0x18e>
 
 	if (n > FDCAN_ELMTS_ARRAY_SIZE)
@@ -19076,7 +19076,7 @@ int STRHAL_QSPI_Flash_Init(const STRHAL_QSPI_Config_t *config)
  8007c4e:	2b00      	cmp	r3, #0
  8007c50:	da02      	bge.n	8007c58 <STRHAL_QSPI_Flash_Init+0x2c>
 		return -1;
- 8007c52:	f04f 33ff 	mov.w	r3, #4294967295
+ 8007c52:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8007c56:	e031      	b.n	8007cbc <STRHAL_QSPI_Flash_Init+0x90>
 
 	QUADSPI->CR |= config->psc << QUADSPI_CR_PRESCALER_Pos;
@@ -19227,7 +19227,7 @@ uint32_t STRHAL_QSPI_Indirect_Write(const STRHAL_QSPI_Command_t *cmd, const uint
  8007d4a:	2b00      	cmp	r3, #0
  8007d4c:	da02      	bge.n	8007d54 <STRHAL_QSPI_Indirect_Write+0x24>
 		return -1;
- 8007d4e:	f04f 33ff 	mov.w	r3, #4294967295
+ 8007d4e:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8007d52:	e09e      	b.n	8007e92 <STRHAL_QSPI_Indirect_Write+0x162>
 
 	__IO uint32_t *data_reg = &QUADSPI->DR;
@@ -19473,7 +19473,7 @@ uint32_t STRHAL_QSPI_Indirect_Read(const STRHAL_QSPI_Command_t *cmd, uint8_t *da
  8007ebe:	2b00      	cmp	r3, #0
  8007ec0:	da02      	bge.n	8007ec8 <STRHAL_QSPI_Indirect_Read+0x24>
 		return -1;
- 8007ec2:	f04f 33ff 	mov.w	r3, #4294967295
+ 8007ec2:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8007ec6:	e0ad      	b.n	8008024 <STRHAL_QSPI_Indirect_Read+0x180>
 
 	__IO uint32_t *data_reg = &QUADSPI->DR;
@@ -19744,7 +19744,7 @@ int _wait_for_status(uint32_t flag, uint16_t tot)
  8008064:	eb79 0305 	sbcs.w	r3, r9, r5
  8008068:	d202      	bcs.n	8008070 <_wait_for_status+0x3c>
 			return -1;
- 800806a:	f04f 33ff 	mov.w	r3, #4294967295
+ 800806a:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  800806e:	e006      	b.n	800807e <_wait_for_status+0x4a>
 	while (!(QUADSPI->SR & flag))
  8008070:	4b05      	ldr	r3, [pc, #20]	; (8008088 <_wait_for_status+0x54>)
@@ -19793,7 +19793,7 @@ int _wait_for_status_clear(uint32_t flag, uint16_t tot)
  80080bc:	eb79 0305 	sbcs.w	r3, r9, r5
  80080c0:	d202      	bcs.n	80080c8 <_wait_for_status_clear+0x3c>
 			return -1;
- 80080c2:	f04f 33ff 	mov.w	r3, #4294967295
+ 80080c2:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80080c6:	e006      	b.n	80080d6 <_wait_for_status_clear+0x4a>
 	while (QUADSPI->SR & flag)
  80080c8:	4b05      	ldr	r3, [pc, #20]	; (80080e0 <_wait_for_status_clear+0x54>)
@@ -20226,7 +20226,7 @@ void SysTick_Handler()
  80083a0:	2300      	movs	r3, #0
  80083a2:	617b      	str	r3, [r7, #20]
            ((PreemptPriority & (uint32_t)((1UL << (PreemptPriorityBits)) - 1UL)) << SubPriorityBits) |
- 80083a4:	f04f 32ff 	mov.w	r2, #4294967295
+ 80083a4:	f04f 32ff 	mov.w	r2, #4294967295	; 0xffffffff
  80083a8:	69bb      	ldr	r3, [r7, #24]
  80083aa:	fa02 f303 	lsl.w	r3, r2, r3
  80083ae:	43da      	mvns	r2, r3
@@ -20235,7 +20235,7 @@ void SysTick_Handler()
  80083b4:	697b      	ldr	r3, [r7, #20]
  80083b6:	409a      	lsls	r2, r3
            ((SubPriority     & (uint32_t)((1UL << (SubPriorityBits    )) - 1UL)))
- 80083b8:	f04f 31ff 	mov.w	r1, #4294967295
+ 80083b8:	f04f 31ff 	mov.w	r1, #4294967295	; 0xffffffff
  80083bc:	697b      	ldr	r3, [r7, #20]
  80083be:	fa01 f303 	lsl.w	r3, r1, r3
  80083c2:	43d9      	mvns	r1, r3
@@ -20811,7 +20811,7 @@ int32_t STRHAL_TIM_PWM_Init(STRHAL_TIM_TimerId_t id, uint16_t psc, uint16_t res)
  80087c0:	2b05      	cmp	r3, #5
  80087c2:	d902      	bls.n	80087ca <STRHAL_TIM_PWM_Init+0x1e>
 		return -1;
- 80087c4:	f04f 33ff 	mov.w	r3, #4294967295
+ 80087c4:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80087c8:	e06e      	b.n	80088a8 <STRHAL_TIM_PWM_Init+0xfc>
 
 	STRHAL_TIM_Timer_t *tim = &_tims[id];
@@ -20835,7 +20835,7 @@ int32_t STRHAL_TIM_PWM_Init(STRHAL_TIM_TimerId_t id, uint16_t psc, uint16_t res)
  80087e4:	2b00      	cmp	r3, #0
  80087e6:	d002      	beq.n	80087ee <STRHAL_TIM_PWM_Init+0x42>
 		return -1;
- 80087e8:	f04f 33ff 	mov.w	r3, #4294967295
+ 80087e8:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80087ec:	e05c      	b.n	80088a8 <STRHAL_TIM_PWM_Init+0xfc>
 
 	LL_TIM_InitTypeDef TIM_InitStruct =
@@ -20973,7 +20973,7 @@ int STRHAL_TIM_PWM_AddChannel(STRHAL_TIM_PWM_Channel_t *pwmChannel, STRHAL_TIM_C
  80088e2:	2b5b      	cmp	r3, #91	; 0x5b
  80088e4:	d902      	bls.n	80088ec <STRHAL_TIM_PWM_AddChannel+0x1c>
 		return -1;
- 80088e6:	f04f 33ff 	mov.w	r3, #4294967295
+ 80088e6:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80088ea:	e060      	b.n	80089ae <STRHAL_TIM_PWM_AddChannel+0xde>
 
 	const STRHAL_TIM_Channel_t *ch = &_tim_channels[channelId];
@@ -21123,7 +21123,7 @@ int32_t STRHAL_TIM_PWM_SetDuty(STRHAL_TIM_PWM_Channel_t *pwmChannel, uint16_t du
  80089cc:	2b5b      	cmp	r3, #91	; 0x5b
  80089ce:	d902      	bls.n	80089d6 <STRHAL_TIM_PWM_SetDuty+0x1a>
 		return -1;
- 80089d0:	f04f 33ff 	mov.w	r3, #4294967295
+ 80089d0:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80089d4:	e016      	b.n	8008a04 <STRHAL_TIM_PWM_SetDuty+0x48>
 
 	const STRHAL_TIM_Channel_t *ch = &_tim_channels[pwmChannel->channelId];
@@ -21144,7 +21144,7 @@ int32_t STRHAL_TIM_PWM_SetDuty(STRHAL_TIM_PWM_Channel_t *pwmChannel, uint16_t du
  80089f0:	2b02      	cmp	r3, #2
  80089f2:	d002      	beq.n	80089fa <STRHAL_TIM_PWM_SetDuty+0x3e>
 		return -1;
- 80089f4:	f04f 33ff 	mov.w	r3, #4294967295
+ 80089f4:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80089f8:	e004      	b.n	8008a04 <STRHAL_TIM_PWM_SetDuty+0x48>
 
 	*ch->ccr = duty;
@@ -21177,7 +21177,7 @@ int STRHAL_TIM_PWM_Enable(STRHAL_TIM_PWM_Channel_t *pwmChannel, int enable)
  8008a22:	2b5b      	cmp	r3, #91	; 0x5b
  8008a24:	d902      	bls.n	8008a2c <STRHAL_TIM_PWM_Enable+0x18>
 		return -1;
- 8008a26:	f04f 33ff 	mov.w	r3, #4294967295
+ 8008a26:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8008a2a:	e037      	b.n	8008a9c <STRHAL_TIM_PWM_Enable+0x88>
 
 	const STRHAL_TIM_Channel_t *ch = &_tim_channels[pwmChannel->channelId];
@@ -21198,7 +21198,7 @@ int STRHAL_TIM_PWM_Enable(STRHAL_TIM_PWM_Channel_t *pwmChannel, int enable)
  8008a46:	2b02      	cmp	r3, #2
  8008a48:	d002      	beq.n	8008a50 <STRHAL_TIM_PWM_Enable+0x3c>
 		return -1;
- 8008a4a:	f04f 33ff 	mov.w	r3, #4294967295
+ 8008a4a:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8008a4e:	e025      	b.n	8008a9c <STRHAL_TIM_PWM_Enable+0x88>
 
 	if (enable)
@@ -21272,7 +21272,7 @@ int32_t STRHAL_TIM_Heartbeat_Init(STRHAL_TIM_BasicTimerId_t id, uint16_t psc, ui
  8008abc:	2b02      	cmp	r3, #2
  8008abe:	d902      	bls.n	8008ac6 <STRHAL_TIM_Heartbeat_Init+0x1e>
 		return -1;
- 8008ac0:	f04f 33ff 	mov.w	r3, #4294967295
+ 8008ac0:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8008ac4:	e043      	b.n	8008b4e <STRHAL_TIM_Heartbeat_Init+0xa6>
 
 	STRHAL_TIM_BasicTimer_t *tim = &_basicTims[id];
@@ -21290,7 +21290,7 @@ int32_t STRHAL_TIM_Heartbeat_Init(STRHAL_TIM_BasicTimerId_t id, uint16_t psc, ui
  8008ada:	2b00      	cmp	r3, #0
  8008adc:	d002      	beq.n	8008ae4 <STRHAL_TIM_Heartbeat_Init+0x3c>
 		return -1;
- 8008ade:	f04f 33ff 	mov.w	r3, #4294967295
+ 8008ade:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8008ae2:	e034      	b.n	8008b4e <STRHAL_TIM_Heartbeat_Init+0xa6>
 
 	LL_TIM_InitTypeDef TIM_InitStruct =
@@ -21379,7 +21379,7 @@ int STRHAL_TIM_Heartbeat_Subscribe(STRHAL_TIM_BasicTimerId_t id, STRHAL_TIM_Burn
  8008b6e:	2b02      	cmp	r3, #2
  8008b70:	d902      	bls.n	8008b78 <STRHAL_TIM_Heartbeat_Subscribe+0x18>
 		return -1;
- 8008b72:	f04f 33ff 	mov.w	r3, #4294967295
+ 8008b72:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8008b76:	e012      	b.n	8008b9e <STRHAL_TIM_Heartbeat_Subscribe+0x3e>
 
 	STRHAL_TIM_BasicTimer_t *tim = &_basicTims[id];
@@ -21397,7 +21397,7 @@ int STRHAL_TIM_Heartbeat_Subscribe(STRHAL_TIM_BasicTimerId_t id, STRHAL_TIM_Burn
  8008b8c:	2b03      	cmp	r3, #3
  8008b8e:	d002      	beq.n	8008b96 <STRHAL_TIM_Heartbeat_Subscribe+0x36>
 		return -1;
- 8008b90:	f04f 33ff 	mov.w	r3, #4294967295
+ 8008b90:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8008b94:	e003      	b.n	8008b9e <STRHAL_TIM_Heartbeat_Subscribe+0x3e>
 
 	tim->burnie = burn;
@@ -21429,7 +21429,7 @@ int STRHAL_TIM_Heartbeat_StartHeartbeat(STRHAL_TIM_BasicTimerId_t id)
  8008bbc:	2b02      	cmp	r3, #2
  8008bbe:	d902      	bls.n	8008bc6 <STRHAL_TIM_Heartbeat_StartHeartbeat+0x16>
 		return -1;
- 8008bc0:	f04f 33ff 	mov.w	r3, #4294967295
+ 8008bc0:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8008bc4:	e01e      	b.n	8008c04 <STRHAL_TIM_Heartbeat_StartHeartbeat+0x54>
 
 	STRHAL_TIM_BasicTimer_t *tim = &_basicTims[id];
@@ -21447,7 +21447,7 @@ int STRHAL_TIM_Heartbeat_StartHeartbeat(STRHAL_TIM_BasicTimerId_t id)
  8008bda:	2b03      	cmp	r3, #3
  8008bdc:	d002      	beq.n	8008be4 <STRHAL_TIM_Heartbeat_StartHeartbeat+0x34>
 		return -1;
- 8008bde:	f04f 33ff 	mov.w	r3, #4294967295
+ 8008bde:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8008be2:	e00f      	b.n	8008c04 <STRHAL_TIM_Heartbeat_StartHeartbeat+0x54>
 
 	LL_TIM_ClearFlag_UPDATE(tim->timx);
@@ -21674,7 +21674,7 @@ void TIM7_IRQHandler(void)
  8008d64:	2300      	movs	r3, #0
  8008d66:	617b      	str	r3, [r7, #20]
            ((PreemptPriority & (uint32_t)((1UL << (PreemptPriorityBits)) - 1UL)) << SubPriorityBits) |
- 8008d68:	f04f 32ff 	mov.w	r2, #4294967295
+ 8008d68:	f04f 32ff 	mov.w	r2, #4294967295	; 0xffffffff
  8008d6c:	69bb      	ldr	r3, [r7, #24]
  8008d6e:	fa02 f303 	lsl.w	r3, r2, r3
  8008d72:	43da      	mvns	r2, r3
@@ -21683,7 +21683,7 @@ void TIM7_IRQHandler(void)
  8008d78:	697b      	ldr	r3, [r7, #20]
  8008d7a:	409a      	lsls	r2, r3
            ((SubPriority     & (uint32_t)((1UL << (SubPriorityBits    )) - 1UL)))
- 8008d7c:	f04f 31ff 	mov.w	r1, #4294967295
+ 8008d7c:	f04f 31ff 	mov.w	r1, #4294967295	; 0xffffffff
  8008d80:	697b      	ldr	r3, [r7, #20]
  8008d82:	fa01 f303 	lsl.w	r3, r1, r3
  8008d86:	43d9      	mvns	r1, r3
@@ -22686,7 +22686,7 @@ int STRHAL_UART_Instance_Init(STRHAL_UART_Id_t uart_id)
  8009374:	2b02      	cmp	r3, #2
  8009376:	d902      	bls.n	800937e <STRHAL_UART_Instance_Init+0x16>
 		return -1;
- 8009378:	f04f 33ff 	mov.w	r3, #4294967295
+ 8009378:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  800937c:	e126      	b.n	80095cc <STRHAL_UART_Instance_Init+0x264>
 
 	STRHAL_UART_Handle_t *_uart = &_uarts[uart_id];
@@ -23056,7 +23056,7 @@ int32_t STRHAL_UART_Write_Blocking(STRHAL_UART_Id_t uart_id, const char *data, u
  8009618:	2b02      	cmp	r3, #2
  800961a:	d902      	bls.n	8009622 <STRHAL_UART_Write_Blocking+0x22>
 		return -1;
- 800961c:	f04f 33ff 	mov.w	r3, #4294967295
+ 800961c:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  8009620:	e0a7      	b.n	8009772 <STRHAL_UART_Write_Blocking+0x172>
 
 	STRHAL_UART_Handle_t *_uart = &_uarts[uart_id];
@@ -23156,7 +23156,7 @@ int32_t STRHAL_UART_Write_Blocking(STRHAL_UART_Id_t uart_id, const char *data, u
  80096d2:	eb73 0309 	sbcs.w	r3, r3, r9
  80096d6:	d202      	bcs.n	80096de <STRHAL_UART_Write_Blocking+0xde>
 				return -1;
- 80096d8:	f04f 33ff 	mov.w	r3, #4294967295
+ 80096d8:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80096dc:	e049      	b.n	8009772 <STRHAL_UART_Write_Blocking+0x172>
 		while (!LL_USART_IsActiveFlag_TXE_TXFNF(_uart->uart))
  80096de:	6a7b      	ldr	r3, [r7, #36]	; 0x24
@@ -23207,7 +23207,7 @@ int32_t STRHAL_UART_Write_Blocking(STRHAL_UART_Id_t uart_id, const char *data, u
  8009730:	eb7b 0305 	sbcs.w	r3, fp, r5
  8009734:	d202      	bcs.n	800973c <STRHAL_UART_Write_Blocking+0x13c>
 			return -1;
- 8009736:	f04f 33ff 	mov.w	r3, #4294967295
+ 8009736:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  800973a:	e01a      	b.n	8009772 <STRHAL_UART_Write_Blocking+0x172>
 	while (!LL_USART_IsActiveFlag_TC(_uart->uart))
  800973c:	6a7b      	ldr	r3, [r7, #36]	; 0x24
@@ -23574,7 +23574,7 @@ void DMA1_Channel2_IRQHandler(void)
 08009a08 <memcpy>:
  8009a08:	440a      	add	r2, r1
  8009a0a:	4291      	cmp	r1, r2
- 8009a0c:	f100 33ff 	add.w	r3, r0, #4294967295
+ 8009a0c:	f100 33ff 	add.w	r3, r0, #4294967295	; 0xffffffff
  8009a10:	d100      	bne.n	8009a14 <memcpy+0xc>
  8009a12:	4770      	bx	lr
  8009a14:	b510      	push	{r4, lr}
@@ -23673,7 +23673,7 @@ void DMA1_Channel2_IRQHandler(void)
  8009ad4:	d904      	bls.n	8009ae0 <_raise_r+0x14>
  8009ad6:	2316      	movs	r3, #22
  8009ad8:	6003      	str	r3, [r0, #0]
- 8009ada:	f04f 30ff 	mov.w	r0, #4294967295
+ 8009ada:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
  8009ade:	bd38      	pop	{r3, r4, r5, pc}
  8009ae0:	6c42      	ldr	r2, [r0, #68]	; 0x44
  8009ae2:	b112      	cbz	r2, 8009aea <_raise_r+0x1e>

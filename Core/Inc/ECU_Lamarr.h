@@ -29,17 +29,16 @@ class ECU_Lamarr: public GenericChannel
 		void testServo(ServoChannel &servo);
 
 	private:
-		STRHAL_GPIO_t ledRed, ledGreen;
+		STRHAL_GPIO_t led_1, led_2;
 
 		// Channels
-		ADCChannel press_0, press_1, press_2, press_3, press_4, press_5;
-		ADCChannel temp_0, temp_1, temp_2;
-		ServoChannel servo_0, servo_1, servo_2;
-		DigitalInChannel pyro0_cont, pyro1_cont, pyro2_cont;
-		PyroChannel pyro_igniter0, pyro_igniter1, pyro_igniter2;
-		DigitalOutChannel solenoid_0, solenoid_1;
-		PressureControlChannel pressure_control;
-		RocketChannel rocket;
+		ADCChannel press_0, press_1, press_2, press_3;
+		ADCChannel temp_0, temp_1;
+		ServoChannel servo_0, servo_1;
+		DigitalInChannel pyro0_cont, pyro1_cont, pyro2_cont, pyro3_cont;
+		PyroChannel pyro_igniter0, pyro_igniter1, pyro_igniter2, pyro_igniter3;
+		//PressureControlChannel pressure_control;
+		//RocketChannel rocket;
 
 		Speaker speaker;
 };

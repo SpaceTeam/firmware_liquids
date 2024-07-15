@@ -1,9 +1,7 @@
-main.cpp:12:5:int main()	2
-main.cpp:94:6:void STRHAL_OofHandler(STRHAL_Oof_t, char*)	1
+main.cpp:13:5:int main()	2
+main.cpp:107:6:void STRHAL_OofHandler(STRHAL_Oof_t, char*)	1
 GenericChannel.h:12:7:GenericChannel::~GenericChannel()	1
 GenericChannel.h:12:7:virtual GenericChannel::~GenericChannel()	1
-ServoChannel.h:26:7:ServoChannel::~ServoChannel()	1
-ServoChannel.h:26:7:virtual ServoChannel::~ServoChannel()	1
 DigitalOutChannel.h:8:7:DigitalOutChannel::~DigitalOutChannel()	1
 DigitalOutChannel.h:8:7:virtual DigitalOutChannel::~DigitalOutChannel()	1
 PressureControlChannel.h:11:7:PressureControlChannel::~PressureControlChannel()	1

@@ -27,9 +27,9 @@ int main(void)
 	ecu.exec();
 #elif defined(ECU_LAMARR_BOARD)
 #ifdef UART_DEBUG
-	ECU_Lamarr ecu(6,GIT_COMMIT_HASH_VALUE,1000); //6 ECU, 7 PMU, 9 TW
+	ECU_Lamarr ecu(7,GIT_COMMIT_HASH_VALUE,1000); //6 ECU, 7 PMU, 9 TW
 #else
-	ECU_Lamarr ecu(6,GIT_COMMIT_HASH_VALUE, 1);
+	ECU_Lamarr ecu(7,GIT_COMMIT_HASH_VALUE, 1);
 #endif
 
 	if(ecu.init() != 0)

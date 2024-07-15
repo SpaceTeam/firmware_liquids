@@ -13,12 +13,12 @@ IOBv4::IOBv4(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 
 		//HARDWARE CONFIG
 		//servo0(0, 0, STRHAL_TIM_TIM4, STRHAL_TIM_TIM4_CH2_PB7,{ ADC1, STRHAL_ADC_CHANNEL_9 },{ ADC1, STRHAL_ADC_CHANNEL_1 },{ GPIOC, 13, STRHAL_GPIO_TYPE_OPP }, 1),
-		servo1(1, 1, STRHAL_TIM_TIM3, STRHAL_TIM_TIM3_CH3_PC8,{ ADC5, STRHAL_ADC_CHANNEL_2 },{ NULL, STRHAL_ADC_CHANNEL_LAST },{ NULL, 0x3F, STRHAL_GPIO_TYPE_OPP }, 1),
-		servo2(2, 2, STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH4_PA10,{ ADC2, STRHAL_ADC_CHANNEL_13 },{ NULL, STRHAL_ADC_CHANNEL_LAST },{ NULL, 0x3F, STRHAL_GPIO_TYPE_OPP }, 1),
+		//servo1(1, 1, STRHAL_TIM_TIM3, STRHAL_TIM_TIM3_CH3_PC8,{ ADC5, STRHAL_ADC_CHANNEL_2 },{ NULL, STRHAL_ADC_CHANNEL_LAST },{ NULL, 0x3F, STRHAL_GPIO_TYPE_OPP }, 1),
+		//servo2(2, 2, STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH4_PA10,{ ADC2, STRHAL_ADC_CHANNEL_13 },{ NULL, STRHAL_ADC_CHANNEL_LAST },{ NULL, 0x3F, STRHAL_GPIO_TYPE_OPP }, 1),
 
 		channel0(0,{ ADC5, STRHAL_ADC_CHANNEL_13 },		{ GPIOD,  8, STRHAL_GPIO_TYPE_OPP }, STRHAL_ADC_INTYPE_REGULAR, 1),
-	//channel1(1,{ ADC5, STRHAL_ADC_CHANNEL_2 },		{ GPIOC,  8, STRHAL_GPIO_TYPE_OPP }, STRHAL_ADC_INTYPE_REGULAR, 1),
-	//channel2(2,{ ADC2, STRHAL_ADC_CHANNEL_13 },		{ GPIOA, 10, STRHAL_GPIO_TYPE_OPP }, STRHAL_ADC_INTYPE_REGULAR, 1),
+		channel1(1,{ ADC5, STRHAL_ADC_CHANNEL_2 },		{ GPIOC,  8, STRHAL_GPIO_TYPE_OPP }, STRHAL_ADC_INTYPE_REGULAR, 1),
+		channel2(2,{ ADC2, STRHAL_ADC_CHANNEL_13 },		{ GPIOA, 10, STRHAL_GPIO_TYPE_OPP }, STRHAL_ADC_INTYPE_REGULAR, 1),
 		channel3(3,{ ADC3, STRHAL_ADC_CHANNEL_4 },		{ GPIOB,  2, STRHAL_GPIO_TYPE_OPP }, STRHAL_ADC_INTYPE_REGULAR, 1),
 		channel4(4,{ ADC3, STRHAL_ADC_CHANNEL_7 },		{ GPIOC,  6, STRHAL_GPIO_TYPE_OPP }, STRHAL_ADC_INTYPE_REGULAR, 1),
 		channel5(5,{ ADC5, STRHAL_ADC_CHANNEL_1 },		{ GPIOA, 15, STRHAL_GPIO_TYPE_OPP }, STRHAL_ADC_INTYPE_REGULAR, 1),
@@ -34,12 +34,12 @@ IOBv4::IOBv4(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 {
 
 	//registerChannel(&servo0);
-	registerChannel(&servo1);
-	registerChannel(&servo2);
+	//registerChannel(&servo1);
+	//registerChannel(&servo2);
 
 	registerChannel(&channel0);
-	//registerChannel(&channel1);
-	//registerChannel(&channel2);
+	registerChannel(&channel1);
+	registerChannel(&channel2);
 	registerChannel(&channel3);
 	registerChannel(&channel4);
 	registerChannel(&channel5);
@@ -50,7 +50,7 @@ IOBv4::IOBv4(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	registerChannel(&channel10);
 	registerChannel(&channel11);
 	registerChannel(&pressurecontrol0);
-	registerModule(&flash);
+	//registerModule(&flash);
 
 }
 

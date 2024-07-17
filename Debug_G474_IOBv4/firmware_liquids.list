@@ -1945,7 +1945,7 @@ int main(void)
  80010ae:	46bd      	mov	sp, r7
  80010b0:	bd90      	pop	{r4, r7, pc}
  80010b2:	bf00      	nop
- 80010b4:	7771a513 	.word	0x7771a513
+ 80010b4:	f799a1a0 	.word	0xf799a1a0
  80010b8:	0800903c 	.word	0x0800903c
 
 080010bc <STRHAL_OofHandler>:
@@ -3070,7 +3070,7 @@ GenericChannel::GenericChannel(uint32_t nodeId, uint32_t firmwareVersion, uint32
  800173c:	bd80      	pop	{r7, pc}
  800173e:	bf00      	nop
  8001740:	08009148 	.word	0x08009148
- 8001744:	7771a513 	.word	0x7771a513
+ 8001744:	f799a1a0 	.word	0xf799a1a0
  8001748:	20000818 	.word	0x20000818
 
 0800174c <_ZNK14GenericChannel9getNodeIdEv>:

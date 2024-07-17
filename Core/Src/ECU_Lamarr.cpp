@@ -2,7 +2,7 @@
 
 #include <cstdio>
 #include <cstring>
-#include "stddef.h"
+
 ECU_Lamarr::ECU_Lamarr(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		GenericChannel(node_id, fw_version, refresh_divider),
 		led_1({ GPIOC, 8, STRHAL_GPIO_TYPE_OPP }),
@@ -13,8 +13,8 @@ ECU_Lamarr::ECU_Lamarr(uint32_t node_id, uint32_t fw_version, uint32_t refresh_d
 		press_3(3,{ ADC3, STRHAL_ADC_CHANNEL_6 }, 1),
 		temp_0(4,{ ADC2, STRHAL_ADC_CHANNEL_5 }, 1),
 		temp_1(5,{ ADC2, STRHAL_ADC_CHANNEL_17 }, 1),
-		servo_0(6, 0, STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH1_PA0,{ ADC1, STRHAL_ADC_CHANNEL_2 },{ NULL, STRHAL_ADC_CHANNEL_LAST },{ GPIOC, 13, STRHAL_GPIO_TYPE_OPP }, 1),
-		servo_1(7, 1, STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PA2,{ ADC1, STRHAL_ADC_CHANNEL_4 },{ NULL, STRHAL_ADC_CHANNEL_LAST },{ GPIOC, 14, STRHAL_GPIO_TYPE_OPP }, 1),
+		servo_0(6, 0, STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH1_PA0,{ ADC1, STRHAL_ADC_CHANNEL_2 },{ nullptr, STRHAL_ADC_CHANNEL_LAST },{ nullptr, 32, STRHAL_GPIO_TYPE_OPP }, 1),
+		servo_1(7, 1, STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PA2,{ ADC1, STRHAL_ADC_CHANNEL_4 },{ nullptr, STRHAL_ADC_CHANNEL_LAST },{ nullptr, 32, STRHAL_GPIO_TYPE_OPP }, 1),
 		pyro0_cont(9,{ GPIOA, 15, STRHAL_GPIO_TYPE_IHZ }, 1),
 		pyro1_cont(11,{ GPIOC, 12, STRHAL_GPIO_TYPE_IHZ }, 1),
 		pyro2_cont(13,{ GPIOD, 0, STRHAL_GPIO_TYPE_IHZ }, 1),
@@ -61,8 +61,9 @@ int ECU_Lamarr::init()
 	STRHAL_GPIO_SingleInit(&led_2, STRHAL_GPIO_TYPE_OPP);
 
 	// init debug uart
-	if (STRHAL_UART_Instance_Init(STRHAL_UART_DEBUG) != 0)
+	if (STRHAL_UART_Instance_Init(STRHAL_UART1) != 0)
 		return -1;
+	STRHAL_UART_Debug_Write_Blocking("ASDSADASD\n", 8, 50);
 
 	if (can.init(receptor, heartbeatCan, COMMode::STANDARD_COM_MODE) != 0)
 		return -1;
@@ -88,7 +89,7 @@ int ECU_Lamarr::exec()
 	STRHAL_GPIO_Write(&led_1, STRHAL_GPIO_VALUE_H);
 	STRHAL_UART_Debug_Write_Blocking("RUNNING\n", 8, 50);
 
-	speaker.beep(6, 400, 300);
+	speaker.beep(1, 200, 300);
 
 #ifdef UART_DEBUG
 	STRHAL_UART_Listen(STRHAL_UART_DEBUG);
@@ -100,7 +101,8 @@ int ECU_Lamarr::exec()
 #endif
 	while (1)
 	{
-
+		testServo(servo_1);
+		//testChannels();
 		//detectReadoutMode();
 #ifdef UART_DEBUG
 
@@ -155,7 +157,7 @@ void ECU_Lamarr::testServo(ServoChannel &servo)
 	while (1)
 	{
 		uint64_t t = STRHAL_Systick_GetTick();
-		if ((t - t_last_sample) > 3000)
+		if ((t - t_last_sample) > 2000)
 		{
 			t_last_sample = t;
 			if (state == 0)
@@ -196,7 +198,7 @@ void ECU_Lamarr::testChannels()
 				while (nn == 0)
 				{
 					nn = STRHAL_UART_Read(STRHAL_UART_DEBUG, read, 2);
-					std::sprintf(write, "ChannelId: %d, ChannelType: %d, Measurement: %d\n", channel->getChannelId(), type, adc->getMeasurement());
+					std::sprintf(write, "ADC16 ChannelId: %d, ChannelType: %d, Measurement: %d\n", channel->getChannelId(), type, adc->getMeasurement());
 					STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
 					STRHAL_Systick_BusyWait(500);
 				}
@@ -208,7 +210,7 @@ void ECU_Lamarr::testChannels()
 				set_msg.variable_id = DIGITAL_OUT_STATE;
 				set_msg.value = 1;
 				uint8_t ret_n = 0;
-				std::sprintf(write, "ChannelId: %d, ChannelType: %d\n", state, type);
+				std::sprintf(write, "DOUT ChannelId: %d, ChannelType: %d\n", state, type);
 				STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
 				STRHAL_Systick_BusyWait(1000);
 				STRHAL_UART_Debug_Write_Blocking("..Setting Output for 10s in\n", 28, 50);
@@ -236,21 +238,21 @@ void ECU_Lamarr::testChannels()
 			}
 			else if (type == CHANNEL_TYPE_PNEUMATIC_VALVE)
 			{
-				std::sprintf(write, "Channel %d/type: %d not implemented\n", state, type);
+				std::sprintf(write, "PNEU Channel %d/type: %d not implemented\n", state, type);
 				STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
 				STRHAL_UART_Debug_Write_Blocking("Channel not implemented\n", 24, 50);
 			}
 			else if (type == CHANNEL_TYPE_SERVO)
 			{
-				std::sprintf(write, "Channel %d/type: %d not implemented\n", state, type);
+				std::sprintf(write, "SERVO Channel %d/type: %d not implemented\n", state, type);
 				STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
 			}
 			else
 			{
-				std::sprintf(write, "Channel %d/type: %d not implemented\n", state, type);
+				std::sprintf(write, "ELSE Channel %d/type: %d not implemented\n", state, type);
 				STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
 			}
-			state = (state == 20) ? 0 : (state + 1);
+			state = (state == 16) ? 0 : (state + 1);
 		}
 		STRHAL_Systick_BusyWait(500);
 	}

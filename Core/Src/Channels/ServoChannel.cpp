@@ -8,6 +8,7 @@ constexpr ServoRefPos ServoChannel::com0Ref;
 constexpr ServoRefPos ServoChannel::pwm0Ref;
 constexpr ServoRefPos ServoChannel::adc0Ref;
 
+
 ServoChannel::ServoChannel(uint8_t id, uint8_t servoId, const STRHAL_TIM_TimerId_t &pwmTimer, const STRHAL_TIM_ChannelId_t &control, const STRHAL_ADC_Channel_t &feedbackChannel, const STRHAL_ADC_Channel_t &currentChannel, const STRHAL_GPIO_t &led, uint32_t refreshDivider) :
 		AbstractChannel(CHANNEL_TYPE_SERVO, id, refreshDivider), servoId(servoId), pwmTimer(pwmTimer), ctrlChannelId(control), feedbackChannel(feedbackChannel), currentChannel(currentChannel), led(led), flash(W25Qxx_Flash::instance()), servoState(ServoState::IDLE), reqCalib(false)
 {
@@ -25,7 +26,7 @@ int ServoChannel::init()
 
 
 	feedbackMeasurement = STRHAL_ADC_SubscribeChannel(&feedbackChannel, STRHAL_ADC_INTYPE_REGULAR);
-	if(currentChannel.ADCx)
+	if(currentChannel.ADCx != nullptr)
 	currentMeasurement = STRHAL_ADC_SubscribeChannel(&currentChannel, STRHAL_ADC_INTYPE_REGULAR);
 
 	// Load and assign config
@@ -39,7 +40,7 @@ int ServoChannel::init()
 	pwmRef.start = flash.readConfigReg(configAddrStart + 2);
 	pwmRef.end = flash.readConfigReg(configAddrStart + 3);
 
-	if (pwmRef.start == 0 && pwmRef.end == 0) // flash never written -> init default
+	if (pwmRef.start == 65535 && pwmRef.end == 65535) // flash never written -> init default
 	{
 		uint32_t vals[4] =
 		{ (uint32_t) adc0Ref.start, (uint32_t) adc0Ref.end, (uint32_t) pwm0Ref.start, (uint32_t) pwm0Ref.end };
@@ -318,6 +319,8 @@ uint16_t ServoChannel::getFeedbackMeasurement() const
 
 uint16_t ServoChannel::getCurrentMeasurement() const
 {
+	if(currentMeasurement == nullptr)
+		return 0;
 	return *currentMeasurement;
 }
 

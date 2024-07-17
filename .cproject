@@ -2234,12 +2234,14 @@
 	<storageModule moduleId="refreshScope" versionNumber="2">
 		<configuration configurationName="Debug_G491_PMU"/>
 		<configuration configurationName="Debug_Uart_G491_ECU"/>
+		<configuration configurationName="Debug_G474_ECU_Lamarr"/>
 		<configuration configurationName="Debug_G491xx">
 			<resource resourceType="PROJECT" workspacePath="/firmware_franz_houbolt"/>
 		</configuration>
 		<configuration configurationName="Debug_G491_ECU"/>
 		<configuration configurationName="Debug_Uart_G491_RCU"/>
 		<configuration configurationName="Debug_H7xx_LCB"/>
+		<configuration configurationName="Debug_G491_ECU_UHB"/>
 		<configuration configurationName="Debug_G474_IOBv3"/>
 		<configuration configurationName="Debug_G474_IOBv4">
 			<resource resourceType="PROJECT" workspacePath="/firmware_liquids"/>

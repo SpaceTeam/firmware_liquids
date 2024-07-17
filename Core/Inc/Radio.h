@@ -25,7 +25,7 @@ class Radio: public AbstractCom
 		static constexpr uint8_t ECU_START_ADDR = 0;
 		static constexpr uint8_t ECU_MSG_SIZE = 55; //51 + 4
 		static constexpr uint8_t PMU_START_ADDR = ECU_START_ADDR + ECU_MSG_SIZE;
-		static constexpr uint8_t PMU_MSG_SIZE = 0; //44 + 4
+		static constexpr uint8_t PMU_MSG_SIZE = 1; //44 + 4
 		static constexpr uint8_t RCU_START_ADDR = PMU_START_ADDR + PMU_MSG_SIZE;
 		static constexpr uint8_t RCU_MSG_SIZE = 40;
 		static uint8_t msgArray[MSG_SIZE];

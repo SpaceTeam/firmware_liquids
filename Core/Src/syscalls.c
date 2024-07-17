@@ -128,6 +128,12 @@ int _unlink(char *name)
 	return -1;
 }
 
+int _getentropy(void* buffer[], size_t length)
+{
+  buffer = buffer; length = length;
+  return -ENOSYS;
+}
+
 int _times(struct tms *buf)
 {
 	return -1;

@@ -78,15 +78,27 @@ int TempExt::read()
 		return -1;
 	}
 
-	if(readReg(TempExtAddr::DATA_MSB, &data[1], 16) < 0){
+	if(readReg(TempExtAddr::DATA_MSB, &data[1], 8) < 0){
 		STRHAL_UART_Debug_Write_Blocking("SPI ERROR\n", 9, 50);
 		return -1;
 	}
+	uint16_t result = ((uint16_t)data[0] + (uint16_t)(data[1]<<8))/2;
+	//double result_d2 = (((double)result / (double)32768)*400)*0.384153;
+	char debug_string[60] = "";
 
-	STRHAL_UART_Debug_Write_Blocking((const char*)data, 1, 50);
-	STRHAL_UART_Debug_Write_Blocking((const char*)(data + 1), 1, 50);
+	double result_d= (((double)result/(double)32) - 256);
+	double trunc = result_d - (int)(result_d);
+	int decimal = (int)(trunc * 10*10);
 
-	STRHAL_UART_Debug_Write_Blocking("\n", 2, 50);
+	//std::sprintf(debug_string, "data[0]: %d, data[1]:%d | result: ((data[0]+data[1]<<8)/2) %d temp: ((result/32)-256) %d.%d | \n", (int)data[0], (int)data[1], result, (int)result_d, decimal);
+	std::sprintf(debug_string, "temp: %d.%d | \n", (int)result_d, decimal);
+
+	STRHAL_UART_Debug_Write_Blocking(debug_string, strlen(debug_string), 50);
+
+	//STRHAL_UART_Debug_Write_Blocking((const char*)data, 1, 50);
+	//STRHAL_UART_Debug_Write_Blocking((const char*)(data + 1), 1, 50);
+
+	//STRHAL_UART_Debug_Write_Blocking("\n", 2, 50);
 	return 0;
 }
 
@@ -100,6 +112,7 @@ int TempExt::readReg(const TempExtAddr &address, uint8_t *reg, uint8_t shift)
 	}
 	uint8_t mydata = (uint8_t)(value >> shift);
 	*reg = mydata;
+	return mydata;
 }
 
 int TempExt::writeReg(const TempExtAddr &address, uint8_t val, uint16_t delay) {

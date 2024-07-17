@@ -45,18 +45,23 @@ Debug_G491_ECU/
 Debug_G491_PMU/
 Debug_G491_RCU/
 Debug_Uart_G491_ECU/
+Debug_Uart_G491_ECU/
 Debug_Uart_G491_RCU/
 Debug_H7xx_IOB/
 Debug_H7xx_LCB/
 Debug_G474_IOBv4/
 Debug_UART_G474_IOBv3/
+Debug_UART_G474_IOBv3/
 Release_G491/
+Release_G4xx/
 *.dSYM/
 *.su
 *.idb
 *.pdb
 *.launch
 
+*.mk
+*.cyclio
 # Kernel Module Compile Results
 *.mod*
 *.cmd

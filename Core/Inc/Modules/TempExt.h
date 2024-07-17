@@ -41,8 +41,9 @@ class TempExt: public AbstractModule
 		int writeReg(const TempExtAddr &address, uint8_t val, uint16_t delay);
 
 		uint8_t deviceID;
-		STRHAL_GPIO_t addrPin0, addrPin1, addrPin2, addrPin3, muxEnable;
+		STRHAL_GPIO_t addrPin0, addrPin1, addrPin2, addrPin3;
 		STRHAL_GPIO_Value_t addr0, addr1, addr2, addr3;
+		STRHAL_GPIO_t muxEnable;
 		STRHAL_SPI_Id_t spiId;
 		STRHAL_SPI_Config_t spiConf;
 

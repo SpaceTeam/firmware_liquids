@@ -333,7 +333,7 @@ void GenericChannel::receptorLora(uint32_t id, uint8_t *data, uint32_t n)
 		if (loraActive)
 		{
 			Radio::msgArray[Radio::PMU_START_ADDR] = 1;
-			memcpy(&Radio::msgArray[Radio::PMU_START_ADDR + 1], msgData.bit.data.uint8, Radio::PMU_MSG_SIZE - 1);
+			memcpy(&Radio::msgArray[Radio::PMU_START_ADDR + 1], msgData.bit.data.uint8, (Radio::PMU_MSG_SIZE - 1));
 		}
 		return;
 	}

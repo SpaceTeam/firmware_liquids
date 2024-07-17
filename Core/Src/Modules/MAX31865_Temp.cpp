@@ -1,0 +1,135 @@
+#include <Modules/MAX31865_Temp.h>
+#include <cstdio>
+#include <cstring>
+#include <STRHAL.h>
+#include <iostream>
+
+MAX31865_Temp::MAX31865_Temp(
+		const STRHAL_GPIO_t &addrPin0,
+		const STRHAL_GPIO_t &addrPin1,
+		const STRHAL_GPIO_t &addrPin2,
+		const STRHAL_GPIO_t &addrPin3,
+		const STRHAL_GPIO_Value_t &addr0,
+		const STRHAL_GPIO_Value_t &addr1,
+		const STRHAL_GPIO_Value_t &addr2,
+		const STRHAL_GPIO_Value_t &addr3,
+		const STRHAL_GPIO_t &muxEnable,
+		const STRHAL_SPI_Id_t &spiId,
+		const STRHAL_SPI_Config_t &spiConf
+		): 	addrPin0(addrPin0),
+			addrPin1(addrPin1),
+			addrPin2(addrPin2),
+			addrPin3(addrPin3),
+			addr0(addr0),
+			addr1(addr1),
+			addr2(addr2),
+			addr3(addr3),
+			muxEnable(muxEnable),
+			spiId(spiId),
+			spiConf(spiConf)
+{
+}
+
+int MAX31865_Temp::init()
+{
+	STRHAL_UART_Debug_Write_Blocking("TEMP EXT INIT\n", 14, 50);
+
+	STRHAL_GPIO_SingleInit(&addrPin0, STRHAL_GPIO_TYPE_OPP);
+	STRHAL_GPIO_SingleInit(&addrPin1, STRHAL_GPIO_TYPE_OPP);
+	STRHAL_GPIO_SingleInit(&addrPin2, STRHAL_GPIO_TYPE_OPP);
+	STRHAL_GPIO_SingleInit(&addrPin3, STRHAL_GPIO_TYPE_OPP);
+	STRHAL_GPIO_SingleInit(&muxEnable, STRHAL_GPIO_TYPE_OPP);
+
+	STRHAL_GPIO_Write(&addrPin0, addr0);
+	STRHAL_GPIO_Write(&addrPin1, addr1);
+	STRHAL_GPIO_Write(&addrPin2, addr2);
+	STRHAL_GPIO_Write(&addrPin3, addr3);
+	STRHAL_GPIO_Write(&muxEnable, STRHAL_GPIO_VALUE_L);
+
+	STRHAL_SPI_Init();
+	if (STRHAL_SPI_Master_Init(spiId, &spiConf) < 0)
+		return -1;
+
+	STRHAL_SPI_Master_Run(spiId);
+
+	uint8_t config = 0xC0;
+	writeReg(MAX31865_Temp_Addr::CONFIG, config, 50);
+
+	return 0;
+}
+
+int MAX31865_Temp::exec()
+{
+	uint64_t time = STRHAL_Systick_GetTick();
+
+	if ((time - timeLastSample) > EXEC_SAMPLE_TICKS){
+		timeLastSample = time;
+		return read();
+
+	}
+		return 0;
+}
+
+int MAX31865_Temp::read()
+{
+	uint8_t data[2] = {0};
+	if(readReg(MAX31865_Temp_Addr::DATA_LSB, &data[0], 8) < 0){
+		STRHAL_UART_Debug_Write_Blocking("SPI ERROR\n", 9, 50);
+		return -1;
+	}
+
+	if(readReg(MAX31865_Temp_Addr::DATA_MSB, &data[1], 8) < 0){
+		STRHAL_UART_Debug_Write_Blocking("SPI ERROR\n", 9, 50);
+		return -1;
+	}
+	uint16_t result = ((uint16_t)data[0] + (uint16_t)(data[1]<<8))/2;
+	//double result_d2 = (((double)result / (double)32768)*400)*0.384153;
+	char debug_string[60] = "";
+
+	double result_d= (((double)result/(double)32) - 256);
+	double trunc = result_d - (int)(result_d);
+	int decimal = (int)(trunc * 10*10);
+
+	//std::sprintf(debug_string, "data[0]: %d, data[1]:%d | result: ((data[0]+data[1]<<8)/2) %d temp: ((result/32)-256) %d.%d | \n", (int)data[0], (int)data[1], result, (int)result_d, decimal);
+	std::sprintf(debug_string, "temp: %d.%d | \n", (int)result_d, decimal);
+
+	STRHAL_UART_Debug_Write_Blocking(debug_string, strlen(debug_string), 50);
+
+	//STRHAL_UART_Debug_Write_Blocking((const char*)data, 1, 50);
+	//STRHAL_UART_Debug_Write_Blocking((const char*)(data + 1), 1, 50);
+
+	//STRHAL_UART_Debug_Write_Blocking("\n", 2, 50);
+	return 0;
+}
+
+int MAX31865_Temp::readReg(const MAX31865_Temp_Addr &address, uint8_t *reg, uint8_t shift)
+{
+	uint8_t cmd = static_cast<uint8_t>(address);
+	uint32_t value;
+
+	if (STRHAL_SPI_Master_Transceive(spiId, &cmd, 1, 0, (uint8_t*)&value, 4, 500) < 0){
+		return -1;
+	}
+	uint8_t mydata = (uint8_t)(value >> shift);
+	*reg = mydata;
+	return mydata;
+}
+
+int MAX31865_Temp::writeReg(const MAX31865_Temp_Addr &address, uint8_t val, uint16_t delay) {
+	uint8_t cmd[2];
+
+	cmd[0] = static_cast<uint8_t>(address);
+	cmd[1] = val;
+
+	if (STRHAL_SPI_Master_Transceive(spiId, cmd, 2, 2, nullptr, 0, 100) != 0)
+		return -1;
+
+	LL_mDelay(delay);
+	return 0;
+}
+
+int MAX31865_Temp::reset()
+{
+	STRHAL_UART_Debug_Write_Blocking("TEMP EXT RESET\n", 15, 50);
+	return 0;
+}

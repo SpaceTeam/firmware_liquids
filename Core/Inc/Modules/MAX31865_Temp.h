@@ -6,8 +6,13 @@
 
 enum class MAX31865_Temp_Addr : uint8_t
 {
-	DATA_LSB = 0x02,
 	DATA_MSB = 0x01,
+	DATA_LSB = 0x02,
+	DATA_HIGH_FAULT_MSB = 0x03,
+	DATA_HIGH_FAULT_LSB = 0x04,
+	DATA_LOW_FAULT_MSB = 0x05,
+	DATA_LOW_FAULT_LSB = 0x06,
+	FAULT_STATUS = 0x07,
 	CONFIG = 0x80
 };
 
@@ -16,15 +21,6 @@ class MAX31865_Temp: public AbstractModule
 {
 	public:
 		MAX31865_Temp(
-				const STRHAL_GPIO_t &addrPin0,
-				const STRHAL_GPIO_t &addrPin1,
-				const STRHAL_GPIO_t &addrPin2,
-				const STRHAL_GPIO_t &addrPin3,
-				const STRHAL_GPIO_Value_t &addr0,
-				const STRHAL_GPIO_Value_t &addr1,
-				const STRHAL_GPIO_Value_t &addr2,
-				const STRHAL_GPIO_Value_t &addr3,
-				const STRHAL_GPIO_t &muxEnable,
 				const STRHAL_SPI_Id_t &spiId,
 				const STRHAL_SPI_Config_t &spiConf
 			);
@@ -32,20 +28,22 @@ class MAX31865_Temp: public AbstractModule
 		int init() override;
 		int exec() override;
 		int reset() override;
-		int read();
 
-		static constexpr uint64_t EXEC_SAMPLE_TICKS = 1000;
+		static constexpr uint64_t EXEC_SAMPLE_TICKS = 100;
+
+		uint8_t new_data = 0;
+		uint16_t measurementData = 0;
+
+		STRHAL_SPI_Config_t spiConf;
 
 	private:
-		int readReg(const MAX31865_Temp_Addr &address, uint8_t *reg, uint8_t shift);
-		int writeReg(const MAX31865_Temp_Addr &address, uint8_t val, uint16_t delay);
+		uint8_t readSingleReg(const MAX31865_Temp_Addr &address);
+		uint16_t readData(void);
+
+		uint8_t writeReg(const MAX31865_Temp_Addr &address, uint8_t val, uint16_t delay);
 
 		uint8_t deviceID;
-		STRHAL_GPIO_t addrPin0, addrPin1, addrPin2, addrPin3;
-		STRHAL_GPIO_Value_t addr0, addr1, addr2, addr3;
-		STRHAL_GPIO_t muxEnable;
 		STRHAL_SPI_Id_t spiId;
-		STRHAL_SPI_Config_t spiConf;
 
 		uint64_t timeLastSample = 0;
 };

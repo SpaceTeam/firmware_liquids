@@ -1,22 +1,22 @@
-#ifndef BAROCHANNEL_H
-#define BAROCHANNEL_H
+#ifndef TEMPCHANNEL_H
+#define TEMPCHANNEL_H
 
 #include "./Channels/AbstractChannel.h"
-#include <can_houbolt/channels/adc24_channel_def.h>
-#include "../Modules/LPS25HB_Baro.h"
+#include <can_houbolt/channels/adc16_channel_def.h>
+#include "../Modules/MAX31865_Temp.h"
 #include <STRHAL.h>
 
-class BaroChannel: public AbstractChannel
+class TempChannel: public AbstractChannel
 {
 	public:
-		BaroChannel(uint8_t id, LPS25HB_Baro *baro, uint32_t refreshDivider);
+		TempChannel(uint8_t id, MAX31865_Temp *temp, uint32_t refreshDivider);
 
-		BaroChannel(const BaroChannel &other) = delete;
-		BaroChannel& operator=(const BaroChannel &other) = delete;
-		BaroChannel(const BaroChannel &&other) = delete;
-		BaroChannel& operator=(const BaroChannel &&other) = delete;
+		TempChannel(const TempChannel &other) = delete;
+		TempChannel& operator=(const TempChannel &other) = delete;
+		TempChannel(const TempChannel &&other) = delete;
+		TempChannel& operator=(const TempChannel &&other) = delete;
 
-		~BaroChannel();
+		~TempChannel();
 
 		int init() override;
 		int reset() override;
@@ -29,9 +29,8 @@ class BaroChannel: public AbstractChannel
 	protected:
 		int setVariable(uint8_t variableId, int32_t data) override;
 		int getVariable(uint8_t variableId, int32_t &data) const override;
-
 	private:
-		LPS25HB_Baro *baro;
+		MAX31865_Temp *temp;
 };
 
-#endif /*BAROCHANNEL_H*/
+#endif /*TEMPCHANNEL_H*/

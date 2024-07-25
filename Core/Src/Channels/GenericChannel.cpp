@@ -224,8 +224,6 @@ AbstractChannel* GenericChannel::getControlInputChannel(uint8_t id)
 {
 	return channels[id];
 }
-
-
 int GenericChannel::getNodeInfo(uint8_t *data, uint8_t &n)
 {
 	NodeInfoMsg_t *info = (NodeInfoMsg_t*) data;

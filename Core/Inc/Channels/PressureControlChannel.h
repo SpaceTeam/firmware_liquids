@@ -25,7 +25,7 @@ class PressureControlChannel: public AbstractChannel
 
 		int processMessage(uint8_t commandId, uint8_t *returnData, uint8_t &n) override;
 
-		static constexpr uint16_t EXEC_SAMPLE_TICKS = 100;
+		static constexpr uint16_t EXEC_SAMPLE_TICKS = 20;
 
 	protected:
 

@@ -39,7 +39,10 @@ int MAX31865_Temp::exec()
 	return 0;
 }
 
-
+STRHAL_SPI_NSSId_t MAX31865_Temp::Get_NSS(void)
+{
+	return spiConf.nss;
+}
 
 uint8_t MAX31865_Temp::readSingleReg(const MAX31865_Temp_Addr &address)
 {

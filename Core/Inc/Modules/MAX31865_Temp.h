@@ -34,8 +34,7 @@ class MAX31865_Temp: public AbstractModule
 		uint8_t new_data = 0;
 		uint16_t measurementData = 0;
 
-		STRHAL_SPI_Config_t spiConf;
-
+		STRHAL_SPI_NSSId_t Get_NSS(void);
 	private:
 		uint8_t readSingleReg(const MAX31865_Temp_Addr &address);
 		uint16_t readData(void);
@@ -44,7 +43,7 @@ class MAX31865_Temp: public AbstractModule
 
 		uint8_t deviceID;
 		STRHAL_SPI_Id_t spiId;
-
+		STRHAL_SPI_Config_t spiConf;
 		uint64_t timeLastSample = 0;
 };
 

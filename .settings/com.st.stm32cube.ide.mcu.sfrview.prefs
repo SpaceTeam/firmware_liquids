@@ -1,4 +1,4 @@
 eclipse.preferences.version=1
-sfrviewstate={"fFavorites"\:{"fLists"\:{}},"fProperties"\:{"fNodeProperties"\:{}}}
+sfrviewstate={"fFavorites"\:{"fLists"\:{"AFRL_GPIOC"\:["STM32G491/GPIOC/AFRL"],"FDCAN1 CCCR DAR"\:["STM32G491/FDCAN1/CCCR/DAR"]}},"fProperties"\:{"fNodeProperties"\:{"STM32G491/GPIOC/AFRL"\:{"fNodeProperties"\:{"autoupdate"\:"true"}}}}}
 svd_custom_file_path=
 svd_file_path=platform\:/plugin/com.st.stm32cube.ide.mcu.productdb.debug/resources/cmsis/STMicroelectronics_CMSIS_SVD/STM32G491xx.svd

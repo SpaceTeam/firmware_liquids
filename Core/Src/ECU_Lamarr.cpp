@@ -57,8 +57,8 @@ ECU_Lamarr::ECU_Lamarr(uint32_t node_id, uint32_t fw_version, uint32_t refresh_d
 	//registerChannel(&rocket);
 
 	registerModule(&flash);
-	registerModule(&max_temp_1);
 	registerModule(&max_temp_0);
+	registerModule(&max_temp_1);
 
 }
 
@@ -67,6 +67,8 @@ int ECU_Lamarr::init()
 	if (STRHAL_Init(STRHAL_SYSCLK_SRC_EXT, 8000000) != STRHAL_NOICE)
 		return -1;
 
+	STRHAL_SPI_NSS_Init(max_temp_0.Get_NSS());
+	STRHAL_SPI_NSS_Init(max_temp_1.Get_NSS());
 	// init status LEDs
 	STRHAL_GPIO_SingleInit(&led_1, STRHAL_GPIO_TYPE_OPP);
 	STRHAL_GPIO_SingleInit(&led_2, STRHAL_GPIO_TYPE_OPP);
@@ -78,8 +80,6 @@ int ECU_Lamarr::init()
 	if (can.init(receptor, heartbeatCan, COMMode::STANDARD_COM_MODE) != 0)
 		return -1;
 
-	STRHAL_SPI_NSS_Init(max_temp_0.spiConf.nss);
-	STRHAL_SPI_NSS_Init(max_temp_1.spiConf.nss);
 	if (GenericChannel::init() != 0)
 		return -1;
 
@@ -210,11 +210,15 @@ void ECU_Lamarr::testTempChannels()
 */
 void ECU_Lamarr::testChannels()
 {
+	STRHAL_UART_Debug_Write_Blocking("testChannels\n", 13, 50);
+
 	char read[256], write[256];
 	uint8_t state = 0;
 	STRHAL_UART_Listen(STRHAL_UART_DEBUG);
+	uint64_t t_last_sample = 0;
 	while (1)
 	{
+
 		int32_t n = STRHAL_UART_Read(STRHAL_UART_DEBUG, read, 2);
 		if (n > 0)
 		{
@@ -226,10 +230,18 @@ void ECU_Lamarr::testChannels()
 				int nn = 0;
 				while (nn == 0)
 				{
+
+
 					nn = STRHAL_UART_Read(STRHAL_UART_DEBUG, read, 2);
-					std::sprintf(write, "ADC16 ChannelId: %d, ChannelType: %d, Measurement: %d\n", channel->getChannelId(), type, adc->getMeasurement());
-					STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
-					STRHAL_Systick_BusyWait(500);
+					uint64_t t = STRHAL_Systick_GetTick();
+					if ((t - t_last_sample) > 2000)
+					{
+						t_last_sample = t;
+						std::sprintf(write, "ADC16 ChannelId: %d, ChannelType: %d, Measurement: %d\n", channel->getChannelId(), type, adc->getMeasurement());
+						STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
+						if (GenericChannel::exec() != 0)
+							return;
+					}
 				}
 			}
 			else if (type == CHANNEL_TYPE_DIGITAL_OUT)
@@ -281,8 +293,7 @@ void ECU_Lamarr::testChannels()
 				std::sprintf(write, "ELSE Channel %d/type: %d not implemented\n", state, type);
 				STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
 			}
-			state = (state == 16) ? 0 : (state + 1);
+			state = (state == 15) ? 0 : (state + 1);
 		}
-		STRHAL_Systick_BusyWait(500);
 	}
 }

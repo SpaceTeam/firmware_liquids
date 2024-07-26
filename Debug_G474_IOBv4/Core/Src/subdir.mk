@@ -13,6 +13,7 @@ C_SRCS += \
 CPP_SRCS += \
 ../Core/Src/AbstractCom.cpp \
 ../Core/Src/Can.cpp \
+../Core/Src/ECU_Lamarr.cpp \
 ../Core/Src/ECU_uHb.cpp \
 ../Core/Src/IOBv1.cpp \
 ../Core/Src/IOBv3.cpp \
@@ -34,6 +35,7 @@ C_DEPS += \
 OBJS += \
 ./Core/Src/AbstractCom.o \
 ./Core/Src/Can.o \
+./Core/Src/ECU_Lamarr.o \
 ./Core/Src/ECU_uHb.o \
 ./Core/Src/IOBv1.o \
 ./Core/Src/IOBv3.o \
@@ -53,6 +55,7 @@ OBJS += \
 CPP_DEPS += \
 ./Core/Src/AbstractCom.d \
 ./Core/Src/Can.d \
+./Core/Src/ECU_Lamarr.d \
 ./Core/Src/ECU_uHb.d \
 ./Core/Src/IOBv1.d \
 ./Core/Src/IOBv3.d \
@@ -75,7 +78,7 @@ Core/Src/%.o Core/Src/%.su Core/Src/%.cyclo: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/AbstractCom.cyclo ./Core/Src/AbstractCom.d ./Core/Src/AbstractCom.o ./Core/Src/AbstractCom.su ./Core/Src/Can.cyclo ./Core/Src/Can.d ./Core/Src/Can.o ./Core/Src/Can.su ./Core/Src/ECU_uHb.cyclo ./Core/Src/ECU_uHb.d ./Core/Src/ECU_uHb.o ./Core/Src/ECU_uHb.su ./Core/Src/IOBv1.cyclo ./Core/Src/IOBv1.d ./Core/Src/IOBv1.o ./Core/Src/IOBv1.su ./Core/Src/IOBv3.cyclo ./Core/Src/IOBv3.d ./Core/Src/IOBv3.o ./Core/Src/IOBv3.su ./Core/Src/IOBv4.cyclo ./Core/Src/IOBv4.d ./Core/Src/IOBv4.o ./Core/Src/IOBv4.su ./Core/Src/LCB.cyclo ./Core/Src/LCB.d ./Core/Src/LCB.o ./Core/Src/LCB.su ./Core/Src/PMU.cyclo ./Core/Src/PMU.d ./Core/Src/PMU.o ./Core/Src/PMU.su ./Core/Src/RCU.cyclo ./Core/Src/RCU.d ./Core/Src/RCU.o ./Core/Src/RCU.su ./Core/Src/Radio.cyclo ./Core/Src/Radio.d ./Core/Src/Radio.o ./Core/Src/Radio.su ./Core/Src/Speaker.cyclo ./Core/Src/Speaker.d ./Core/Src/Speaker.o ./Core/Src/Speaker.su ./Core/Src/Ubx.cyclo ./Core/Src/Ubx.d ./Core/Src/Ubx.o ./Core/Src/Ubx.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/stm32g4xx_it.cyclo ./Core/Src/stm32g4xx_it.d ./Core/Src/stm32g4xx_it.o ./Core/Src/stm32g4xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32g4xx.cyclo ./Core/Src/system_stm32g4xx.d ./Core/Src/system_stm32g4xx.o ./Core/Src/system_stm32g4xx.su
+	-$(RM) ./Core/Src/AbstractCom.cyclo ./Core/Src/AbstractCom.d ./Core/Src/AbstractCom.o ./Core/Src/AbstractCom.su ./Core/Src/Can.cyclo ./Core/Src/Can.d ./Core/Src/Can.o ./Core/Src/Can.su ./Core/Src/ECU_Lamarr.cyclo ./Core/Src/ECU_Lamarr.d ./Core/Src/ECU_Lamarr.o ./Core/Src/ECU_Lamarr.su ./Core/Src/ECU_uHb.cyclo ./Core/Src/ECU_uHb.d ./Core/Src/ECU_uHb.o ./Core/Src/ECU_uHb.su ./Core/Src/IOBv1.cyclo ./Core/Src/IOBv1.d ./Core/Src/IOBv1.o ./Core/Src/IOBv1.su ./Core/Src/IOBv3.cyclo ./Core/Src/IOBv3.d ./Core/Src/IOBv3.o ./Core/Src/IOBv3.su ./Core/Src/IOBv4.cyclo ./Core/Src/IOBv4.d ./Core/Src/IOBv4.o ./Core/Src/IOBv4.su ./Core/Src/LCB.cyclo ./Core/Src/LCB.d ./Core/Src/LCB.o ./Core/Src/LCB.su ./Core/Src/PMU.cyclo ./Core/Src/PMU.d ./Core/Src/PMU.o ./Core/Src/PMU.su ./Core/Src/RCU.cyclo ./Core/Src/RCU.d ./Core/Src/RCU.o ./Core/Src/RCU.su ./Core/Src/Radio.cyclo ./Core/Src/Radio.d ./Core/Src/Radio.o ./Core/Src/Radio.su ./Core/Src/Speaker.cyclo ./Core/Src/Speaker.d ./Core/Src/Speaker.o ./Core/Src/Speaker.su ./Core/Src/Ubx.cyclo ./Core/Src/Ubx.d ./Core/Src/Ubx.o ./Core/Src/Ubx.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/stm32g4xx_it.cyclo ./Core/Src/stm32g4xx_it.d ./Core/Src/stm32g4xx_it.o ./Core/Src/stm32g4xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32g4xx.cyclo ./Core/Src/system_stm32g4xx.d ./Core/Src/system_stm32g4xx.o ./Core/Src/system_stm32g4xx.su
 
 .PHONY: clean-Core-2f-Src
 

@@ -398,7 +398,15 @@ void GenericChannel::receptor(uint32_t id, uint8_t *data, uint32_t n)
 	STRHAL_UART_Debug_Write_DMA((char *) msgBuf, CAN_MSG_LENGTH(ret_n) + 3);
 #endif
 
-	(void) STRHAL_CAN_Send(STRHAL_FDCAN1, msgId.uint32, msgData.uint8, CAN_MSG_LENGTH(ret_n));
+	//(void) STRHAL_CAN_Send(STRHAL_FDCAN1, msgId.uint32, msgData.uint8, CAN_MSG_LENGTH(ret_n));
+	if(STRHAL_CAN_Send(STRHAL_FDCAN1, msgId.uint32, msgData.uint8, CAN_MSG_LENGTH(ret_n)) == -1)
+	{
+		STRHAL_GPIO_t led_2 = { GPIOB, 14, STRHAL_GPIO_TYPE_OPP };
+		STRHAL_GPIO_Write(&led_2, STRHAL_GPIO_VALUE_H);
+
+	}
+
+
 }
 
 void GenericChannel::heartbeatCan()

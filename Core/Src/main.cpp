@@ -11,6 +11,22 @@
 #include "LCB.h"
 #include "git_version.h"
 
+enum
+{
+	NODE_ID_LAMARR_RCU_V2 = 29,
+	NODE_ID_LAMARR_OX_ECU = 31,
+	NODE_ID_LAMARR_FUEL_ECU = 32,
+	NODE_ID_LAMARR_GSE_1 = 33,
+	NODE_ID_LAMARR_GSE_2 = 34,
+	NODE_ID_LAMARR_ENGINE_ECU = 35,
+};
+
+#define LAMARR_ECU_NODE_ID NODE_ID_LAMARR_OX_ECU
+//#define LAMARR_ECU_NODE_ID NODE_ID_LAMARR_FUEL_ECU
+//#define LAMARR_ECU_NODE_ID NODE_ID_LAMARR_GSE_1
+//#define LAMARR_ECU_NODE_ID NODE_ID_LAMARR_GSE_2
+//#define LAMARR_ECU_NODE_ID NODE_ID_LAMARR_ENGINE_ECU
+
 int main(void)
 {
 
@@ -28,9 +44,9 @@ int main(void)
 	ecu.exec();
 #elif defined(ECU_LAMARR_BOARD)
 #ifdef UART_DEBUG
-	ECU_Lamarr ecu(5,GIT_COMMIT_HASH_VALUE,1000); //6 ECU, 7 PMU, 9 TW
+	ECU_Lamarr ecu(LAMARR_ECU_NODE_ID,GIT_COMMIT_HASH_VALUE,1000); //6 ECU, 7 PMU, 9 TW
 #else
-	ECU_Lamarr ecu(5,GIT_COMMIT_HASH_VALUE, 1);
+	ECU_Lamarr ecu(LAMARR_ECU_NODE_ID,GIT_COMMIT_HASH_VALUE, 1);
 #endif
 
 	if(ecu.init() != 0)

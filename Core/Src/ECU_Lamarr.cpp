@@ -26,7 +26,7 @@ ECU_Lamarr::ECU_Lamarr(uint32_t node_id, uint32_t fw_version, uint32_t refresh_d
 		pi_control(16, (GenericChannel&)*this, 0, servo_0, 1),
 		//pressure_control(16, (GenericChannel&)*this, 1, solenoid_0, 1),
 		//rocket(17, press_1, press_0, press_2, servo_0, servo_1, pyro_igniter0, pyro_igniter1, 1)
-		speaker(STRHAL_TIM_TIM1, STRHAL_TIM_TIM1_CH1N_PB13),
+		speaker(STRHAL_TIM_TIM3, STRHAL_TIM_TIM3_CH2_PC7),
 		max_temp_0(STRHAL_SPI_SPI1,	{ STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6, STRHAL_SPI_SPI1_MOSI_PA7, STRHAL_SPI_SPI1_NSS_PC4, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_LH, 5, 0 }),
 		max_temp_1(STRHAL_SPI_SPI1,	{ STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6, STRHAL_SPI_SPI1_MOSI_PA7, STRHAL_SPI_SPI1_NSS_PA4, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_LH, 5, 0 })
 {
@@ -93,7 +93,7 @@ int ECU_Lamarr::exec()
 	STRHAL_GPIO_Write(&led_1, STRHAL_GPIO_VALUE_H);
 	STRHAL_UART_Debug_Write_Blocking("RUNNING\n", 8, 50);
 
-	//speaker.beep(1, 200, 300);
+	speaker.beep(getNodeId() % 10, 200, 300);
 
 #ifdef UART_DEBUG
 	STRHAL_UART_Listen(STRHAL_UART_DEBUG);
@@ -106,7 +106,7 @@ int ECU_Lamarr::exec()
 	while (1)
 	{
 		//testServo(servo_1);
-		//testChannels();
+		testChannels();
 		//detectReadoutMode();
 #ifdef UART_DEBUG
 
@@ -226,7 +226,7 @@ void ECU_Lamarr::testChannels()
 
 					nn = STRHAL_UART_Read(STRHAL_UART_DEBUG, read, 2);
 					uint64_t t = STRHAL_Systick_GetTick();
-					if ((t - t_last_sample) > 2000)
+					if ((t - t_last_sample) > 1000)
 					{
 						t_last_sample = t;
 						std::sprintf(write, "ADC16 ChannelId: %d, ChannelType: %d, Measurement: %d\n", channel->getChannelId(), type, adc->getMeasurement());

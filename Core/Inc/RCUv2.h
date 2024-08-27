@@ -29,7 +29,7 @@ class RCUv2: public GenericChannel
 		int exec() override;
 
 	private:
-		STRHAL_GPIO_t ledRed, ledGreen;
+		STRHAL_GPIO_t led1, led2;
 
 		// Modules
 		LPS25HB_Baro baro;
@@ -42,7 +42,7 @@ class RCUv2: public GenericChannel
 		BaroChannel baro_channel;
 		IMUChannel x_accel, y_accel, z_accel, x_gyro, y_gyro, z_gyro;
 		Data32Channel gps_longitude, gps_latitude, gps_altitude, gps_status;
-
+		DigitalOutChannel out0, out1, out2, out3;
 		// Coms
 		Radio &radio;
 

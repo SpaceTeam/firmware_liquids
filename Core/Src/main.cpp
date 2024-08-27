@@ -7,6 +7,7 @@
 #include <STRHAL.h>
 #include "PMU.h"
 #include "RCU.h"
+#include "RCUv2.h"
 #include "LCB.h"
 #include "git_version.h"
 
@@ -60,6 +61,18 @@ int main(void)
 
 	STRHAL_UART_Debug_Write_Blocking("RCU STARTED\n", 12, 50);
 	rcu.exec();
+#elif defined(RCU_V2_BOARD)
+#ifdef UART_DEBUG
+	RCUv2 rcu_v2(8,GIT_COMMIT_HASH_VALUE,100);
+#else
+	RCUv2 rcu_v2(8, GIT_COMMIT_HASH_VALUE, 4);
+#endif
+
+	if (rcu_v2.init() != 0)
+		return -1;
+
+	STRHAL_UART_Debug_Write_Blocking("RCU STARTED\n", 12, 50);
+	rcu_v2.exec();
 #elif defined(IOBv1_BOARD)
 	IOBv1 iob(10,0xDEADBEEF,100); // TODO disregard node ID and read dipswitches in IOB/LCB class
 

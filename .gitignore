@@ -46,6 +46,7 @@ Debug_G491_ECU/
 Debug_G491_ECU_UHB/
 Debug_G491_PMU/
 Debug_G491_RCU/
+Debug_G474_RCUv2/
 Debug_Uart_G491_ECU/
 Debug_Uart_G491_RCU/
 Debug_G474_IOBv4/

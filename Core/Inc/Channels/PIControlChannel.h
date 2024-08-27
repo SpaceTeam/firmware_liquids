@@ -5,7 +5,7 @@
 #include "./Channels/GenericChannel.h"
 #include "./Channels/ServoChannel.h"
 #include "./Channels/ADCChannel.h"
-#include <can_houbolt/channels/control_channel_def.h>
+#include <can_houbolt/channels/pi_control_channel_def.h>
 #include <STRHAL.h>
 
 class PIControlChannel: public AbstractChannel
@@ -34,11 +34,14 @@ class PIControlChannel: public AbstractChannel
 
 	private:
 		uint16_t enabled = 0;
-		double targetPressure = 0;
+		double targetPressure = 30;
 		double p_gain = 0;
 		double i_gain = 0;
 		double integral_term = 0;
 	    double last_error = 0;
+	    double sensor_slope = 0.125885;
+	    double sensor_offset = -100;
+	    double operating_point = 0;
 
 		GenericChannel &parent;
 		uint8_t inputChannelId;

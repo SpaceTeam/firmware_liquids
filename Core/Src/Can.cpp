@@ -34,7 +34,7 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
 
 	standardReceptor = receptor;
 
-	if (STRHAL_CAN_Instance_Init(STRHAL_FDCAN1) != 0)
+	if (STRHAL_CAN_Instance_Init(MAIN_CAN_BUS) != 0)
 		return -1;
 
 	//if (STRHAL_CAN_Instance_Init(STRHAL_FDCAN2) != 0)
@@ -70,7 +70,7 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
 		{ .value_id1 = id.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK },
 		{ .value_id1 = id2.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK } };
 
-		if (STRHAL_CAN_Subscribe(STRHAL_FDCAN1, STRHAL_FDCAN_RX0, mainFilter, 2, receptor) != 2)
+		if (STRHAL_CAN_Subscribe(MAIN_CAN_BUS, STRHAL_FDCAN_RX0, mainFilter, 2, receptor) != 2)
 			return -1;
 	}
 	else if (mode == COMMode::LISTENER_COM_MODE)
@@ -112,7 +112,7 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
 		{ .value_id1 = id3.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK },
 		{ .value_id1 = id4.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK } };
 
-		if (STRHAL_CAN_Subscribe(STRHAL_FDCAN1, STRHAL_FDCAN_RX0, mainFilter, 4, receptor) != 4)
+		if (STRHAL_CAN_Subscribe(MAIN_CAN_BUS, STRHAL_FDCAN_RX0, mainFilter, 4, receptor) != 4)
 			return -1;
 	}
 	else if (mode == COMMode::BRIDGE_COM_MODE)
@@ -161,7 +161,7 @@ int Can::send(uint32_t id, uint8_t *data, uint8_t n)
 
 	memcpy(msgData.uint8, data, n);
 
-	(void) STRHAL_CAN_Send(STRHAL_FDCAN1, msgId.uint32, msgData.uint8, n);
+	(void) STRHAL_CAN_Send(MAIN_CAN_BUS, msgId.uint32, msgData.uint8, n);
 	return 0;
 }
 
@@ -182,7 +182,7 @@ void Can::sendAsMaster(uint8_t receiverNodeId, uint8_t receiverChannelId, uint8_
 
 	memcpy(msgData.bit.data.uint8, data, n);
 
-	(void) STRHAL_CAN_Send(STRHAL_FDCAN1, msgId.uint32, msgData.uint8, n);
+	(void) STRHAL_CAN_Send(MAIN_CAN_BUS, msgId.uint32, msgData.uint8, n);
 }
 
 void Can::bridgeReceptor(STRHAL_FDCAN_Id_t bus_id, uint32_t id, uint8_t *data, uint32_t n)

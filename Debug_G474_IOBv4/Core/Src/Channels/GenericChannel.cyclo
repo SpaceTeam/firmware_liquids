@@ -11,16 +11,16 @@ GenericChannel.cpp:169:5:int GenericChannel::flashClear(uint8_t*, uint8_t&)	1
 GenericChannel.cpp:178:5:virtual int GenericChannel::getSensorData(uint8_t*, uint8_t&)	9
 GenericChannel.cpp:200:5:int GenericChannel::getFlashClearInfo(uint8_t*, uint8_t&)	4
 GenericChannel.cpp:223:18:AbstractChannel* GenericChannel::getControlInputChannel(uint8_t)	1
-GenericChannel.cpp:229:5:int GenericChannel::getNodeInfo(uint8_t*, uint8_t&)	3
-GenericChannel.cpp:252:6:void GenericChannel::registerChannel(AbstractChannel*)	2
-GenericChannel.cpp:258:6:void GenericChannel::registerChannels(AbstractChannel**, uint8_t)	2
-GenericChannel.cpp:266:6:void GenericChannel::registerModule(AbstractModule*)	2
-GenericChannel.cpp:275:6:void GenericChannel::printLog()	3
-GenericChannel.cpp:293:6:void GenericChannel::detectReadoutMode()	2
-GenericChannel.cpp:304:6:static void GenericChannel::setLoraActive(bool)	1
-GenericChannel.cpp:308:6:static void GenericChannel::receptorLora(uint32_t, uint8_t*, uint32_t)	9
-GenericChannel.cpp:361:6:static void GenericChannel::receptor(uint32_t, uint8_t*, uint32_t)	5
-GenericChannel.cpp:404:6:static void GenericChannel::heartbeatCan()	3
-GenericChannel.cpp:444:6:static void GenericChannel::heartbeatLora()	2
+GenericChannel.cpp:227:5:int GenericChannel::getNodeInfo(uint8_t*, uint8_t&)	3
+GenericChannel.cpp:250:6:void GenericChannel::registerChannel(AbstractChannel*)	2
+GenericChannel.cpp:256:6:void GenericChannel::registerChannels(AbstractChannel**, uint8_t)	2
+GenericChannel.cpp:264:6:void GenericChannel::registerModule(AbstractModule*)	2
+GenericChannel.cpp:273:6:void GenericChannel::printLog()	3
+GenericChannel.cpp:291:6:void GenericChannel::detectReadoutMode()	2
+GenericChannel.cpp:302:6:static void GenericChannel::setLoraActive(bool)	1
+GenericChannel.cpp:306:6:static void GenericChannel::receptorLora(uint32_t, uint8_t*, uint32_t)	9
+GenericChannel.cpp:359:6:static void GenericChannel::receptor(uint32_t, uint8_t*, uint32_t)	5
+GenericChannel.cpp:402:6:static void GenericChannel::heartbeatCan()	3
+GenericChannel.cpp:442:6:static void GenericChannel::heartbeatLora()	2
 GenericChannel.h:12:7:GenericChannel::~GenericChannel()	1
 GenericChannel.h:12:7:virtual GenericChannel::~GenericChannel()	1

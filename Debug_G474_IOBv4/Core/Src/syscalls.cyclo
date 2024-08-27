@@ -11,8 +11,9 @@ syscalls.c:108:5:_lseek	1
 syscalls.c:113:5:_open	1
 syscalls.c:119:5:_wait	1
 syscalls.c:125:5:_unlink	1
-syscalls.c:131:5:_times	1
-syscalls.c:136:5:_stat	1
-syscalls.c:142:5:_link	1
-syscalls.c:148:5:_fork	1
-syscalls.c:154:5:_execve	1
+syscalls.c:130:5:_getentropy	1
+syscalls.c:135:5:_times	1
+syscalls.c:140:5:_stat	1
+syscalls.c:146:5:_link	1
+syscalls.c:152:5:_fork	1
+syscalls.c:158:5:_execve	1

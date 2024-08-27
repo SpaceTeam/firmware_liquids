@@ -9,6 +9,7 @@ CPP_SRCS += \
 ../Core/Src/Modules/ICM2060x_IMU.cpp \
 ../Core/Src/Modules/LPS25HB_Baro.cpp \
 ../Core/Src/Modules/LoRa1276F30_Radio.cpp \
+../Core/Src/Modules/MAX31865_Temp.cpp \
 ../Core/Src/Modules/SAM_M8Q_GNSS.cpp \
 ../Core/Src/Modules/W25Qxx_Flash.cpp 
 
@@ -17,6 +18,7 @@ OBJS += \
 ./Core/Src/Modules/ICM2060x_IMU.o \
 ./Core/Src/Modules/LPS25HB_Baro.o \
 ./Core/Src/Modules/LoRa1276F30_Radio.o \
+./Core/Src/Modules/MAX31865_Temp.o \
 ./Core/Src/Modules/SAM_M8Q_GNSS.o \
 ./Core/Src/Modules/W25Qxx_Flash.o 
 
@@ -25,6 +27,7 @@ CPP_DEPS += \
 ./Core/Src/Modules/ICM2060x_IMU.d \
 ./Core/Src/Modules/LPS25HB_Baro.d \
 ./Core/Src/Modules/LoRa1276F30_Radio.d \
+./Core/Src/Modules/MAX31865_Temp.d \
 ./Core/Src/Modules/SAM_M8Q_GNSS.d \
 ./Core/Src/Modules/W25Qxx_Flash.d 
 
@@ -36,7 +39,7 @@ Core/Src/Modules/%.o Core/Src/Modules/%.su Core/Src/Modules/%.cyclo: ../Core/Src
 clean: clean-Core-2f-Src-2f-Modules
 
 clean-Core-2f-Src-2f-Modules:
-	-$(RM) ./Core/Src/Modules/ADS131M04_24bitADC.cyclo ./Core/Src/Modules/ADS131M04_24bitADC.d ./Core/Src/Modules/ADS131M04_24bitADC.o ./Core/Src/Modules/ADS131M04_24bitADC.su ./Core/Src/Modules/ICM2060x_IMU.cyclo ./Core/Src/Modules/ICM2060x_IMU.d ./Core/Src/Modules/ICM2060x_IMU.o ./Core/Src/Modules/ICM2060x_IMU.su ./Core/Src/Modules/LPS25HB_Baro.cyclo ./Core/Src/Modules/LPS25HB_Baro.d ./Core/Src/Modules/LPS25HB_Baro.o ./Core/Src/Modules/LPS25HB_Baro.su ./Core/Src/Modules/LoRa1276F30_Radio.cyclo ./Core/Src/Modules/LoRa1276F30_Radio.d ./Core/Src/Modules/LoRa1276F30_Radio.o ./Core/Src/Modules/LoRa1276F30_Radio.su ./Core/Src/Modules/SAM_M8Q_GNSS.cyclo ./Core/Src/Modules/SAM_M8Q_GNSS.d ./Core/Src/Modules/SAM_M8Q_GNSS.o ./Core/Src/Modules/SAM_M8Q_GNSS.su ./Core/Src/Modules/W25Qxx_Flash.cyclo ./Core/Src/Modules/W25Qxx_Flash.d ./Core/Src/Modules/W25Qxx_Flash.o ./Core/Src/Modules/W25Qxx_Flash.su
+	-$(RM) ./Core/Src/Modules/ADS131M04_24bitADC.cyclo ./Core/Src/Modules/ADS131M04_24bitADC.d ./Core/Src/Modules/ADS131M04_24bitADC.o ./Core/Src/Modules/ADS131M04_24bitADC.su ./Core/Src/Modules/ICM2060x_IMU.cyclo ./Core/Src/Modules/ICM2060x_IMU.d ./Core/Src/Modules/ICM2060x_IMU.o ./Core/Src/Modules/ICM2060x_IMU.su ./Core/Src/Modules/LPS25HB_Baro.cyclo ./Core/Src/Modules/LPS25HB_Baro.d ./Core/Src/Modules/LPS25HB_Baro.o ./Core/Src/Modules/LPS25HB_Baro.su ./Core/Src/Modules/LoRa1276F30_Radio.cyclo ./Core/Src/Modules/LoRa1276F30_Radio.d ./Core/Src/Modules/LoRa1276F30_Radio.o ./Core/Src/Modules/LoRa1276F30_Radio.su ./Core/Src/Modules/MAX31865_Temp.cyclo ./Core/Src/Modules/MAX31865_Temp.d ./Core/Src/Modules/MAX31865_Temp.o ./Core/Src/Modules/MAX31865_Temp.su ./Core/Src/Modules/SAM_M8Q_GNSS.cyclo ./Core/Src/Modules/SAM_M8Q_GNSS.d ./Core/Src/Modules/SAM_M8Q_GNSS.o ./Core/Src/Modules/SAM_M8Q_GNSS.su ./Core/Src/Modules/W25Qxx_Flash.cyclo ./Core/Src/Modules/W25Qxx_Flash.d ./Core/Src/Modules/W25Qxx_Flash.o ./Core/Src/Modules/W25Qxx_Flash.su
 
 .PHONY: clean-Core-2f-Src-2f-Modules
 

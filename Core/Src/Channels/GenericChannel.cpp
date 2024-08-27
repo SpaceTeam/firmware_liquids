@@ -353,7 +353,7 @@ void GenericChannel::receptorLora(uint32_t id, uint8_t *data, uint32_t n)
 	msgId.info.priority = STANDARD_PRIORITY;
 	msgData.bit.cmd_id = commandId + 1;
 
-	(void) STRHAL_CAN_Send(STRHAL_FDCAN1, msgId.uint32, msgData.uint8, CAN_MSG_LENGTH(ret_n));
+	(void) STRHAL_CAN_Send(MAIN_CAN_BUS, msgId.uint32, msgData.uint8, CAN_MSG_LENGTH(ret_n));
 }
 
 void GenericChannel::receptor(uint32_t id, uint8_t *data, uint32_t n)
@@ -396,7 +396,7 @@ void GenericChannel::receptor(uint32_t id, uint8_t *data, uint32_t n)
 	STRHAL_UART_Debug_Write_DMA((char *) msgBuf, CAN_MSG_LENGTH(ret_n) + 3);
 #endif
 
-	(void) STRHAL_CAN_Send(STRHAL_FDCAN1, msgId.uint32, msgData.uint8, CAN_MSG_LENGTH(ret_n));
+	(void) STRHAL_CAN_Send(MAIN_CAN_BUS, msgId.uint32, msgData.uint8, CAN_MSG_LENGTH(ret_n));
 }
 
 void GenericChannel::heartbeatCan()
@@ -436,7 +436,7 @@ void GenericChannel::heartbeatCan()
 	STRHAL_UART_Debug_Write_DMA((char *) msgBuf, CAN_MSG_LENGTH(n) + 3);
 #endif
 
-	(void) STRHAL_CAN_Send(STRHAL_FDCAN1, msgId.uint32, msgData.uint8, n);
+	(void) STRHAL_CAN_Send(MAIN_CAN_BUS, msgId.uint32, msgData.uint8, n);
 }
 
 void GenericChannel::heartbeatLora()

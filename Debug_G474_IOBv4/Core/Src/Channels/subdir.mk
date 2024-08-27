@@ -13,10 +13,12 @@ CPP_SRCS += \
 ../Core/Src/Channels/DigitalOutChannel.cpp \
 ../Core/Src/Channels/GenericChannel.cpp \
 ../Core/Src/Channels/IMUChannel.cpp \
+../Core/Src/Channels/PIControlChannel.cpp \
 ../Core/Src/Channels/PressureControlChannel.cpp \
 ../Core/Src/Channels/PyroChannel.cpp \
 ../Core/Src/Channels/RocketChannel.cpp \
-../Core/Src/Channels/ServoChannel.cpp 
+../Core/Src/Channels/ServoChannel.cpp \
+../Core/Src/Channels/TempChannel.cpp 
 
 OBJS += \
 ./Core/Src/Channels/ADCChannel.o \
@@ -27,10 +29,12 @@ OBJS += \
 ./Core/Src/Channels/DigitalOutChannel.o \
 ./Core/Src/Channels/GenericChannel.o \
 ./Core/Src/Channels/IMUChannel.o \
+./Core/Src/Channels/PIControlChannel.o \
 ./Core/Src/Channels/PressureControlChannel.o \
 ./Core/Src/Channels/PyroChannel.o \
 ./Core/Src/Channels/RocketChannel.o \
-./Core/Src/Channels/ServoChannel.o 
+./Core/Src/Channels/ServoChannel.o \
+./Core/Src/Channels/TempChannel.o 
 
 CPP_DEPS += \
 ./Core/Src/Channels/ADCChannel.d \
@@ -41,10 +45,12 @@ CPP_DEPS += \
 ./Core/Src/Channels/DigitalOutChannel.d \
 ./Core/Src/Channels/GenericChannel.d \
 ./Core/Src/Channels/IMUChannel.d \
+./Core/Src/Channels/PIControlChannel.d \
 ./Core/Src/Channels/PressureControlChannel.d \
 ./Core/Src/Channels/PyroChannel.d \
 ./Core/Src/Channels/RocketChannel.d \
-./Core/Src/Channels/ServoChannel.d 
+./Core/Src/Channels/ServoChannel.d \
+./Core/Src/Channels/TempChannel.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -54,7 +60,7 @@ Core/Src/Channels/%.o Core/Src/Channels/%.su Core/Src/Channels/%.cyclo: ../Core/
 clean: clean-Core-2f-Src-2f-Channels
 
 clean-Core-2f-Src-2f-Channels:
-	-$(RM) ./Core/Src/Channels/ADCChannel.cyclo ./Core/Src/Channels/ADCChannel.d ./Core/Src/Channels/ADCChannel.o ./Core/Src/Channels/ADCChannel.su ./Core/Src/Channels/AbstractChannel.cyclo ./Core/Src/Channels/AbstractChannel.d ./Core/Src/Channels/AbstractChannel.o ./Core/Src/Channels/AbstractChannel.su ./Core/Src/Channels/BaroChannel.cyclo ./Core/Src/Channels/BaroChannel.d ./Core/Src/Channels/BaroChannel.o ./Core/Src/Channels/BaroChannel.su ./Core/Src/Channels/Data32Channel.cyclo ./Core/Src/Channels/Data32Channel.d ./Core/Src/Channels/Data32Channel.o ./Core/Src/Channels/Data32Channel.su ./Core/Src/Channels/DigitalInChannel.cyclo ./Core/Src/Channels/DigitalInChannel.d ./Core/Src/Channels/DigitalInChannel.o ./Core/Src/Channels/DigitalInChannel.su ./Core/Src/Channels/DigitalOutChannel.cyclo ./Core/Src/Channels/DigitalOutChannel.d ./Core/Src/Channels/DigitalOutChannel.o ./Core/Src/Channels/DigitalOutChannel.su ./Core/Src/Channels/GenericChannel.cyclo ./Core/Src/Channels/GenericChannel.d ./Core/Src/Channels/GenericChannel.o ./Core/Src/Channels/GenericChannel.su ./Core/Src/Channels/IMUChannel.cyclo ./Core/Src/Channels/IMUChannel.d ./Core/Src/Channels/IMUChannel.o ./Core/Src/Channels/IMUChannel.su ./Core/Src/Channels/PressureControlChannel.cyclo ./Core/Src/Channels/PressureControlChannel.d ./Core/Src/Channels/PressureControlChannel.o ./Core/Src/Channels/PressureControlChannel.su ./Core/Src/Channels/PyroChannel.cyclo ./Core/Src/Channels/PyroChannel.d ./Core/Src/Channels/PyroChannel.o ./Core/Src/Channels/PyroChannel.su ./Core/Src/Channels/RocketChannel.cyclo ./Core/Src/Channels/RocketChannel.d ./Core/Src/Channels/RocketChannel.o ./Core/Src/Channels/RocketChannel.su ./Core/Src/Channels/ServoChannel.cyclo ./Core/Src/Channels/ServoChannel.d ./Core/Src/Channels/ServoChannel.o ./Core/Src/Channels/ServoChannel.su
+	-$(RM) ./Core/Src/Channels/ADCChannel.cyclo ./Core/Src/Channels/ADCChannel.d ./Core/Src/Channels/ADCChannel.o ./Core/Src/Channels/ADCChannel.su ./Core/Src/Channels/AbstractChannel.cyclo ./Core/Src/Channels/AbstractChannel.d ./Core/Src/Channels/AbstractChannel.o ./Core/Src/Channels/AbstractChannel.su ./Core/Src/Channels/BaroChannel.cyclo ./Core/Src/Channels/BaroChannel.d ./Core/Src/Channels/BaroChannel.o ./Core/Src/Channels/BaroChannel.su ./Core/Src/Channels/Data32Channel.cyclo ./Core/Src/Channels/Data32Channel.d ./Core/Src/Channels/Data32Channel.o ./Core/Src/Channels/Data32Channel.su ./Core/Src/Channels/DigitalInChannel.cyclo ./Core/Src/Channels/DigitalInChannel.d ./Core/Src/Channels/DigitalInChannel.o ./Core/Src/Channels/DigitalInChannel.su ./Core/Src/Channels/DigitalOutChannel.cyclo ./Core/Src/Channels/DigitalOutChannel.d ./Core/Src/Channels/DigitalOutChannel.o ./Core/Src/Channels/DigitalOutChannel.su ./Core/Src/Channels/GenericChannel.cyclo ./Core/Src/Channels/GenericChannel.d ./Core/Src/Channels/GenericChannel.o ./Core/Src/Channels/GenericChannel.su ./Core/Src/Channels/IMUChannel.cyclo ./Core/Src/Channels/IMUChannel.d ./Core/Src/Channels/IMUChannel.o ./Core/Src/Channels/IMUChannel.su ./Core/Src/Channels/PIControlChannel.cyclo ./Core/Src/Channels/PIControlChannel.d ./Core/Src/Channels/PIControlChannel.o ./Core/Src/Channels/PIControlChannel.su ./Core/Src/Channels/PressureControlChannel.cyclo ./Core/Src/Channels/PressureControlChannel.d ./Core/Src/Channels/PressureControlChannel.o ./Core/Src/Channels/PressureControlChannel.su ./Core/Src/Channels/PyroChannel.cyclo ./Core/Src/Channels/PyroChannel.d ./Core/Src/Channels/PyroChannel.o ./Core/Src/Channels/PyroChannel.su ./Core/Src/Channels/RocketChannel.cyclo ./Core/Src/Channels/RocketChannel.d ./Core/Src/Channels/RocketChannel.o ./Core/Src/Channels/RocketChannel.su ./Core/Src/Channels/ServoChannel.cyclo ./Core/Src/Channels/ServoChannel.d ./Core/Src/Channels/ServoChannel.o ./Core/Src/Channels/ServoChannel.su ./Core/Src/Channels/TempChannel.cyclo ./Core/Src/Channels/TempChannel.d ./Core/Src/Channels/TempChannel.o ./Core/Src/Channels/TempChannel.su
 
 .PHONY: clean-Core-2f-Src-2f-Channels
 

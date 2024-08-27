@@ -6,6 +6,7 @@
 #include <Channels/DigitalOutChannel.h>
 #include <Channels/DigitalInChannel.h>
 #include <Channels/PyroChannel.h>
+#include <Channels/PIControlChannel.h>
 #include <Channels/PressureControlChannel.h>
 #include <Channels/ServoChannel.h>
 #include <Channels/GenericChannel.h>
@@ -41,11 +42,11 @@ class ECU_Lamarr: public GenericChannel
 		ServoChannel servo_0, servo_1;
 		DigitalInChannel pyro0_cont, pyro1_cont, pyro2_cont, pyro3_cont;
 		PyroChannel pyro_igniter0, pyro_igniter1, pyro_igniter2, pyro_igniter3;
-		//PressureControlChannel pressure_control;
+		PIControlChannel pi_control;
 		//RocketChannel rocket;
 		Speaker speaker;
 		//Modules
 		MAX31865_Temp max_temp_0, max_temp_1;
 };
 
-#endif /*ECU_UHB_H*/
+#endif /*ECU_LAMARR_H*/

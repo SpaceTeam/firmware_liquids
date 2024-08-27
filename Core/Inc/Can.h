@@ -5,6 +5,7 @@
 #include "STRHAL.h"
 #include <AbstractCom.h>
 //#include <Communication.h>
+#define MAIN_CAN_BUS STRHAL_FDCAN1
 
 class Can: public AbstractCom
 {

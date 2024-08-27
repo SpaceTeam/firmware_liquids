@@ -57,7 +57,7 @@ class ServoChannel: public AbstractChannel
 		static constexpr uint8_t TARG_HIT_MIN = 20;
 		static constexpr uint8_t CALIB_HIT_MIN = 255;
 
-		static constexpr uint64_t EXEC_SAMPLE_TICKS = 5;
+		static constexpr uint64_t EXEC_SAMPLE_TICKS = 1;
 
 		//static constexpr ServoRefPos pwm0Ref = {1800, 3600};
 		static constexpr ServoRefPos pwm0Ref =

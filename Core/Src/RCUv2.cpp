@@ -9,11 +9,11 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		led1({ GPIOD, 1, STRHAL_GPIO_TYPE_OPP }),
 		led2({ GPIOD, 2, STRHAL_GPIO_TYPE_OPP }),
 		baro(STRHAL_SPI_SPI1,{ STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6, STRHAL_SPI_SPI1_MOSI_PA7, STRHAL_SPI_SPI1_NSS_PA4, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_HH, 0x7, 0 },{ GPIOA, 3, STRHAL_GPIO_TYPE_IHZ }),
-		imu(STRHAL_SPI_SPI3,{ STRHAL_SPI_SPI3_SCK_PC10, STRHAL_SPI_SPI3_MISO_PC11, STRHAL_SPI_SPI3_MOSI_PC12, STRHAL_SPI_SPI3_NSS_PA15, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_HH, 0x7, 0 },{ GPIOD, 0, STRHAL_GPIO_TYPE_IHZ }, 0xAF),
+		imu(STRHAL_SPI_SPI3,{ STRHAL_SPI_SPI3_SCK_PC10, STRHAL_SPI_SPI3_MISO_PC11, STRHAL_SPI_SPI3_MOSI_PC12, STRHAL_SPI_SPI3_NSS_PA15, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_HH, 0x7, 0 },{ GPIOD, 0, STRHAL_GPIO_TYPE_IHZ }, 0xFF),
 		lora(STRHAL_SPI_SPI2,{ STRHAL_SPI_SPI2_SCK_PB13, STRHAL_SPI_SPI2_MISO_PB14, STRHAL_SPI_SPI2_MOSI_PB15, STRHAL_SPI_SPI2_NSS_PB12, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_LL, 0x7, 0 },{ GPIOC, 1, STRHAL_GPIO_TYPE_IHZ },{ GPIOC, 3, STRHAL_GPIO_TYPE_IHZ },{ GPIOB, 11, STRHAL_GPIO_TYPE_IHZ }),
 		gnss(STRHAL_UART1,{ GPIOC, 7, STRHAL_GPIO_TYPE_OPP }),
-		sense_5V(0,{ ADC1, STRHAL_ADC_CHANNEL_2 }, 1),
-		sense_12V(1,{ ADC12, STRHAL_ADC_CHANNEL_2 }, 1),
+		sense_5V(0,{ ADC2, STRHAL_ADC_CHANNEL_2 }, 1),
+		sense_12V(1,{ ADC1, STRHAL_ADC_CHANNEL_3 }, 1),
 		baro_channel(2, &baro, 1),
 		x_accel(3, &imu, IMUMeasurement::X_ACCEL, 1),
 		y_accel(4, &imu, IMUMeasurement::Y_ACCEL, 1),
@@ -25,7 +25,6 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		gps_latitude(10, &gnss.gnssData.latitude, 1),
 		gps_altitude(11, &gnss.gnssData.altitude, 1),
 		gps_status(12, &gnss.gnssData.status, 1),
-
         out0(13,{ GPIOA, 0, STRHAL_GPIO_TYPE_OPP }, 1),
 		out1(14,{ GPIOC, 2, STRHAL_GPIO_TYPE_OPP }, 1),
 		out2(15,{ GPIOC, 0, STRHAL_GPIO_TYPE_OPP }, 1),
@@ -36,7 +35,7 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 {
 	// set pointer to radio object for static callbacks, enable Lora
 	//GenericChannel::radioPtr = &radio; <- this might cause hardfault later on
-	setLoraActive(true); // has to be enabled by request
+	setLoraActive(false); // has to be enabled by request
 
 	registerChannel(&sense_5V);
 	registerChannel(&sense_12V);
@@ -58,7 +57,7 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	registerChannel(&out3);
 
 	registerModule(&flash);
-	registerModule(&gnss);
+	//registerModule(&gnss);
 	registerModule(&baro);
 	registerModule(&imu);
 
@@ -72,6 +71,8 @@ int RCUv2::init()
 	// init status LEDs
 	STRHAL_GPIO_SingleInit(&led1, STRHAL_GPIO_TYPE_OPP);
 	STRHAL_GPIO_SingleInit(&led2, STRHAL_GPIO_TYPE_OPP);
+
+
 
 	// init debug uart
 	if (STRHAL_UART_Instance_Init(STRHAL_UART_DEBUG) != 0)

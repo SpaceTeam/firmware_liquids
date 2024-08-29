@@ -105,8 +105,8 @@ int ECU_Lamarr::exec()
 #endif
 	while (1)
 	{
-		//testServo(servo_1);
-		testChannels();
+		//testServo(servo_0);
+		//testChannels();
 		//detectReadoutMode();
 #ifdef UART_DEBUG
 
@@ -176,7 +176,7 @@ void ECU_Lamarr::testServo(ServoChannel &servo)
 			}
 
 		}
-		sprintf(buf, "%d, %d, %d\n", servo.getCurrentMeasurement(), servo.getFeedbackMeasurement(), servo.getPos());
+		sprintf(buf, "%d, %d, %d, %d\n", servo.getCurrentMeasurement(), servo.getFeedbackMeasurement(), servo.getPos(), servo.getTargetPos());
 		STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
 		if (GenericChannel::exec() != 0)
 			return;

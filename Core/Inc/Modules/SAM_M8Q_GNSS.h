@@ -61,6 +61,7 @@
 
 #define UBLOX_GNSSID_GPS     0
 #define UBLOX_GNSSID_SBAS    1
+#define UBLOX_GNSSID_GALILEO 2
 #define UBLOX_GNSSID_BEIDOU  3
 #define UBLOX_GNSSID_QZSS    5
 #define UBLOX_GNSSID_GLONASS 6
@@ -91,6 +92,8 @@ enum class GNSSSbasConstellation : uint8_t
 enum class GNSSConstellation : uint8_t
 {
 	GLONASS,
+	GALILEO,
+	BEIDOU,
 	ALL,
 	GPS
 };

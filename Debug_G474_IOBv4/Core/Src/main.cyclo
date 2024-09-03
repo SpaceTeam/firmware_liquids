@@ -1,5 +1,5 @@
-main.cpp:13:5:int main()	2
-main.cpp:107:6:void STRHAL_OofHandler(STRHAL_Oof_t, char*)	1
+main.cpp:30:5:int main()	2
+main.cpp:136:6:void STRHAL_OofHandler(STRHAL_Oof_t, char*)	1
 GenericChannel.h:12:7:GenericChannel::~GenericChannel()	1
 GenericChannel.h:12:7:virtual GenericChannel::~GenericChannel()	1
 DigitalOutChannel.h:8:7:DigitalOutChannel::~DigitalOutChannel()	1

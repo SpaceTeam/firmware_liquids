@@ -35,8 +35,10 @@ class PIControlChannel: public AbstractChannel
 	private:
 		uint16_t enabled = 0;
 		double targetPressure = 30;
-		double p_gain = 0;
-		double i_gain = 0;
+		double p_pos_gain = 0;
+		double i_pos_gain = 0;
+		double p_neg_gain = 0;
+		double i_neg_gain = 0;
 		double integral_term = 0;
 	    double last_error = 0;
 	    double sensor_slope = 0.125885;

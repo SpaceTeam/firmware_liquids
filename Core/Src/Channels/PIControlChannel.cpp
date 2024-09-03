@@ -13,8 +13,10 @@ int PIControlChannel::init()
 
 	enabled = 0;
 	targetPressure = 0;
-	p_gain = 10;
-	i_gain = 10;
+	p_pos_gain = 1;
+	i_pos_gain = 1;
+	p_neg_gain = 1;
+	i_neg_gain = 1;
 	integral_term = 0;
     last_error = 0;
     sensor_slope = 0.125885;
@@ -26,7 +28,7 @@ int PIControlChannel::init()
 int PIControlChannel::exec()
 {
 
-	static uint8_t debug_counter = 0;
+	//static uint8_t debug_counter = 0;
 	//STRHAL_GPIO_t debug_led = { GPIOC, 9, STRHAL_GPIO_TYPE_OPP };
 	if (enabled == 0)
 	{
@@ -45,6 +47,10 @@ int PIControlChannel::exec()
 	double pressure = pressure_raw * sensor_slope + sensor_offset;
 
 	double error = targetPressure - pressure;
+
+	double p_gain = (error > 0) ? p_pos_gain : p_neg_gain;
+	double i_gain = (error > 0) ? i_pos_gain : i_neg_gain;
+
 	integral_term += i_gain * error * sample_time;
 
 	double new_output = p_gain * error + integral_term;
@@ -113,7 +119,8 @@ int PIControlChannel::setVariable(uint8_t variableId, int32_t data)
 	{
 		case PI_CONTROL_ENABLED:
 			enabled = (data != 0);
-			if (data == 0 && servoChannel.getState() != 0)
+			last_sample_time = STRHAL_Systick_GetTick();
+			if (enabled == 0)
 			{
 				integral_term = 0;
 				last_error = 0;
@@ -124,11 +131,17 @@ int PIControlChannel::setVariable(uint8_t variableId, int32_t data)
 		case PI_CONTROL_TARGET:
 			targetPressure = (double) data / 1000.0;
 			return 0;
-		case PI_CONTROL_P:
-			p_gain = (double) data  / 1000.0;
+		case PI_CONTROL_P_POS:
+			p_pos_gain = (double) data  / 1000.0;
 			return 0;
-		case PI_CONTROL_I:
-			i_gain = (double) data  / 1000.0;
+		case PI_CONTROL_I_POS:
+			i_pos_gain = (double) data  / 1000.0;
+			return 0;
+		case PI_CONTROL_P_NEG:
+			p_neg_gain = (double) data  / 1000.0;
+			return 0;
+		case PI_CONTROL_I_NEG:
+			i_neg_gain = (double) data  / 1000.0;
 			return 0;
 		case PI_CONTROL_SENSOR_SLOPE:
 			sensor_slope = (double) data  / 1000.0;
@@ -163,11 +176,17 @@ int PIControlChannel::getVariable(uint8_t variableId, int32_t &data) const
 		case PI_CONTROL_TARGET:
 			data = (int32_t) (targetPressure * 1000); // convert back to 16bit full scale
 			return 0;
-		case PI_CONTROL_P:
-			data = (int32_t) (p_gain * 1000); // convert back to 16bit full scale
+		case PI_CONTROL_P_POS:
+			data = (int32_t) (p_pos_gain * 1000); // convert back to 16bit full scale
 			return 0;
-		case PI_CONTROL_I:
-			data = (int32_t) (i_gain * 1000); // convert back to 16bit full scale
+		case PI_CONTROL_I_POS:
+			data = (int32_t) (i_pos_gain * 1000); // convert back to 16bit full scale
+			return 0;
+		case PI_CONTROL_P_NEG:
+			data = (int32_t) (p_neg_gain * 1000); // convert back to 16bit full scale
+			return 0;
+		case PI_CONTROL_I_NEG:
+			data = (int32_t) (i_neg_gain * 1000); // convert back to 16bit full scale
 			return 0;
 		case PI_CONTROL_SENSOR_SLOPE:
 			data = (int32_t) (sensor_slope * 1000); // convert back to 16bit full scale

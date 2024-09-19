@@ -3,37 +3,33 @@
 #include <cstdio>
 #include <cstring>
 
-ECU_Lamarr::ECU_Lamarr(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
-		GenericChannel(node_id, fw_version, refresh_divider), led_1(
-		{ GPIOC, 8, STRHAL_GPIO_TYPE_OPP }), led_2(
-		{ GPIOC, 9, STRHAL_GPIO_TYPE_OPP }), press_0(0,
-		{ ADC1, STRHAL_ADC_CHANNEL_15 }, 1), press_1(1,
-		{ ADC1, STRHAL_ADC_CHANNEL_12 }, 1), press_2(2,
-		{ ADC3, STRHAL_ADC_CHANNEL_4 }, 1), press_3(3,
-		{ ADC3, STRHAL_ADC_CHANNEL_6 }, 1), temp_0(4, &max_temp_0, 1), temp_1(5, &max_temp_1, 1), servo_0(6, 0, STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH1_PA0,
-		{ ADC1, STRHAL_ADC_CHANNEL_2 },
-		{ nullptr, STRHAL_ADC_CHANNEL_LAST },
-		{ nullptr, 32, STRHAL_GPIO_TYPE_OPP }, 1), servo_1(7, 1, STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PA2,
-		{ ADC1, STRHAL_ADC_CHANNEL_4 },
-		{ nullptr, STRHAL_ADC_CHANNEL_LAST },
-		{ nullptr, 32, STRHAL_GPIO_TYPE_OPP }, 1), pyro0_cont(9,
-		{ GPIOA, 15, STRHAL_GPIO_TYPE_IHZ }, 1), pyro1_cont(11,
-		{ GPIOC, 12, STRHAL_GPIO_TYPE_IHZ }, 1), pyro2_cont(13,
-		{ GPIOD, 0, STRHAL_GPIO_TYPE_IHZ }, 1), pyro3_cont(15,
-		{ GPIOB, 3, STRHAL_GPIO_TYPE_IHZ }, 1), pyro_igniter0(8,
-		{ ADC1, STRHAL_ADC_CHANNEL_6 },
-		{ GPIOC, 10, STRHAL_GPIO_TYPE_OPP }, pyro0_cont, 1), pyro_igniter1(10,
-		{ ADC1, STRHAL_ADC_CHANNEL_7 },
-		{ GPIOC, 11, STRHAL_GPIO_TYPE_OPP }, pyro1_cont, 1), pyro_igniter2(12,
-		{ ADC1, STRHAL_ADC_CHANNEL_8 },
-		{ GPIOD, 1, STRHAL_GPIO_TYPE_OPP }, pyro2_cont, 1), pyro_igniter3(14,
-		{ ADC1, STRHAL_ADC_CHANNEL_9 },
-		{ GPIOD, 2, STRHAL_GPIO_TYPE_OPP }, pyro3_cont, 1), pi_control(16, (GenericChannel&) *this, 0, servo_0, 1),
-		//pressure_control(16, (GenericChannel&)*this, 1, solenoid_0, 1),
-		//rocket(17, press_1, press_0, press_2, servo_0, servo_1, pyro_igniter0, pyro_igniter1, 1)
-		speaker(STRHAL_TIM_TIM3, STRHAL_TIM_TIM3_CH2_PC7), max_temp_0(STRHAL_SPI_SPI1,
-		{ STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6, STRHAL_SPI_SPI1_MOSI_PA7, STRHAL_SPI_SPI1_NSS_PC4, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_LH, 5, 0 }), max_temp_1(STRHAL_SPI_SPI1,
-		{ STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6, STRHAL_SPI_SPI1_MOSI_PA7, STRHAL_SPI_SPI1_NSS_PA4, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_LH, 5, 0 })
+// @formatter:off
+
+ECU_Lamarr::ECU_Lamarr(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) : GenericChannel(node_id, fw_version, refresh_divider),
+led_1( { GPIOC, 8, STRHAL_GPIO_TYPE_OPP }),
+led_2( { GPIOC, 9, STRHAL_GPIO_TYPE_OPP }),
+press_0(ECU_LAMARR_PRESS0, { ADC1, STRHAL_ADC_CHANNEL_15 }, 1),
+press_1(ECU_LAMARR_PRESS1, { ADC1, STRHAL_ADC_CHANNEL_12 }, 1),
+press_2(ECU_LAMARR_PRESS2, { ADC3, STRHAL_ADC_CHANNEL_4 }, 1),
+press_3(ECU_LAMARR_PRESS3, { ADC3, STRHAL_ADC_CHANNEL_6 }, 1),
+temp_0(ECU_LAMARR_TEMP0, &max_temp_0, 1),
+temp_1(ECU_LAMARR_TEMP1, &max_temp_1, 1),
+servo_0(ECU_LAMARR_SERVO0, 0, STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH1_PA0, { ADC1, STRHAL_ADC_CHANNEL_2 }, { nullptr, STRHAL_ADC_CHANNEL_LAST }, { nullptr, 32, STRHAL_GPIO_TYPE_OPP }, 1),
+servo_1(ECU_LAMARR_SERVO1, 1, STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PA2, { ADC1, STRHAL_ADC_CHANNEL_4 }, { nullptr, STRHAL_ADC_CHANNEL_LAST }, { nullptr, 32, STRHAL_GPIO_TYPE_OPP }, 1),
+pyro0_cont(ECU_LAMARR_IGNITER0_CONT, { GPIOA, 15, STRHAL_GPIO_TYPE_IHZ }, 1),
+pyro1_cont(ECU_LAMARR_IGNITER1_CONT, { GPIOC, 12, STRHAL_GPIO_TYPE_IHZ }, 1),
+pyro2_cont(ECU_LAMARR_IGNITER2_CONT, { GPIOD, 0, STRHAL_GPIO_TYPE_IHZ }, 1),
+pyro3_cont(ECU_LAMARR_IGNITER3_CONT, { GPIOB, 3, STRHAL_GPIO_TYPE_IHZ }, 1),
+pyro_igniter0(ECU_LAMARR_IGNITER0, { ADC1, STRHAL_ADC_CHANNEL_6 }, { GPIOC, 10, STRHAL_GPIO_TYPE_OPP }, pyro0_cont, 1),
+pyro_igniter1(ECU_LAMARR_IGNITER1, { ADC1, STRHAL_ADC_CHANNEL_7 }, { GPIOC, 11, STRHAL_GPIO_TYPE_OPP }, pyro1_cont, 1),
+pyro_igniter2(ECU_LAMARR_IGNITER2, { ADC1, STRHAL_ADC_CHANNEL_8 }, { GPIOD, 1, STRHAL_GPIO_TYPE_OPP }, pyro2_cont, 1),
+pyro_igniter3(ECU_LAMARR_IGNITER3, { ADC1, STRHAL_ADC_CHANNEL_9 }, { GPIOD, 2, STRHAL_GPIO_TYPE_OPP }, pyro3_cont, 1),
+pi_control(ECU_LAMARR_PI_CONTROLLER, (GenericChannel&) *this, 0, servo_0, 1),
+//pressure_control(16, (GenericChannel&)*this, 1, solenoid_0, 1),
+rocket(ECU_LAMARR_ROCKET, press_1, press_0, press_2, servo_0, servo_1, pyro_igniter0, pyro_igniter1, 1),
+speaker(STRHAL_TIM_TIM3, STRHAL_TIM_TIM3_CH2_PC7),
+max_temp_0(STRHAL_SPI_SPI1, { STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6, STRHAL_SPI_SPI1_MOSI_PA7, STRHAL_SPI_SPI1_NSS_PC4, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_LH, 5, 0 }),
+max_temp_1(STRHAL_SPI_SPI1, { STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6, STRHAL_SPI_SPI1_MOSI_PA7, STRHAL_SPI_SPI1_NSS_PA4, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_LH, 5, 0 })
 {
 	registerChannel(&press_0);
 	registerChannel(&press_1);
@@ -52,14 +48,13 @@ ECU_Lamarr::ECU_Lamarr(uint32_t node_id, uint32_t fw_version, uint32_t refresh_d
 	registerChannel(&pyro_igniter2);
 	registerChannel(&pyro_igniter3);
 	registerChannel(&pi_control);
-	//registerChannel(&rocket);
+	registerChannel(&rocket);
 
 	registerModule(&flash);
 	registerModule(&max_temp_0);
 	registerModule(&max_temp_1);
-
 }
-
+// @formatter:on
 int ECU_Lamarr::init()
 {
 	if (STRHAL_Init(STRHAL_SYSCLK_SRC_EXT, 8000000) != STRHAL_NOICE)
@@ -77,6 +72,10 @@ int ECU_Lamarr::init()
 
 	if (can.init(receptor, heartbeatCan, COMMode::STANDARD_COM_MODE) != 0)
 		return -1;
+
+	//Listener COM MODE
+	//if (can.init(receptorLora, heartbeatCan, COMMode::LISTENER_COM_MODE) != 0)
+	//	return -1;
 
 	if (GenericChannel::init() != 0)
 		return -1;
@@ -186,7 +185,8 @@ void ECU_Lamarr::testServo(ServoChannel &servo)
 		{
 			t_last_sample = t;
 
-			sprintf(buf, "%d, %d, %d\n",servo.getTargetPos(), servo.getFeedbackMeasurement(), servo.getPos());
+			sprintf(buf, "%d, %d, %d\n", servo.getTargetPos(),
+					servo.getFeedbackMeasurement(), servo.getPos());
 			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
 		}
 		if (GenericChannel::exec() != 0)
@@ -239,8 +239,12 @@ void ECU_Lamarr::testChannels()
 					if ((t - t_last_sample) > 1000)
 					{
 						t_last_sample = t;
-						std::sprintf(write, "ADC16 ChannelId: %d, ChannelType: %d, Measurement: %d\n", channel->getChannelId(), type, adc->getMeasurement());
-						STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
+						std::sprintf(write,
+								"ADC16 ChannelId: %d, ChannelType: %d, Measurement: %d\n",
+								channel->getChannelId(), type,
+								adc->getMeasurement());
+						STRHAL_UART_Debug_Write_Blocking(write, strlen(write),
+								50);
 						if (GenericChannel::exec() != 0)
 							return;
 					}
@@ -253,10 +257,12 @@ void ECU_Lamarr::testChannels()
 				set_msg.variable_id = DIGITAL_OUT_STATE;
 				set_msg.value = 1;
 				uint8_t ret_n = 0;
-				std::sprintf(write, "DOUT ChannelId: %d, ChannelType: %d\n", state, type);
+				std::sprintf(write, "DOUT ChannelId: %d, ChannelType: %d\n",
+						state, type);
 				STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
 				STRHAL_Systick_BusyWait(1000);
-				STRHAL_UART_Debug_Write_Blocking("..Setting Output for 10s in\n", 28, 50);
+				STRHAL_UART_Debug_Write_Blocking(
+						"..Setting Output for 10s in\n", 28, 50);
 				STRHAL_Systick_BusyWait(500);
 				STRHAL_UART_Debug_Write_Blocking("..3s\n", 5, 50);
 				STRHAL_Systick_BusyWait(1000);
@@ -264,35 +270,45 @@ void ECU_Lamarr::testChannels()
 				STRHAL_Systick_BusyWait(1000);
 				STRHAL_UART_Debug_Write_Blocking("..1s\n", 5, 50);
 				STRHAL_Systick_BusyWait(1000);
-				channel->processMessage(COMMON_REQ_SET_VARIABLE, (uint8_t*) &set_msg, ret_n);
+				channel->processMessage(COMMON_REQ_SET_VARIABLE,
+						(uint8_t*) &set_msg, ret_n);
 				for (int i = 0; i < 5; i++)
 				{
 					uint8_t n = 0;
 					uint8_t meas[2];
 					channel->getSensorData(meas, n);
-					std::sprintf(write, "...Output ON, Measurement: %d\n", meas[0] << 8 | meas[1]);
+					std::sprintf(write, "...Output ON, Measurement: %d\n",
+							meas[0] << 8 | meas[1]);
 					STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
 					STRHAL_Systick_BusyWait(2000);
 				}
 				set_msg.variable_id = DIGITAL_OUT_STATE;
 				set_msg.value = 0;
-				channel->processMessage(COMMON_REQ_SET_VARIABLE, (uint8_t*) &set_msg, ret_n);
+				channel->processMessage(COMMON_REQ_SET_VARIABLE,
+						(uint8_t*) &set_msg, ret_n);
 				STRHAL_UART_Debug_Write_Blocking("..Output OFF\n", 13, 50);
 			}
 			else if (type == CHANNEL_TYPE_PNEUMATIC_VALVE)
 			{
-				std::sprintf(write, "PNEU Channel %d/type: %d not implemented\n", state, type);
+				std::sprintf(write,
+						"PNEU Channel %d/type: %d not implemented\n", state,
+						type);
 				STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
-				STRHAL_UART_Debug_Write_Blocking("Channel not implemented\n", 24, 50);
+				STRHAL_UART_Debug_Write_Blocking("Channel not implemented\n",
+						24, 50);
 			}
 			else if (type == CHANNEL_TYPE_SERVO)
 			{
-				std::sprintf(write, "SERVO Channel %d/type: %d not implemented\n", state, type);
+				std::sprintf(write,
+						"SERVO Channel %d/type: %d not implemented\n", state,
+						type);
 				STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
 			}
 			else
 			{
-				std::sprintf(write, "ELSE Channel %d/type: %d not implemented\n", state, type);
+				std::sprintf(write,
+						"ELSE Channel %d/type: %d not implemented\n", state,
+						type);
 				STRHAL_UART_Debug_Write_Blocking(write, strlen(write), 50);
 			}
 			state = (state == 15) ? 0 : (state + 1);

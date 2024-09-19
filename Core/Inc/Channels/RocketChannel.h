@@ -5,6 +5,7 @@
 #include "./Channels/ADCChannel.h"
 #include "./Channels/ServoChannel.h"
 #include "./Channels/PyroChannel.h"
+#include "./Channels/PIControlChannel.h"
 #include <can_houbolt/channels/rocket_channel_def.h>
 #include <STRHAL.h>
 #include <STRHAL_UART.h>
@@ -14,11 +15,11 @@
 enum class IgnitionSequence : int
 {
 	INIT = 0,
-	IGNITION0_ON,
-	IGNITION1_ON,
-	T_0,
-	VALVES_SLOWLY_OPEN,
-	VALVES_FULLY_OPEN,
+	IGNITION_ON,
+	ENABLE_OX_PRESSURANT,
+	OPEN_OX_MAIN,
+	ENABLE_FUEL_PRESSURANT,
+	OPEN_FUEL_MAIN,
 	IGNITION_OFF
 };
 

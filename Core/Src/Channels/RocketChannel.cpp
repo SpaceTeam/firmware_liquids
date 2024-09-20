@@ -100,17 +100,7 @@ void RocketChannel::nextStateLogic(ROCKET_STATE nextState, uint64_t time)
 			break;
 		case POWERED_ASCENT:
 		{
-			SetMsg_t setMsg =
-			{ 0 };
-			setMsg.variable_id = 1; // servo target position
-			setMsg.value = 65000; // open servo
-			can.sendAsMaster(9, 11, 4, (uint8_t*) &setMsg, 5 + sizeof(uint32_t)); // send REQ_SET_VARIABLE (4) command to holddown servo (channelId 11) on oxcart node (nodeId 9)*/
-			/*SetMsg_t setMsg =
-			 { 0 };
-			 setMsg.variable_id = 0; // pyro state
-			 setMsg.value = 65000; // enable pyro
-			 cancom->sendAsMaster(7, 12, 4, (uint8_t *) &setMsg, 5+sizeof(uint32_t)); // send REQ_SET_VARIABLE (4) command to pmu pyro (channelId 12) on oxcart node (nodeId 7)
-			 */
+			can.SetRemoteVariable(DEVICE_ID_GSE_PNEU_HOLDDOWN, SERVO_TARGET_POSITION, 63000);
 			break;
 		}
 		case UNPOWERED_ASCENT:
@@ -162,65 +152,71 @@ ROCKET_STATE RocketChannel::autoCheck(uint64_t time)
 	return AUTO_CHECK;
 }
 
+
+#define IGNITIONTIME(x) ( 5000 + x)
+
+
+
 ROCKET_STATE RocketChannel::ignitionSequence(uint64_t time)
 {
 	switch (ignitionState)
 	{
 		case IgnitionSequence::INIT: // Start of Ignition Sequence
-			if (time - timeLastTransition >= 0)
+			if (time - timeLastTransition >= IGNITIONTIME(-5000))
 			{
 				fuelServoChannel.setTargetPos(0);
 				oxServoChannel.setTargetPos(0);
 				(void) igniter0Channel.setState(0);
-				(void) igniter1Channel.setState(0);
-				ignitionState = IgnitionSequence::IGNITION0_ON;
+				can.SetRemoteVariable(DEVICE_ID_GSE_ELEC_EXTERNAL_IGNITER, DIGITAL_OUT_STATE, 0);
+				can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
+				can.SetRemoteVariable(DEVICE_ID_OX_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
+				can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_PRESSURE_CONTROLLER, PI_CONTROL_TARGET, 32000);
+				can.SetRemoteVariable(DEVICE_ID_OX_ECU_PRESSURE_CONTROLLER, PI_CONTROL_TARGET, 32000);
+
+				ignitionState = IgnitionSequence::IGNITION_ON;
 			}
 			break;
-		case IgnitionSequence::IGNITION0_ON: // T-1.5 - Ignition
-			if (time - timeLastTransition > 8500)
+		case IgnitionSequence::IGNITION_ON:
+			if (time - timeLastTransition > IGNITIONTIME(-3000))
 			{
 				(void) igniter0Channel.setState(65000);
-				ignitionState = IgnitionSequence::IGNITION1_ON;
+				can.SetRemoteVariable(DEVICE_ID_GSE_ELEC_EXTERNAL_IGNITER, DIGITAL_OUT_STATE, 65000);
+				ignitionState = IgnitionSequence::ENABLE_OX_PRESSURANT;
 			}
 			break;
-		case IgnitionSequence::IGNITION1_ON: // T-0.5 - Ignition
-			if (time - timeLastTransition > 9500)
+		case IgnitionSequence::ENABLE_OX_PRESSURANT:
+			if (time - timeLastTransition > IGNITIONTIME(-1200))
 			{
-				(void) igniter1Channel.setState(65000);
-				ignitionState = IgnitionSequence::T_0;
+				can.SetRemoteVariable(DEVICE_ID_OX_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
+				ignitionState = IgnitionSequence::OPEN_OX_MAIN;
 			}
 			break;
-		case IgnitionSequence::T_0: // T - Valves to 0
-			if (time - timeLastTransition > 10000)
+		case IgnitionSequence::OPEN_OX_MAIN:
+			if (time - timeLastTransition > IGNITIONTIME(-1000))
 			{
-				fuelServoChannel.setTargetPos(20000);
-				//oxServoChannel.setTargetPos(30000);
-				oxServoChannel.setTargetPos(22000);
-				ignitionState = IgnitionSequence::VALVES_SLOWLY_OPEN;
+				oxServoChannel.setTargetPos(65535);
+				ignitionState = IgnitionSequence::ENABLE_FUEL_PRESSURANT;
 			}
 			break;
-		case IgnitionSequence::VALVES_SLOWLY_OPEN: // T+0.5 -> T+1.2 Slowly move valves across the opening point (fuel: 22000, ox: 33000)
-			if (time - timeLastTransition > 10500)
+		case IgnitionSequence::ENABLE_FUEL_PRESSURANT:
+			if (time - timeLastTransition > IGNITIONTIME(-200))
 			{
-				fuelServoChannel.moveToPosInInterval(35000, 700);
-				//oxServoChannel.moveToPosInInterval(43000, 700);
-				oxServoChannel.moveToPosInInterval(35000, 700);
-				ignitionState = IgnitionSequence::VALVES_FULLY_OPEN;
+				can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
+				ignitionState = IgnitionSequence::OPEN_FUEL_MAIN;
 			}
 			break;
-		case IgnitionSequence::VALVES_FULLY_OPEN: // T+1.2 -> T+1.7 Valves to 100% open
-			if (time - timeLastTransition > 11200)
+		case IgnitionSequence::OPEN_FUEL_MAIN:
+			if (time - timeLastTransition > IGNITIONTIME(0))
 			{
-				fuelServoChannel.moveToPosInInterval(65000, 500);
-				oxServoChannel.moveToPosInInterval(65000, 500);
+				fuelServoChannel.setTargetPos(65535);
 				ignitionState = IgnitionSequence::IGNITION_OFF;
 			}
 			break;
-		case IgnitionSequence::IGNITION_OFF: // T+1.5 - Ignition off
-			if (time - timeLastTransition > 11500)
+		case IgnitionSequence::IGNITION_OFF:
+			if (time - timeLastTransition > IGNITIONTIME(0))
 			{
 				(void) igniter0Channel.setState(0);
-				(void) igniter1Channel.setState(0);
+				can.SetRemoteVariable(DEVICE_ID_GSE_ELEC_EXTERNAL_IGNITER, DIGITAL_OUT_STATE, 0);
 				return HOLD_DOWN;
 			}
 			break;
@@ -257,6 +253,8 @@ ROCKET_STATE RocketChannel::holddown(uint64_t time)
 			{
 				//TODO calibrate holddown servo
 				return POWERED_ASCENT;
+
+
 			}
 		}
 		else

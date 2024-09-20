@@ -8,6 +8,7 @@
 "./Core/Src/LCB.o"
 "./Core/Src/PMU.o"
 "./Core/Src/RCU.o"
+"./Core/Src/RCUv2.o"
 "./Core/Src/Radio.o"
 "./Core/Src/Speaker.o"
 "./Core/Src/Ubx.o"

@@ -40,7 +40,7 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
 	//if (STRHAL_CAN_Instance_Init(STRHAL_FDCAN2) != 0)
 	//	return -1;
 
-	if (STRHAL_TIM_Heartbeat_Init(STRHAL_TIM_TIM7, 1600, 100) != 1000)
+	if (STRHAL_TIM_Heartbeat_Init(STRHAL_TIM_TIM7, 1600, 1000) != 100)
 		return -1;
 
 	if (STRHAL_TIM_Heartbeat_Subscribe(STRHAL_TIM_TIM7, heartbeat) != 0)
@@ -165,6 +165,18 @@ int Can::send(uint32_t id, uint8_t *data, uint8_t n)
 	return 0;
 }
 
+void Can::SetRemoteVariable(DeviceIds device_id, uint8_t variable_id, int32_t value)
+{
+	SetMsg_t setMsg =
+	{ 0 };
+	setMsg.variable_id = variable_id;
+	setMsg.value = value;
+	Can::sendAsMaster(device_id, COMMON_REQ_SET_VARIABLE, (uint8_t*) &setMsg, 5 + sizeof(uint32_t));
+}
+void Can::sendAsMaster(DeviceIds device_id, uint8_t commandId, uint8_t *data, uint8_t n)
+{
+	Can::sendAsMaster(channellookUp[device_id].node, channellookUp[device_id].channel, commandId, data, n);
+}
 void Can::sendAsMaster(uint8_t receiverNodeId, uint8_t receiverChannelId, uint8_t commandId, uint8_t *data, uint8_t n)
 {
 	Can_MessageId_t msgId =

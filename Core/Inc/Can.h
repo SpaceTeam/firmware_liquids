@@ -4,6 +4,8 @@
 #include "Channels/AbstractChannel.h"
 #include "STRHAL.h"
 #include <AbstractCom.h>
+#include "NodeInfos.h"
+
 //#include <Communication.h>
 #define MAIN_CAN_BUS STRHAL_FDCAN1
 
@@ -22,7 +24,9 @@ class Can: public AbstractCom
 		int exec() override;
 
 		static int send(uint32_t id, uint8_t *data, uint8_t n);
+		void SetRemoteVariable(DeviceIds device_id, uint8_t variable_id, int32_t value);
 		void sendAsMaster(uint8_t receiverNodeId, uint8_t receiverChannelId, uint8_t commandId, uint8_t *data, uint8_t n);
+		void sendAsMaster(DeviceIds device_id, uint8_t commandId, uint8_t *data, uint8_t n);
 
 	private:
 		Can(uint32_t nodeId);

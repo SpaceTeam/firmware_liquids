@@ -15,6 +15,10 @@
 #include "../Modules/W25Qxx_Flash.h"
 #include <Speaker.h>
 #include <STRHAL.h>
+#include "NodeInfos.h"
+
+
+#define MAX_REMOTE_CHANNELS 32
 
 class ECU_Lamarr: public GenericChannel
 {
@@ -30,6 +34,11 @@ class ECU_Lamarr: public GenericChannel
 		void testChannels();
 		void testServo(ServoChannel &servo);
 
+	protected:
+
+		AbstractChannel *remote_channels[MAX_REMOTE_CHANNELS] =
+		{ nullptr };
+
 	private:
 
 
@@ -43,7 +52,8 @@ class ECU_Lamarr: public GenericChannel
 		DigitalInChannel pyro0_cont, pyro1_cont, pyro2_cont, pyro3_cont;
 		PyroChannel pyro_igniter0, pyro_igniter1, pyro_igniter2, pyro_igniter3;
 		PIControlChannel pi_control;
-		//RocketChannel rocket;
+
+		RocketChannel rocket;
 		Speaker speaker;
 		//Modules
 		MAX31865_Temp max_temp_0, max_temp_1;

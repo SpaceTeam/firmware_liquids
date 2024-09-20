@@ -27,23 +27,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000030  00000000  00000000  000509e4  2**0
                   CONTENTS, READONLY
- 12 .debug_info   0002a6bb  00000000  00000000  00050a14  2**0
+ 12 .debug_info   0002a6da  00000000  00000000  00050a14  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 00006dd3  00000000  00000000  0007b0cf  2**0
+ 13 .debug_abbrev 00006dd3  00000000  00000000  0007b0ee  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 00001908  00000000  00000000  00081ea8  2**3
+ 14 .debug_aranges 00001908  00000000  00000000  00081ec8  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_ranges 00001748  00000000  00000000  000837b0  2**3
+ 15 .debug_ranges 00001748  00000000  00000000  000837d0  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  0002c2fd  00000000  00000000  00084ef8  2**0
+ 16 .debug_macro  0002c30e  00000000  00000000  00084f18  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   0001d610  00000000  00000000  000b11f5  2**0
+ 17 .debug_line   0001d62c  00000000  00000000  000b1226  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000e1be0  00000000  00000000  000ce805  2**0
+ 18 .debug_str    000e1c13  00000000  00000000  000ce852  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000050  00000000  00000000  001b03e5  2**0
+ 19 .comment      00000050  00000000  00000000  001b0465  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  0001c054  00000000  00000000  001b0438  2**2
+ 20 .debug_frame  0001c058  00000000  00000000  001b04b8  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -3137,9 +3137,9 @@ void Speaker::beep(uint8_t n, uint16_t tot1, uint16_t tot2)
 	...
 
 08001e9c <main>:
-#include "RCU.h"
-#include "LCB.h"
-#include "git_version.h"
+//#define LAMARR_ECU_NODE_ID NODE_ID_LAMARR_GSE_1
+//#define LAMARR_ECU_NODE_ID NODE_ID_LAMARR_GSE_2
+//#define LAMARR_ECU_NODE_ID NODE_ID_LAMARR_ENGINE_ECU
 
 int main(void)
 {
@@ -3201,7 +3201,7 @@ int main(void)
  8001ef2:	46bd      	mov	sp, r7
  8001ef4:	bd90      	pop	{r4, r7, pc}
  8001ef6:	bf00      	nop
- 8001ef8:	2eb4329c 	.word	0x2eb4329c
+ 8001ef8:	398903fb 	.word	0x398903fb
  8001efc:	0802b794 	.word	0x0802b794
 
 08001f00 <STRHAL_OofHandler>:
@@ -4555,7 +4555,7 @@ GenericChannel::GenericChannel(uint32_t nodeId, uint32_t firmwareVersion, uint32
  80026b4:	bd80      	pop	{r7, pc}
  80026b6:	bf00      	nop
  80026b8:	0802b8ac 	.word	0x0802b8ac
- 80026bc:	2eb4329c 	.word	0x2eb4329c
+ 80026bc:	398903fb 	.word	0x398903fb
  80026c0:	20000a80 	.word	0x20000a80
 
 080026c4 <_ZNK14GenericChannel9getNodeIdEv>:

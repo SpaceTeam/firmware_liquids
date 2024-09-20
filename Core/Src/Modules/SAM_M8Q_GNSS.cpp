@@ -99,26 +99,28 @@ int SAM_M8Q_GNSS::sendConfiguration(GNSSConstellation constellation, GNSSSbasCon
 {
 	int ret = 1;
 
-	ret &= clearConfig();
-	//ret &= setTimepulse();
-	ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_VELNED, 1);    // NAV-VELNED
-	ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_POSLLH, 1);    // NAV-POSLLH
-	ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_SOL, 1);       // NAV-SOL
-	ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_TIMEUTC, 5);   // NAV-TIMEUTC
-	ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_DOP, 1);       // NAV-DOP
-	ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_SVINFO, 5);    // NAV-SVINFO
+	//ret &= firmwareVersionTest();
 
-	ret &= setMode(mode);                // Set the requested gps mode
-	ret &= setSbas(sbas);                // Set SBAS configuration
+	//ret &= clearConfig2();
+	//ret &= setTimepulse();
+	ret &= enableMessage2(UBLOX_NAV_CLASS, UBLOX_NAV_VELNED, 1);    // NAV-VELNED   //NACK
+	//ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_POSLLH, 1);    // NAV-POSLLH
+	//ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_PVT, 1);       // NAV-PVT	   //NACK
+	//ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_TIMEUTC, 5);   // NAV-TIMEUTC
+	//ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_DOP, 1);       // NAV-DOP      //ACK
+	//ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_SAT, 5);       // NAV-SAT
+
+	//ret &= setMode(mode);                // Set the requested gps mode
+	//ret &= setSbas(sbas);                // Set SBAS configuration                 //ACK
 	if (constellation == GNSSConstellation::ALL)
 	{ // Some Modules dont allow 10Hz when using ALL GPS
-		ret &= setMessageRate((uint16_t) 200);
+		//ret &= setMessageRate((uint16_t) 200);
 	}
 	else
 	{
-		ret &= setMessageRate((uint16_t) 100);
+		//ret &= setMessageRate((uint16_t) 100);
 	}
-	ret &= setConstellation(constellation, sbas);
+	//ret &= setConstellation(constellation, sbas);
 	return ret;
 }
 
@@ -135,6 +137,37 @@ void SAM_M8Q_GNSS::updateChecksum(uint8_t c)
 }
 
 int SAM_M8Q_GNSS::sendConfigDataChecksummed(const uint8_t *data, uint16_t length, uint32_t retries)
+{
+	// Calculate checksum
+	resetChecksum();
+	for (uint16_t i = 0; i < length; i++)
+	{
+		updateChecksum(data[i]);
+	}
+
+	// Send buffer followed by checksum
+	const uint8_t syncword[] =
+	{ UBLOX_SYNC1, UBLOX_SYNC2 };
+	const uint8_t checksum[] =
+	{ checksumTxA, checksumTxB };
+
+	for (uint32_t i = 0; i < retries; i++)
+	{
+		STRHAL_UART_Write_Blocking(uartId, (const char*) syncword, sizeof(syncword), 50);
+		STRHAL_UART_Write_Blocking(uartId, (const char*) data, length, 50);
+		STRHAL_UART_Write_Blocking(uartId, (const char*) checksum, sizeof(checksum), 50);
+
+		if (waitForACK(1000) == 1)
+		{
+			return 1;
+		}
+		STRHAL_UART_FlushReception(uartId);
+		STRHAL_UART_Listen(uartId);
+	}
+	return 0;
+}
+
+int SAM_M8Q_GNSS::sendConfigDataChecksummed2(const int *data, uint16_t length, uint32_t retries)
 {
 	// Calculate checksum
 	resetChecksum();
@@ -195,6 +228,105 @@ int SAM_M8Q_GNSS::waitForACK(uint32_t delay)
 	}
 
 	return -1;     // Timeout
+}
+
+int SAM_M8Q_GNSS::firmwareVersionTest()
+{
+	uint32_t retries =5;
+	const uint8_t ublox_request_115200_baud[] = {
+	    0xb5,  //SYNC 1
+		0x62,  //SYNC 2
+		0x06,  //CLASSID
+		0x00,  //MESSAGEID
+		0x14,  //Length MSB
+		0x00,  //Length LSB
+		0x01,  //portID
+		0x00,  //RESERVED
+		0x00,  //txReady
+		0x00,  //txReady
+		0xd0,  //mode
+		0x08,  //mode
+		0x00,  //mode
+		0x00,  //mode
+		0x00,  //baud  115200  ((0x00, 0xc2, 0x01)
+		0xc2,  //baud  115200
+		0x01,  //baud  115200
+		0x00,  //baud  115200
+		0x07,  //inProtoMask
+	    0x00,  //inProtoMask
+		0x07,  //inProtoMask
+		0x00,  //inProtoMask
+		0x00,  //outProtoMask
+		0x00,  //outProtoMask
+		0x00,  //flags
+		0x00,  //flags
+		0xc4,  //CK_A
+		0x96,  //CK_B
+
+		//New Message
+		0xb5,  //SYNC 1
+		0x62,  //SYNC 2
+		0x06,  //CLASSID
+		0x00,  //MSGID
+		0x01,  //LENGTH MSB
+		0x00,  //LENGTH LSB
+		0x01,  //port ID
+		0x08,  //CK_A
+		0x22   //CK_B
+	};
+
+	const uint8_t ublox_request_5Hz[] = {
+			0xB5,  //SYNC 1
+			0x62,  //SYNC 2
+			0x06,  //CLASSID
+			0x08,  //MSGID
+			0x06,  //LENGTH MSB
+			0x00,  //LENGTH LSB
+			0xC8,  //measRate  (decimal 200)
+	        0x00,  //measRate
+			0x01,  //navRate
+			0x00,  //navRate
+			0x01,  //timeRef
+			0x00,  //timeRef
+			0xDE,  //CK_A
+			0x6A   //CK_B
+	};
+
+	STRHAL_UART_Write_Blocking(uartId, (const char*) ublox_request_115200_baud, sizeof(ublox_request_115200_baud), 50);
+	for (uint32_t i = 0; i < retries; i++)
+	{
+		if (waitForACK(1000) == 1)
+		{
+			return 1;
+		}
+	}
+	STRHAL_UART_Write_Blocking(uartId, (const char*) ublox_request_5Hz, sizeof(ublox_request_5Hz), 50);
+	for (uint32_t i = 0; i < retries; i++)
+	{
+		if (waitForACK(1000) == 1)
+		{
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+int SAM_M8Q_GNSS::enableMessage2(uint8_t msgClass, uint8_t msgId, uint8_t rate)
+{
+	const int msg[] =
+	{
+			UBLOX_CFG_CLASS,       // CFG
+			UBLOX_CFG_VALSET,         // MSG
+			0x09,                  // length lsb
+			0x00,                  // length msb
+			0x00,
+			0x00,
+			0x00,
+			0x20910043,
+			0x01,
+	};
+	return sendConfigDataChecksummed2(msg, sizeof(msg), 5);
 }
 
 int SAM_M8Q_GNSS::enableMessage(uint8_t msgClass, uint8_t msgId, uint8_t rate)
@@ -441,4 +573,23 @@ int SAM_M8Q_GNSS::clearConfig()
 			};
 
 	return sendConfigDataChecksummed(msg, sizeof(msg), 5);
+}
+
+
+
+int SAM_M8Q_GNSS::clearConfig2()
+{
+	// Reset the messges and navigation settings
+	const int msg[] =
+	{
+	UBLOX_CFG_CLASS, // CFG
+			UBLOX_CFG_CFG,   // CFG-CFG
+			0x0C,            // length lsb
+			0x00,            // length msb
+			0x00000001,
+			0x00000000,
+			0x00000000,
+			};
+
+	return sendConfigDataChecksummed2(msg, sizeof(msg), 5);
 }

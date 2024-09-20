@@ -28,6 +28,9 @@ class RCUv2: public GenericChannel
 		//int reset() override;
 		int exec() override;
 
+		void testIMU();
+		void testGNSS();
+
 	private:
 		STRHAL_GPIO_t led1, led2;
 

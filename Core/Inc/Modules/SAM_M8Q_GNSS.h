@@ -5,6 +5,8 @@
 #include "../Ubx.h"
 #include "./Modules/AbstractModule.h"
 
+#define UBLOX_RESERVED 0x00
+
 #define UBLOX_SYNC1     0xB5
 #define UBLOX_SYNC2     0x62
 
@@ -18,11 +20,11 @@
 #define UBLOX_NAV_POSLLH    0x02
 #define UBLOX_NAV_STATUS    0x03
 #define UBLOX_NAV_DOP       0x04
-#define UBLOX_NAV_SOL       0x06
+#define UBLOX_NAV_PVT       0x07
 #define UBLOX_NAV_VELNED    0x12
 #define UBLOX_NAV_TIMEUTC   0x21
 #define UBLOX_NAV_SBAS      0x32
-#define UBLOX_NAV_SVINFO    0x30
+#define UBLOX_NAV_SAT       0x35
 
 #define UBLOX_AID_REQ       0x00
 
@@ -34,6 +36,9 @@
 
 #define UBLOX_TIM_TP        0x01
 
+#define UBLOX_CFG_VALSET    0x8A
+#define UBLOX_CFG_VALGET    0x8B
+#define UBLOX_CFG_VALDEL    0x8C
 #define UBLOX_CFG_MSG       0x01
 #define UBLOX_CFG_TP        0x07
 #define UBLOX_CFG_RATE      0x08
@@ -61,7 +66,6 @@
 
 #define UBLOX_GNSSID_GPS     0
 #define UBLOX_GNSSID_SBAS    1
-#define UBLOX_GNSSID_GALILEO 2
 #define UBLOX_GNSSID_BEIDOU  3
 #define UBLOX_GNSSID_QZSS    5
 #define UBLOX_GNSSID_GLONASS 6
@@ -92,8 +96,6 @@ enum class GNSSSbasConstellation : uint8_t
 enum class GNSSConstellation : uint8_t
 {
 	GLONASS,
-	GALILEO,
-	BEIDOU,
 	ALL,
 	GPS
 };
@@ -139,9 +141,13 @@ class SAM_M8Q_GNSS: public AbstractModule
 		void resetChecksum();
 		void updateChecksum(uint8_t c);
 
+		int firmwareVersionTest();
+
 		int sendConfigDataChecksummed(const uint8_t *data, uint16_t length, uint32_t retries);
+		int sendConfigDataChecksummed2(const int *data, uint16_t length, uint32_t retries);
 		int waitForACK(uint32_t delay);
 		int enableMessage(uint8_t msgClass, uint8_t msgId, uint8_t rate);
+		int enableMessage2(uint8_t msgClass, uint8_t msgId, uint8_t rate);
 		int setMessageRate(uint16_t msPeriod);
 		int setMode(GNSSDynamicsMode mode);
 		int setTimepulse();
@@ -149,6 +155,7 @@ class SAM_M8Q_GNSS: public AbstractModule
 		int pollVersion();
 		int setConstellation(GNSSConstellation constellation, GNSSSbasConstellation sbas);
 		int clearConfig();
+		int clearConfig2();
 		//void setBaudrate(uintptr_t gps_port, GNSSBaudRate baud)
 
 		const STRHAL_UART_Id_t uartId;

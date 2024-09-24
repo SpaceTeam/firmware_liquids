@@ -3,6 +3,9 @@
 #include <cstdio>
 #include <cstring>
 
+#include "NodeInfos.h"
+
+#define IS_MAIN_ECU (LAMARR_ECU_NODE_ID == NODE_ID_LAMARR_ENGINE_ECU)
 // @formatter:off
 
 ECU_Lamarr::ECU_Lamarr(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) : GenericChannel(node_id, fw_version, refresh_divider),
@@ -26,8 +29,13 @@ pyro_igniter2(ECU_LAMARR_IGNITER2, { ADC1, STRHAL_ADC_CHANNEL_8 }, { GPIOD, 1, S
 pyro_igniter3(ECU_LAMARR_IGNITER3, { ADC1, STRHAL_ADC_CHANNEL_9 }, { GPIOD, 2, STRHAL_GPIO_TYPE_OPP }, pyro3_cont, 1),
 pi_control(ECU_LAMARR_PI_CONTROLLER, (GenericChannel&) *this, 0, servo_0, 1),
 //pressure_control(16, (GenericChannel&)*this, 1, solenoid_0, 1),
-rocket(ECU_LAMARR_ROCKET, press_1, press_0, press_2, servo_0, servo_1, pyro_igniter0, pyro_igniter1, 1),
+
+rocket(ECU_LAMARR_ROCKET, press_0, press_1, press_2, servo_0, servo_1, pi_control, pyro_igniter0, pyro_igniter0, IS_MAIN_ECU, 1),
+sense_5V(ECU_LAMARR_SENSE_5V, { ADC4, STRHAL_ADC_CHANNEL_12 }, 1),
+sense_12V(ECU_LAMARR_SENSE_12V, { ADC4, STRHAL_ADC_CHANNEL_13 }, 1),
+sense_12VA(ECU_LAMARR_SENSE_12VA, { ADC4, STRHAL_ADC_CHANNEL_4 }, 1),
 speaker(STRHAL_TIM_TIM3, STRHAL_TIM_TIM3_CH2_PC7),
+
 max_temp_0(STRHAL_SPI_SPI1, { STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6, STRHAL_SPI_SPI1_MOSI_PA7, STRHAL_SPI_SPI1_NSS_PC4, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_LH, 5, 0 }),
 max_temp_1(STRHAL_SPI_SPI1, { STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6, STRHAL_SPI_SPI1_MOSI_PA7, STRHAL_SPI_SPI1_NSS_PA4, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_LH, 5, 0 })
 {
@@ -49,6 +57,10 @@ max_temp_1(STRHAL_SPI_SPI1, { STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6,
 	registerChannel(&pyro_igniter3);
 	registerChannel(&pi_control);
 	registerChannel(&rocket);
+
+	registerChannel(&sense_5V);
+	registerChannel(&sense_12V);
+	registerChannel(&sense_12VA);
 
 	registerModule(&flash);
 	registerModule(&max_temp_0);
@@ -97,6 +109,7 @@ int ECU_Lamarr::exec()
 	STRHAL_GPIO_Write(&led_1, STRHAL_GPIO_VALUE_H);
 	STRHAL_UART_Debug_Write_Blocking("RUNNING\n", 8, 50);
 
+	speaker.setPWM(((getNodeId() % 10)+1)*100);
 	speaker.beep(getNodeId() % 10, 200, 300);
 
 #ifdef UART_DEBUG

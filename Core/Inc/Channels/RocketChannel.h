@@ -26,8 +26,7 @@ enum class IgnitionSequence : int
 class RocketChannel: public AbstractChannel
 {
 	public:
-		RocketChannel(uint8_t id, const ADCChannel &oxPressureChannel, const ADCChannel &fuelPressureChannel, const ADCChannel &chamberPressureChannel, ServoChannel &oxServoChannel, ServoChannel &fuelServoChannel, PyroChannel &igniter0Channel, PyroChannel &igniter1Channel, uint32_t refreshDivider);
-
+		RocketChannel(uint8_t id, const ADCChannel &fuelPressureChannel,const ADCChannel &oxPressureChannel, const ADCChannel &chamberPressureChannel, ServoChannel &fuelServoChannel, ServoChannel &oxServoChannel, PIControlChannel &piControlChannel, PyroChannel &internalIgniterChannel, PyroChannel &ventValveChannel, uint8_t is_main_ecu, uint32_t refreshDivider);
 		RocketChannel(const RocketChannel &other) = delete;
 		RocketChannel& operator=(const RocketChannel &other) = delete;
 		RocketChannel(const RocketChannel &&other) = delete;
@@ -60,28 +59,34 @@ class RocketChannel: public AbstractChannel
 		ROCKET_STATE poweredAscent(uint64_t time);
 		ROCKET_STATE depress(uint64_t time);
 		ROCKET_STATE abort(uint64_t time);
+		ROCKET_STATE pressurize_tanks(uint64_t time);
 
 		void setRocketState(uint8_t *data, uint8_t &n);
 		void getRocketState(uint8_t *data, uint8_t &n);
+		void SetRemoteRocketState(DeviceIds device_id, ROCKET_CMDs state);
 
-		const ADCChannel &oxPressureChannel;
 		const ADCChannel &fuelPressureChannel;
+		const ADCChannel &oxPressureChannel;
 		const ADCChannel &chamberPressureChannel;
-		ServoChannel &oxServoChannel;
 		ServoChannel &fuelServoChannel;
-		PyroChannel &igniter0Channel;
-		PyroChannel &igniter1Channel;
+		ServoChannel &oxServoChannel;
+		PIControlChannel &piControlChannel;
+		PyroChannel &internalIgniterChannel;
+		PyroChannel &ventValveChannel;
+		uint8_t is_main_ecu;
 		ROCKET_STATE state;
 		IgnitionSequence ignitionState;
 
-		uint16_t chamberPressureMin = 0;
+	    double sensor_slope = 0.01888275146;
+	    double sensor_offset = -15;
+		double chamberPressureMin = 0;
+		double fuelPressureMin = 0;
+		double oxPressureMin = 0;
+
 		uint16_t chamberPressureLowCounter = 0;
 		uint16_t chamberPressureGoodCounter = 0;
 		uint16_t autoCheckBadCounter = 0;
-		uint16_t fuelPressureMin = 0;
-		uint16_t oxPressureMin = 0;
 		uint16_t holdDownTimeout = 0;
-
 		uint64_t timeLastSample = 0;
 		uint64_t timeLastTransition = 0;
 		ROCKET_STATE internalNextState = PAD_IDLE;

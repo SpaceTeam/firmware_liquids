@@ -1,18 +1,12 @@
 #include <Channels/RocketChannel.h>
+#include "STRHAL_GPIO.h"
+RocketChannel::RocketChannel(uint8_t id, const ADCChannel &fuelPressureChannel, const ADCChannel &oxPressureChannel, const ADCChannel &chamberPressureChannel,
+		ServoChannel &fuelServoChannel, ServoChannel &oxServoChannel, PIControlChannel &piControlChannel, PyroChannel &internalIgniterChannel, PyroChannel &ventValveChannel,
+		uint8_t is_main_ecu, uint32_t refreshDivider) :
+		AbstractChannel(CHANNEL_TYPE_ROCKET, id, refreshDivider), fuelPressureChannel(fuelPressureChannel), oxPressureChannel(oxPressureChannel), chamberPressureChannel(
+				chamberPressureChannel), fuelServoChannel(fuelServoChannel), oxServoChannel(oxServoChannel), piControlChannel(piControlChannel), internalIgniterChannel(
+				internalIgniterChannel), ventValveChannel(ventValveChannel), is_main_ecu(is_main_ecu), state(PAD_IDLE), ignitionState(IgnitionSequence::INIT), can(Can::instance(0))
 
-RocketChannel::RocketChannel(uint8_t id, const ADCChannel &oxPressureChannel, const ADCChannel &fuelPressureChannel, const ADCChannel &chamberPressureChannel, ServoChannel &oxServoChannel, ServoChannel &fuelServoChannel, PyroChannel &igniter0Channel, PyroChannel &igniter1Channel,
-		uint32_t refreshDivider) :
-		AbstractChannel(CHANNEL_TYPE_ROCKET, id, refreshDivider),
-		oxPressureChannel(oxPressureChannel),
-		fuelPressureChannel(fuelPressureChannel),
-		chamberPressureChannel(chamberPressureChannel),
-		oxServoChannel(oxServoChannel),
-		fuelServoChannel(fuelServoChannel),
-		igniter0Channel(igniter0Channel),
-		igniter1Channel(igniter1Channel),
-		state(PAD_IDLE),
-		ignitionState(IgnitionSequence::INIT),
-		can(Can::instance(0))
 {
 }
 
@@ -57,71 +51,106 @@ ROCKET_STATE RocketChannel::currentStateLogic(uint64_t time)
 {
 	switch (state)
 	{
-		case PAD_IDLE:
-			// wait until auto sequence command from CAN
-			break;
-		case AUTO_CHECK:
-			return autoCheck(time);
-		case IGNITION_SEQUENCE:
-			return ignitionSequence(time);
-		case HOLD_DOWN:
-			return holddown(time);
-		case POWERED_ASCENT:
-			return poweredAscent(time);
-		case UNPOWERED_ASCENT:
-			// wait until end of flight command from PMU2
-			if (time - timeLastTransition > 1000)
-			{
-				return DEPRESS;
-			}
-			break;
-		case DEPRESS:
-			return depress(time);
-		case ABORT:
-			return abort(time);
-		default:
-			break;
+	case PAD_IDLE:
+		// wait until auto sequence command from CAN
+		break;
+	case AUTO_CHECK:
+		return autoCheck(time);
+	case IGNITION_SEQUENCE:
+		return ignitionSequence(time);
+	case HOLD_DOWN:
+		return holddown(time);
+	case POWERED_ASCENT:
+		return poweredAscent(time);
+	case UNPOWERED_ASCENT:
+		// wait until end of flight command from PMU2
+		if (time - timeLastTransition > 1000)
+		{
+			return DEPRESS;
+		}
+		break;
+	case DEPRESS:
+		return depress(time);
+	case ABORT:
+		return abort(time);
+	case PRESSURIZE_TANKS:
+
+		return pressurize_tanks(time);
+	default:
+		break;
 	}
 	return state;
 }
 
 void RocketChannel::nextStateLogic(ROCKET_STATE nextState, uint64_t time)
 {
+	STRHAL_GPIO_t led1 =
+	{ GPIOC, 8, STRHAL_GPIO_TYPE_OPP };
+	STRHAL_GPIO_t led2 =
+	{ GPIOC, 9, STRHAL_GPIO_TYPE_OPP };
 	timeLastTransition = time;
 	switch (nextState)
 	{
-		case PAD_IDLE:
-			break;
-		case AUTO_CHECK:
-			break;
-		case IGNITION_SEQUENCE:
-			break;
-		case HOLD_DOWN:
-			break;
-		case POWERED_ASCENT:
-		{
-			can.SetRemoteVariable(DEVICE_ID_GSE_PNEU_HOLDDOWN, SERVO_TARGET_POSITION, 63000);
-			break;
-		}
-		case UNPOWERED_ASCENT:
-			//fuelServoChannel.setTargetPos(0);
-			//oxServoChannel.setTargetPos(0);
-			break;
-		case DEPRESS:
-			//if (chamberPressureChannel.getMeasurement() > chamberPressureMin)
-				//return; // do not set next state to DEPRESS if there is still combustion going on
+	case PAD_IDLE:
+		break;
+	case AUTO_CHECK:
+		break;
+	case IGNITION_SEQUENCE:
 
-			fuelServoChannel.setTargetPos(65000);
-			oxServoChannel.setTargetPos(65000);
-			break;
-		case ABORT:
+		STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
+		STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_H);
+
+		break;
+	case HOLD_DOWN:
+		break;
+	case POWERED_ASCENT:
+	{
+		can.SetRemoteVariable(DEVICE_ID_GSE_PNEU_HOLDDOWN, SERVO_TARGET_POSITION, 63000);
+		break;
+	}
+	case UNPOWERED_ASCENT:
+		fuelServoChannel.setTargetPos(0);
+		oxServoChannel.setTargetPos(0);
+		can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
+		can.SetRemoteVariable(DEVICE_ID_OX_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
+		break;
+	case DEPRESS:
+		//if (chamberPressureChannel.getMeasurement() > chamberPressureMin)
+		//return; // do not set next state to DEPRESS if there is still combustion going on
+		can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_VENT_VALVE, DIGITAL_OUT_STATE, 0);
+		can.SetRemoteVariable(DEVICE_ID_OX_ECU_VENT_VALVE, DIGITAL_OUT_STATE, 0);
+		SetRemoteRocketState(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
+		SetRemoteRocketState(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
+		break;
+	case ABORT:
+
+		STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
+		STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_L);
+		if (is_main_ecu)
+		{
 			fuelServoChannel.setTargetPos(0);
 			oxServoChannel.setTargetPos(0);
-			(void) igniter0Channel.setState(0);
-			(void) igniter1Channel.setState(0);
-			break;
-		default:
-			break;
+			SetRemoteRocketState(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
+			SetRemoteRocketState(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
+			(void) internalIgniterChannel.setState(0);
+		}
+		else
+		{
+			//piControlChannel.setEnabled(0);
+			ventValveChannel.setState(0);
+		}
+		break;
+	case PRESSURIZE_TANKS:
+
+		STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_L);
+		STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_H);
+		piControlChannel.setEnabled(1);
+		ventValveChannel.setState(1);
+
+		break;
+
+	default:
+		break;
 	}
 	state = nextState;
 	return;
@@ -134,8 +163,7 @@ ROCKET_STATE RocketChannel::autoCheck(uint64_t time)
 		return PAD_IDLE;
 	}
 	// TODO check Holddown
-	if (igniter0Channel.getContinuity() == 1 || //no continuity
-			igniter1Channel.getContinuity() == 1 || //no continuity
+	if (internalIgniterChannel.getContinuity() == 1 || //no continuity
 			oxPressureChannel.getMeasurement() < oxPressureMin || fuelPressureChannel.getMeasurement() < fuelPressureMin)
 	{
 
@@ -152,74 +180,74 @@ ROCKET_STATE RocketChannel::autoCheck(uint64_t time)
 	return AUTO_CHECK;
 }
 
-
 #define IGNITIONTIME(x) ( 5000 + x)
-
-
 
 ROCKET_STATE RocketChannel::ignitionSequence(uint64_t time)
 {
 	switch (ignitionState)
 	{
-		case IgnitionSequence::INIT: // Start of Ignition Sequence
-			if (time - timeLastTransition >= IGNITIONTIME(-5000))
-			{
-				fuelServoChannel.setTargetPos(0);
-				oxServoChannel.setTargetPos(0);
-				(void) igniter0Channel.setState(0);
-				can.SetRemoteVariable(DEVICE_ID_GSE_ELEC_EXTERNAL_IGNITER, DIGITAL_OUT_STATE, 0);
-				can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
-				can.SetRemoteVariable(DEVICE_ID_OX_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
-				can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_PRESSURE_CONTROLLER, PI_CONTROL_TARGET, 32000);
-				can.SetRemoteVariable(DEVICE_ID_OX_ECU_PRESSURE_CONTROLLER, PI_CONTROL_TARGET, 32000);
+	case IgnitionSequence::INIT: // Start of Ignition Sequence
+		if (time - timeLastTransition >= IGNITIONTIME(-5000))
+		{
+			fuelServoChannel.setTargetPos(0);
+			oxServoChannel.setTargetPos(0);
+			(void) internalIgniterChannel.setState(0);
+			can.SetRemoteVariable(DEVICE_ID_GSE_ELEC_EXTERNAL_IGNITER, DIGITAL_OUT_STATE, 0);
+			can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
+			can.SetRemoteVariable(DEVICE_ID_OX_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
+			can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_PRESSURE_CONTROLLER, PI_CONTROL_TARGET, 32000);
+			can.SetRemoteVariable(DEVICE_ID_OX_ECU_PRESSURE_CONTROLLER, PI_CONTROL_TARGET, 32000);
 
-				ignitionState = IgnitionSequence::IGNITION_ON;
-			}
-			break;
-		case IgnitionSequence::IGNITION_ON:
-			if (time - timeLastTransition > IGNITIONTIME(-3000))
-			{
-				(void) igniter0Channel.setState(65000);
-				can.SetRemoteVariable(DEVICE_ID_GSE_ELEC_EXTERNAL_IGNITER, DIGITAL_OUT_STATE, 65000);
-				ignitionState = IgnitionSequence::ENABLE_OX_PRESSURANT;
-			}
-			break;
-		case IgnitionSequence::ENABLE_OX_PRESSURANT:
-			if (time - timeLastTransition > IGNITIONTIME(-1200))
-			{
-				can.SetRemoteVariable(DEVICE_ID_OX_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
-				ignitionState = IgnitionSequence::OPEN_OX_MAIN;
-			}
-			break;
-		case IgnitionSequence::OPEN_OX_MAIN:
-			if (time - timeLastTransition > IGNITIONTIME(-1000))
-			{
-				oxServoChannel.setTargetPos(65535);
-				ignitionState = IgnitionSequence::ENABLE_FUEL_PRESSURANT;
-			}
-			break;
-		case IgnitionSequence::ENABLE_FUEL_PRESSURANT:
-			if (time - timeLastTransition > IGNITIONTIME(-200))
-			{
-				can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
-				ignitionState = IgnitionSequence::OPEN_FUEL_MAIN;
-			}
-			break;
-		case IgnitionSequence::OPEN_FUEL_MAIN:
-			if (time - timeLastTransition > IGNITIONTIME(0))
-			{
-				fuelServoChannel.setTargetPos(65535);
-				ignitionState = IgnitionSequence::IGNITION_OFF;
-			}
-			break;
-		case IgnitionSequence::IGNITION_OFF:
-			if (time - timeLastTransition > IGNITIONTIME(0))
-			{
-				(void) igniter0Channel.setState(0);
-				can.SetRemoteVariable(DEVICE_ID_GSE_ELEC_EXTERNAL_IGNITER, DIGITAL_OUT_STATE, 0);
-				return HOLD_DOWN;
-			}
-			break;
+			can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_VENT_VALVE, DIGITAL_OUT_STATE, 1);
+			can.SetRemoteVariable(DEVICE_ID_OX_ECU_VENT_VALVE, DIGITAL_OUT_STATE, 1);
+
+			ignitionState = IgnitionSequence::IGNITION_ON;
+		}
+		break;
+	case IgnitionSequence::IGNITION_ON:
+		if (time - timeLastTransition > IGNITIONTIME(-3000))
+		{
+			(void) internalIgniterChannel.setState(65000);
+			can.SetRemoteVariable(DEVICE_ID_GSE_ELEC_EXTERNAL_IGNITER, DIGITAL_OUT_STATE, 65000);
+			ignitionState = IgnitionSequence::ENABLE_OX_PRESSURANT;
+		}
+		break;
+	case IgnitionSequence::ENABLE_OX_PRESSURANT:
+		if (time - timeLastTransition > IGNITIONTIME(-1200))
+		{
+			SetRemoteRocketState(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_INTERNAL_CONTROL);
+			ignitionState = IgnitionSequence::OPEN_OX_MAIN;
+		}
+		break;
+	case IgnitionSequence::OPEN_OX_MAIN:
+		if (time - timeLastTransition > IGNITIONTIME(-1000))
+		{
+			oxServoChannel.setTargetPos(65535);
+			ignitionState = IgnitionSequence::ENABLE_FUEL_PRESSURANT;
+		}
+		break;
+	case IgnitionSequence::ENABLE_FUEL_PRESSURANT:
+		if (time - timeLastTransition > IGNITIONTIME(-200))
+		{
+			SetRemoteRocketState(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_INTERNAL_CONTROL);
+			ignitionState = IgnitionSequence::OPEN_FUEL_MAIN;
+		}
+		break;
+	case IgnitionSequence::OPEN_FUEL_MAIN:
+		if (time - timeLastTransition > IGNITIONTIME(0))
+		{
+			fuelServoChannel.setTargetPos(65535);
+			ignitionState = IgnitionSequence::IGNITION_OFF;
+		}
+		break;
+	case IgnitionSequence::IGNITION_OFF:
+		if (time - timeLastTransition > IGNITIONTIME(0))
+		{
+			(void) internalIgniterChannel.setState(0);
+			can.SetRemoteVariable(DEVICE_ID_GSE_ELEC_EXTERNAL_IGNITER, DIGITAL_OUT_STATE, 0);
+			return HOLD_DOWN;
+		}
+		break;
 	}
 
 	return IGNITION_SEQUENCE;
@@ -253,7 +281,6 @@ ROCKET_STATE RocketChannel::holddown(uint64_t time)
 			{
 				//TODO calibrate holddown servo
 				return POWERED_ASCENT;
-
 
 			}
 		}
@@ -298,7 +325,7 @@ ROCKET_STATE RocketChannel::holddown(uint64_t time)
 
 ROCKET_STATE RocketChannel::poweredAscent(uint64_t time)
 {
-	if (time - timeLastTransition > 8500)
+	if (time - timeLastTransition > 5500)
 	{ // motor burnout, close valves, IMPORTANT!: total burn time before shutoff is powered + unpowered ascent
 		return UNPOWERED_ASCENT;
 	}
@@ -309,7 +336,7 @@ ROCKET_STATE RocketChannel::depress(uint64_t time)
 {
 	if (oxPressureChannel.getMeasurement() < 10 && fuelPressureChannel.getMeasurement() < 10)
 	{ // PMU2 sent end of flight, depress rocket and go to idle state once pressures drop below a minimum
-		// TODO: add variable for depress maximum pressures
+	  // TODO: add variable for depress maximum pressures
 		return PAD_IDLE;
 	}
 	return DEPRESS;
@@ -317,7 +344,15 @@ ROCKET_STATE RocketChannel::depress(uint64_t time)
 
 ROCKET_STATE RocketChannel::abort(uint64_t time)
 {
-	return ABORT;
+	return (is_main_ecu) ? ABORT : PAD_IDLE;
+}
+ROCKET_STATE RocketChannel::pressurize_tanks(uint64_t time)
+{
+	if (time - timeLastTransition > 10000)
+	{
+		return ABORT;
+	}
+	return PRESSURIZE_TANKS;
 }
 
 int RocketChannel::reset()
@@ -325,6 +360,8 @@ int RocketChannel::reset()
 	externalNextState = PAD_IDLE;
 	internalNextState = PAD_IDLE;
 	ignitionState = IgnitionSequence::INIT;
+	sensor_slope = 0.01888275146;
+	sensor_offset = -15;
 	chamberPressureMin = 0;
 	chamberPressureLowCounter = 0;
 	chamberPressureGoodCounter = 0;
@@ -337,35 +374,35 @@ int RocketChannel::processMessage(uint8_t commandId, uint8_t *returnData, uint8_
 {
 	switch (commandId)
 	{
-		case ROCKET_REQ_INTERNAL_CONTROL:
-			if (state == PAD_IDLE)
-			{
-				externalNextState = IGNITION_SEQUENCE;
-			}
-			return 0;
-		case ROCKET_REQ_ABORT:
-			externalNextState = ABORT;
-			return 0;
-		case ROCKET_REQ_END_OF_FLIGHT:
-			if (state == UNPOWERED_ASCENT)
-			{
-				externalNextState = DEPRESS;
-			}
-			return 0;
-		case ROCKET_REQ_SET_ROCKET_STATE:
-			setRocketState(returnData, n);
-			return 0;
-		case ROCKET_REQ_GET_ROCKET_STATE:
-			getRocketState(returnData, n);
-			return 0;
-		case ROCKET_REQ_AUTO_CHECK:
-			if (state == PAD_IDLE)
-			{
-				externalNextState = AUTO_CHECK;
-			}
-			return 0;
-		default:
-			return AbstractChannel::processMessage(commandId, returnData, n);
+	case ROCKET_REQ_INTERNAL_CONTROL:
+		if (state == PAD_IDLE)
+		{
+			externalNextState = (is_main_ecu) ? IGNITION_SEQUENCE : PRESSURIZE_TANKS;
+		}
+		return 0;
+	case ROCKET_REQ_ABORT:
+		externalNextState = ABORT;
+		return 0;
+	case ROCKET_REQ_END_OF_FLIGHT:
+		if (state == UNPOWERED_ASCENT)
+		{
+			externalNextState = DEPRESS;
+		}
+		return 0;
+	case ROCKET_REQ_SET_ROCKET_STATE:
+		setRocketState(returnData, n);
+		return 0;
+	case ROCKET_REQ_GET_ROCKET_STATE:
+		getRocketState(returnData, n);
+		return 0;
+	case ROCKET_REQ_AUTO_CHECK:
+		if (state == PAD_IDLE)
+		{
+			externalNextState = AUTO_CHECK;
+		}
+		return 0;
+	default:
+		return AbstractChannel::processMessage(commandId, returnData, n);
 	}
 }
 
@@ -382,24 +419,30 @@ int RocketChannel::setVariable(uint8_t variableId, int32_t data)
 {
 	switch (variableId)
 	{
-		case ROCKET_STATE_REFRESH_DIVIDER:
-			refreshDivider = data;
-			refreshCounter = 0;
-			return 0;
-		case ROCKET_MINIMUM_CHAMBER_PRESSURE:
-			chamberPressureMin = data * 4095 / UINT16_MAX; // convert from 16 to 12bit scale
-			return 0;
-		case ROCKET_MINIMUM_FUEL_PRESSURE:
-			fuelPressureMin = data * 4095 / UINT16_MAX;
-			return 0;
-		case ROCKET_MINIMUM_OX_PRESSURE:
-			oxPressureMin = data * 4095 / UINT16_MAX;
-			return 0;
-		case ROCKET_HOLDDOWN_TIMEOUT:
-			holdDownTimeout = data;
-			return 0;
-		default:
-			return -1;
+	case ROCKET_STATE_REFRESH_DIVIDER:
+		refreshDivider = data;
+		refreshCounter = 0;
+		return 0;
+	case ROCKET_SENSOR_SLOPE:
+		sensor_slope = (double) data / 1000.0;
+		return 0;
+	case ROCKET_SENSOR_OFFSET:
+		sensor_offset = (double) data / 1000.0;
+		return 0;
+	case ROCKET_MINIMUM_CHAMBER_PRESSURE:
+		chamberPressureMin = (double) data / 1000.0;
+		return 0;
+	case ROCKET_MINIMUM_FUEL_PRESSURE:
+		fuelPressureMin = (double) data / 1000.0;
+		return 0;
+	case ROCKET_MINIMUM_OX_PRESSURE:
+		oxPressureMin = (double) data / 1000.0;
+		return 0;
+	case ROCKET_HOLDDOWN_TIMEOUT:
+		holdDownTimeout = data;
+		return 0;
+	default:
+		return -1;
 	}
 }
 
@@ -407,23 +450,29 @@ int RocketChannel::getVariable(uint8_t variableId, int32_t &data) const
 {
 	switch (variableId)
 	{
-		case ROCKET_STATE_REFRESH_DIVIDER:
-			data = (int32_t) refreshDivider;
-			return 0;
-		case ROCKET_MINIMUM_CHAMBER_PRESSURE:
-			data = (int32_t) chamberPressureMin * UINT16_MAX / 4095;
-			return 0;
-		case ROCKET_MINIMUM_FUEL_PRESSURE:
-			data = (int32_t) fuelPressureMin * UINT16_MAX / 4095;
-			return 0;
-		case ROCKET_MINIMUM_OX_PRESSURE:
-			data = (int32_t) oxPressureMin * UINT16_MAX / 4095;
-			return 0;
-		case ROCKET_HOLDDOWN_TIMEOUT:
-			data = (int32_t) holdDownTimeout;
-			return 0;
-		default:
-			return -1;
+	case ROCKET_STATE_REFRESH_DIVIDER:
+		data = (int32_t) refreshDivider;
+		return 0;
+	case ROCKET_SENSOR_SLOPE:
+		data = (int32_t) (sensor_slope * 1000);
+		return 0;
+	case ROCKET_SENSOR_OFFSET:
+		data = (int32_t) (sensor_offset * 1000);
+		return 0;
+	case ROCKET_MINIMUM_CHAMBER_PRESSURE:
+		data = (int32_t) (chamberPressureMin * 1000);
+		return 0;
+	case ROCKET_MINIMUM_FUEL_PRESSURE:
+		data = (int32_t) (fuelPressureMin * 1000);
+		return 0;
+	case ROCKET_MINIMUM_OX_PRESSURE:
+		data = (int32_t) (oxPressureMin * 1000);
+		return 0;
+	case ROCKET_HOLDDOWN_TIMEOUT:
+		data = (int32_t) holdDownTimeout;
+		return 0;
+	default:
+		return -1;
 	}
 }
 
@@ -448,4 +497,9 @@ void RocketChannel::getRocketState(uint8_t *data, uint8_t &n)
 	rocketStateResponseMsg->state = state;
 	rocketStateResponseMsg->status = WRITABLE;
 	n += sizeof(RocketStateResMsg_t);
+}
+
+void RocketChannel::SetRemoteRocketState(DeviceIds device_id, ROCKET_CMDs state)
+{
+		can.sendAsMaster(device_id, state, nullptr, 5);
 }

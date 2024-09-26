@@ -63,7 +63,7 @@ uint16_t MAX31865_Temp::readData(void)
 	if (STRHAL_SPI_Master_Transceive(spiId, &cmd, 1, 0, (uint8_t*)&value, 4, 500) < 0){
 		return -1;
 	}
-	return (uint16_t)(((value >> 16) & 0x00ff) | ((value >> 0) & 0xff00) >> 1);
+	return (uint16_t)(((value >> 16) & 0x00ff) | ((value >> 0) & 0xff00));
 }
 
 uint8_t MAX31865_Temp::writeReg(const MAX31865_Temp_Addr &address, uint8_t val, uint16_t delay)//UNTESTED

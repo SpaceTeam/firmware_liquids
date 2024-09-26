@@ -92,6 +92,9 @@ void RocketChannel::nextStateLogic(ROCKET_STATE nextState, uint64_t time)
 	switch (nextState)
 	{
 	case PAD_IDLE:
+		ignitionState = IgnitionSequence::INIT;
+		STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
+		STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_L);
 		break;
 	case AUTO_CHECK:
 		break;
@@ -123,9 +126,6 @@ void RocketChannel::nextStateLogic(ROCKET_STATE nextState, uint64_t time)
 		SetRemoteRocketState(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
 		break;
 	case ABORT:
-
-		STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
-		STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_L);
 		if (is_main_ecu)
 		{
 			fuelServoChannel.setTargetPos(0);
@@ -195,8 +195,8 @@ ROCKET_STATE RocketChannel::ignitionSequence(uint64_t time)
 			can.SetRemoteVariable(DEVICE_ID_GSE_ELEC_EXTERNAL_IGNITER, DIGITAL_OUT_STATE, 0);
 			can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
 			can.SetRemoteVariable(DEVICE_ID_OX_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
-			can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_PRESSURE_CONTROLLER, PI_CONTROL_TARGET, 32000);
-			can.SetRemoteVariable(DEVICE_ID_OX_ECU_PRESSURE_CONTROLLER, PI_CONTROL_TARGET, 32000);
+			//can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_PRESSURE_CONTROLLER, PI_CONTROL_TARGET, 25000);
+			//can.SetRemoteVariable(DEVICE_ID_OX_ECU_PRESSURE_CONTROLLER, PI_CONTROL_TARGET, 25000);
 
 			can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_VENT_VALVE, DIGITAL_OUT_STATE, 1);
 			can.SetRemoteVariable(DEVICE_ID_OX_ECU_VENT_VALVE, DIGITAL_OUT_STATE, 1);
@@ -501,5 +501,7 @@ void RocketChannel::getRocketState(uint8_t *data, uint8_t &n)
 
 void RocketChannel::SetRemoteRocketState(DeviceIds device_id, ROCKET_CMDs state)
 {
-		can.sendAsMaster(device_id, state, nullptr, 5);
+
+	uint8_t empty_buffer[10] = {0};
+	can.sendAsMaster(device_id, state, empty_buffer, sizeof(uint32_t));
 }

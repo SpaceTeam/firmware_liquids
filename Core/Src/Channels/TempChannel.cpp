@@ -31,8 +31,8 @@ int TempChannel::getSensorData(uint8_t *data, uint8_t &n)
 		uint16_t measurement = temp->measurementData;
 		temp->new_data = 0;
 		//baro.getMeasurement(measurement);
-		out[0] = (uint8_t) (measurement >> 0) & 0xFF;
-		out[1] = (uint8_t) (measurement >> 8) & 0xFF;
+		out[0] = (uint8_t) ((measurement >> 0) & 0xFF);
+		out[1] = (uint8_t) ((measurement >> 8) & 0xFF);
 
 		n += ADC16_DATA_N_BYTES;
 		return 0;

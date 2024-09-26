@@ -55,6 +55,7 @@ class ECU_Lamarr: public GenericChannel
 
 		RocketChannel rocket;
 		ADCChannel sense_5V, sense_12V, sense_12VA;
+
 		Speaker speaker;
 		//Modules
 		MAX31865_Temp max_temp_0, max_temp_1;

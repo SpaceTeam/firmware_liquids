@@ -191,7 +191,8 @@ void Can::sendAsMaster(uint8_t receiverNodeId, uint8_t receiverChannelId, uint8_
 	msgData.bit.cmd_id = commandId;
 	msgData.bit.info.channel_id = receiverChannelId;
 	msgData.bit.info.buffer = DIRECT_BUFFER;
-
+	uint8_t shit[(MAX_DATA_SIZE - CAN_MSG_LENGTH(0))] = {0x77};
+	memcpy(msgData.bit.data.uint8, shit, (MAX_DATA_SIZE - CAN_MSG_LENGTH(0)));
 	memcpy(msgData.bit.data.uint8, data, n);
 
 	(void) STRHAL_CAN_Send(MAIN_CAN_BUS, msgId.uint32, msgData.uint8, n);

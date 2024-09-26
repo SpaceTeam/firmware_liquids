@@ -39,7 +39,7 @@ class ECU_uHb: public GenericChannel
 		PyroChannel pyro_igniter0, pyro_igniter1, pyro_igniter2;
 		DigitalOutChannel solenoid_0, solenoid_1;
 		PressureControlChannel pressure_control;
-		RocketChannel rocket;
+		//RocketChannel rocket;
 
 		Speaker speaker;
 };

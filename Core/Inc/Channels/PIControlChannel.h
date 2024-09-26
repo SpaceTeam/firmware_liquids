@@ -25,6 +25,8 @@ class PIControlChannel: public AbstractChannel
 
 		int processMessage(uint8_t commandId, uint8_t *returnData, uint8_t &n) override;
 
+		void setEnabled(uint8_t state);
+
 		static constexpr uint16_t EXEC_SAMPLE_TICKS = 20;
 
 	protected:
@@ -41,8 +43,8 @@ class PIControlChannel: public AbstractChannel
 		double i_neg_gain = 0;
 		double integral_term = 0;
 	    double last_error = 0;
-	    double sensor_slope = 0.125885;
-	    double sensor_offset = -100;
+	    double sensor_slope = 0.01888275146;
+	    double sensor_offset = -15;
 	    double operating_point = 0;
 
 		GenericChannel &parent;

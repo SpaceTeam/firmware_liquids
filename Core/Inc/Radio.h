@@ -3,6 +3,7 @@
 
 #include "Channels/AbstractChannel.h"
 #include "Modules/LoRa1276F30_Radio.h"
+#include "Modules/LoRa1261_Radio.h"
 #include <AbstractCom.h>
 #include "STRHAL.h"
 
@@ -15,6 +16,7 @@ class Radio: public AbstractCom
 		Radio& operator=(const Radio &&other) = delete;
 
 		static Radio& instance(uint32_t nodeId, LoRa1276F30_Radio &lora);
+		static Radio& instanceOld(uint32_t nodeId, LoRa1261_Radio &lora);
 
 		int init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat) override;
 		int exec() override;
@@ -33,6 +35,8 @@ class Radio: public AbstractCom
 	private:
 		static LoRa1276F30_Radio *lora;
 		Radio(uint32_t nodeId, LoRa1276F30_Radio &lora);
+		static LoRa1261_Radio *loraOld;
+		Radio(uint32_t nodeId, LoRa1261_Radio &loraOld);
 };
 
 #endif /*RADIO_H*/

@@ -11,7 +11,7 @@
 #include <Radio.h>
 #include <Channels/IMUChannel.h>
 #include "../Modules/W25Qxx_Flash.h"
-#include "../Modules/LoRa1276F30_Radio.h"
+#include "../Modules/LoRa1261_Radio.h"
 #include "../Modules/SAM_M8Q_GNSS.h"
 #include <Speaker.h>
 
@@ -34,7 +34,7 @@ class RCU: public GenericChannel
 		// Modules
 		LPS25HB_Baro baro;
 		ICM2060x_IMU imu;
-		LoRa1276F30_Radio lora;
+		LoRa1261_Radio lora;
 		SAM_M8Q_GNSS gnss;
 
 		// Channels

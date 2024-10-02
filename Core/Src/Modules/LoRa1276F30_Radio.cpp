@@ -5,8 +5,7 @@
 #include <cstring>
 #include <cstdio>
 
-LoRa1276F30_Radio::LoRa1276F30_Radio(const STRHAL_SPI_Id_t &spiId, const STRHAL_SPI_Config_t &spiConf, const STRHAL_GPIO_t &dio1, const STRHAL_GPIO_t &dio3, const STRHAL_GPIO_t &busyPin) :
-		spiId(spiId), spiConf(spiConf), dio1(dio1), dio3(dio3), busyPin(busyPin)
+LoRa1276F30_Radio::LoRa1276F30_Radio(const STRHAL_SPI_Id_t &spiId, const STRHAL_SPI_Config_t &spiConf, const STRHAL_GPIO_t &dio0, const STRHAL_GIO_t &reset) : spiId(spiId), spiConf(spiConf), dio0(dio0)
 {
 }
 
@@ -27,271 +26,267 @@ int LoRa1276F30_Radio::init()
 	 NVIC_SetPriority(EXTI1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 3, 1));
 	 NVIC_EnableIRQ(EXTI1_IRQn);*/
 
-	STRHAL_GPIO_SingleInit(&dio1, STRHAL_GPIO_TYPE_IHZ);
-	STRHAL_GPIO_SingleInit(&dio3, STRHAL_GPIO_TYPE_IHZ);
-	STRHAL_GPIO_SingleInit(&busyPin, STRHAL_GPIO_TYPE_IHZ);
+	STRHAL_GPIO_SingleInit(&dio0, STRHAL_GPIO_TYPE_IHZ);
+	STRHAL_GPIO_SingleInit(&reset, STRHAL_GPIO_TYPE_OPP);
 
 	if (STRHAL_SPI_Master_Init(spiId, &spiConf) < 0)
 		return -1;
 
 	STRHAL_SPI_Master_Run(spiId);
-
 	LL_mDelay(10);
+	reset();
 
-	bool ret = true;
-	ret &= setPacketType();
-	waitForBusy();
-	ret &= calibrateImage();
-	waitForBusy();
-	ret &= setRFFrequency();
-	waitForBusy();
-	ret &= setPAConfig();
-	waitForBusy();
-	ret &= SetTxParams();
-	waitForBusy();
-	ret &= SetBufferBaseAddress();
-	waitForBusy();
-	ret &= setModulationParams();
-	waitForBusy();
-	ret &= setPacketParams();
-	waitForBusy();
-	//ret &= writeReg(LoraAddr::SYNC_WORD_MSB, 0x00, 1);
-	//waitForBusy();
-	//ret &= writeReg(LoraAddr::SYNC_WORD_LSB, SYNC_WORD, 1);
-	//waitForBusy();
-	//uint8_t txModReg = getReg(LoraAddr::TX_MODULATION);
-	//waitForBusy();
-	//ret &= writeReg(LoraAddr::TX_MODULATION, txModReg & 0xFB, 1);
-	//waitForBusy();
-	uint8_t txClampConfig = getReg(LoraAddr::TX_CLAMP_CONFIG);
-	waitForBusy();
-	ret &= writeReg(LoraAddr::TX_CLAMP_CONFIG, txClampConfig | 0x1E, 1);
+	return Configure();
+}
 
-	if (!ret)
-		return -1;
+int LoRa1276F30_Radio::Configure()
+{
+	SetSleep();
+	SetFrequency(868e6);
+	lora_writeRegister(REG_FIFO_TX_BASE_ADDR, 0);
+	lora_writeRegister(REG_FIFO_RX_BASE_ADDR, 0);
+	lora_writeRegister(REG_OCP, 0x0B);
+	lora_writeRegister(REG_LNA, 0x23);
+	lora_writeRegister(0x36, 0x02); // See Errata note
+	lora_writeRegister(0x3A, 0x64); // See Errata note
+	SetTxPower(17);
+	SetSpreadingFactor(SF7);
+	SetCodingRate(CR6_8);
+	SetSignalBandwidth(BW250);
+	SetPreambleLength(settings.PreambleLength);
+	SetSyncWord(228);
+	lora_implicitHeaderMode();
+	lora_writeRegister(REG_PAYLOAD_LENGTH, PKT_LENGTH);
+	EnableCRC();
 
 	return 0;
+}
+
+uint8_t LoRa1276F30_Radio::ReadVersion() const
+{
+	uint8_t reg;
+	bool ret = lora_readRegister(REG_VERSION, reg);
+	return ret ? reg : 0;
+}
+
+bool LoRa1276F30_Radio::SetLoraMode()
+{
+	bool ret = true;
+	ret &= lora_writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE);
+	ret &= lora_writeRegister(REG_OP_MODE, MODE_STDBY);
+}
+
+bool LoRa1276F30_Radio::SetIdle() const
+{
+	return lora_writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY);
+}
+
+bool LoRa1276F30_Radio::SetSleep() const
+{
+	return lora_writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_SLEEP);
+}
+
+uint8_t LoRa1276F30_Radio::GetMode() const
+{
+	uint8_t mode;
+	bool ret = lora_readRegister(REG_OP_MODE, mode);
+	return ret ? mode : 0;
+}
+
+bool LoRa1276F30_Radio::SetFrequency(uint32_t frequency)
+{
+	uint64_t frf = ((uint64_t)frequency << 19) / 32000000;
+	uint8_t mode = GetMode();
+	bool ret = true;
+	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
+		ret &= SetSleep();
+	ret &= lora_writeRegister(REG_FRF_MSB, (uint8_t)(frf >> 16));
+	ret &= lora_writeRegister(REG_FRF_MID, (uint8_t)(frf >> 8));
+	ret &= lora_writeRegister(REG_FRF_LSB, (uint8_t)(frf >> 0));
+	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
+		ret &= lora_writeRegister(REG_OP_MODE, mode);
+}
+
+bool LoRa1276F30_Radio::SetTxPower(uint8_t level)
+{
+	if (level < 2)
+	{
+		level = 2;
+	}
+	else if (level > 17)
+	{
+		level = 17;
+	}
+	return lora_writeRegisterSafe(REG_PA_CONFIG, static_cast<uint8_t>(PA_BOOST | (level - 2)));
+}
+
+bool LoRa1276F30_Radio::SetSpreadingFactor(const spreadingFactor_t &sf)
+{
+	uint8_t sfNumber = static_cast<uint8_t>(sf);
+	uint8_t mode = GetMode();
+	bool ret = true;
+	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
+		ret &= SetSleep();
+	if (sfNumber == 6)
+	{
+		ret &= lora_writeRegister(REG_DETECTION_OPTIMIZE, 0xc5);
+		ret &= lora_writeRegister(REG_DETECTION_THRESHOLD, 0x0c);
+	}
+	else
+	{
+		ret &= lora_writeRegister(REG_DETECTION_OPTIMIZE, 0xc3);
+		ret &= lora_writeRegister(REG_DETECTION_THRESHOLD, 0x0a);
+	}
+
+	ret &= lora_writeRegister(REG_MODEM_CONFIG_2, static_cast<uint8_t>((lora_readRegister(REG_MODEM_CONFIG_2) & 0x0f) | ((sfNumber << 4) & 0xf0)));
+	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
+		ret &= lora_writeRegister(REG_OP_MODE, mode);
+}
+
+bool LoRa1276F30_Radio::SetSignalBandwidth(const bandwith_t &sbw)
+{
+	uint8_t bw = static_cast<uint8_t>(sbw);
+	return lora_writeRegisterSafe(REG_MODEM_CONFIG_1, static_cast<uint8_t>((lora_readRegister(REG_MODEM_CONFIG_1) & 0x0f) | (bw << 4)));
+}
+
+bool LoRa1276F30_Radio::SetCodingRate(const codingRate_t &codingrate)
+{
+	uint8_t cr = static_cast<uint8_t>(codingrate) - 4;
+	uint8_t val;
+	if (!lora_readRegister(REG_MODEM_CONFIG_1, val))
+		return false;
+	return lora_writeRegisterSafe(REG_MODEM_CONFIG_1,
+								  static_cast<uint8_t>((val & 0xf1) | (cr << 1)));
+}
+
+bool LoRa1276F30_Radio::SetPreambleLength(uint16_t length)
+{
+	bool ret = true;
+	uint8_t mode = GetMode();
+	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
+		ret &= SetSleep();
+	ret &= lora_writeRegister(REG_PREAMBLE_MSB, (uint8_t)(length >> 8));
+	ret &= lora_writeRegister(REG_PREAMBLE_LSB, (uint8_t)(length >> 0));
+	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
+		ret &= lora_writeRegister(REG_OP_MODE, mode);
+	return ret;
+}
+
+bool LoRa1276F30_Radio::SetSyncWord(uint8_t sw)
+{
+	return lora_writeRegisterSafe(REG_SYNC_WORD, sw);
+}
+
+bool LoRa1276F30_Radio::EnableCRC()
+{
+	uint8_t val;
+	if (!lora_readRegister(REG_MODEM_CONFIG_2, val))
+		return false;
+	return lora_writeRegisterSafe(REG_MODEM_CONFIG_2,
+								  val | 0x04);
+}
+
+bool LoRa1276F30_Radio::DisableCRC()
+{
+	uint8_t val;
+	if (!lora_readRegister(REG_MODEM_CONFIG_2))
+		return false;
+	return lora_writeRegisterSafe(REG_MODEM_CONFIG_2,
+								  val & 0xfb);
 }
 
 int LoRa1276F30_Radio::reset()
 {
+	STRHAL_GPIO_Write(&reset, STRHAL_GPIO_VALUE_H);
+	LL_mDelay(10);
+	STRHAL_GPIO_Write(&reset, STRHAL_GPIO_VALUE_L);
+
 	return 0;
-}
-
-bool LoRa1276F30_Radio::isBusy()
-{
-	return (STRHAL_GPIO_Read(&busyPin) == STRHAL_GPIO_VALUE_L) ? false : true;
-}
-
-void LoRa1276F30_Radio::waitForBusy()
-{
-	while (isBusy());
 }
 
 bool LoRa1276F30_Radio::sendBytes(uint8_t *buffer, uint8_t n)
 {
-	//if(!SetBufferBaseAddress())
-	//return -1;
-	//waitForBusy();
-
-	uint8_t cmd[256];
-	memset(cmd, 0, 256);
-	cmd[0] = static_cast<uint8_t>(LoraOpcode::WRITE_BUFFER);
-	cmd[1] = 0x00; // Offset
-	memcpy(&cmd[2], buffer, n);
-
-	if (STRHAL_SPI_Master_Transceive(spiId, cmd, n + 2, n + 2, nullptr, 0, 100) != 0)
-		return false;
-	waitForBusy();
-	/*uint8_t rec[256];
-	 memset(rec,0,256);
-	 uint8_t read[] = {0x1E, 0x00, 0x00};
-	 if(STRHAL_SPI_Master_Transceive(spiId, read, 3, 3, rec, 12, 100) != 12)
-	 return false;
-	 waitForBusy();
-	 STRHAL_UART_Write_DMA(STRHAL_UART_DEBUG, (char *) rec, 12);*/
-	/*uint8_t stat = getErrors();
-	 waitForBusy();
-	 STRHAL_UART_Write_DMA(STRHAL_UART_DEBUG, (char *) &stat, 1);*/
-
-	if (!setModulationParams())
-		return false;
-	waitForBusy();
-	if (!setPacketParams())
-		return false;
-	waitForBusy();
-
-	//uint8_t txModReg = getReg(LoraAddr::TX_MODULATION);
-	//waitForBusy();
-	//if(!writeReg(LoraAddr::TX_MODULATION, txModReg & 0xFB, 1))
-	//return -1;
-	//waitForBusy();
-	if (!setTx())
-		return false;
-	waitForBusy();
-
-	uint8_t state = 0;
-	while (!state)
+	uint8_t data[PKT_LENGTH];
+	if (n > PKT_LENGTH)
 	{
-		state = getStatus() & 0x20;
-	}
-	return true;
-}
-
-bool LoRa1276F30_Radio::writeReg(const LoraAddr &address, uint8_t reg, uint16_t delay)
-{
-	uint8_t cmd[4];
-	uint16_t addr = static_cast<uint16_t>(address);
-	cmd[0] = static_cast<uint8_t>(LoraOpcode::WRITE_REGISTER);
-	cmd[1] = (uint8_t) (addr >> 8);
-	cmd[2] = (uint8_t) (addr & 0xFF);
-	cmd[3] = reg;
-
-	if (STRHAL_SPI_Master_Transceive(spiId, cmd, 4, 4, nullptr, 0, 100) != 0)
 		return false;
-
-	LL_mDelay(delay);
-	return true;
-}
-
-bool LoRa1276F30_Radio::writeCommand(const LoraOpcode &opcode, uint8_t *parameter, uint8_t n, uint16_t delay)
-{
-	uint8_t cmd[16];
-	cmd[0] = static_cast<uint8_t>(opcode);
-	for (int i = 0; i < n; i++)
+	}
+	for (int i = 0; i < PKT_LENGTH; i++)
 	{
-		cmd[i + 1] = parameter[i];
+		if (i < n)
+		{
+			data[i] = buffer[i];
+		}
+		else
+		{
+			data[i] = 0;
+		}
 	}
-
-	if (STRHAL_SPI_Master_Transceive(spiId, cmd, n + 1, n + 1, nullptr, 0, 100) != 0)
+	bool ret = true;
+	ret &= lora_setIdle();
+	ret &= lora_writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK); // Clear irq
+	ret &= lora_writeRegister(LR_RegHopPeriod, 0x00);			// No FHSS
+	ret &= lora_writeRegister(REG_DIO_MAPPING_1, 1 << 6);
+	ret &= lora_writeRegister(REG_FIFO_ADDR_PTR, 0);
+	ret &= lora_fifoTransfer(REG_FIFO, buffer, n);
+	if (messageSize == 0)
+		ret &= lora_writeRegister(REG_PAYLOAD_LENGTH, n);
+	ret &= lora_writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX);
+	uint32_t startTime = time_now();
+	uint8_t val;
+	if (!lora_readRegister(REG_IRQ_FLAGS, val))
 		return false;
-
-	LL_mDelay(delay);
-	return true;
+	while ((val & IRQ_TX_DONE_MASK) == 0)
+	{
+		if ((time_now() - startTime) > 200)
+		{
+			return false;
+		}
+		if (!lora_readRegister(REG_IRQ_FLAGS, val))
+			return false;
+	}
+	ret &= lora_writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);
+	return ret;
 }
 
-bool LoRa1276F30_Radio::readReg(const LoraAddr &address, uint8_t *reg, uint8_t n)
+bool LoRa1276F30_Radio::lora_singleTransfer(uint8_t address, uint8_t value, uint8_t &received) const
 {
-	uint8_t cmd[3];
-	uint16_t addr = static_cast<uint16_t>(address);
-	cmd[0] = static_cast<uint8_t>(LoraOpcode::READ_REGISTER);
-	cmd[1] = (uint8_t) (addr >> 8);
-	cmd[2] = (uint8_t) (addr & 0xFF);
-	cmd[3] = 0;
-
-	return STRHAL_SPI_Master_Transceive(spiId, cmd, 4, 4, reg, n, 100) == ((int32_t) n);
+	std::array<uint8_t, 2> data = {address, value};
+	std::array<uint8_t, 2> recv;
+	bool ret = STRHAL_SPI_Master_Transceive(spiId, data.data(), data.size(), 0, recv.data(), recv.size(), 10) != 1;
+	received = recv[1];
+	return ret;
 }
 
-uint8_t LoRa1276F30_Radio::getStatus()
+bool LoRa1276F30_Radio::lora_fifoTransfer(uint8_t address, const uint8_t *buffer, size_t length) const
 {
-	uint8_t cmd[2];
-	cmd[0] = static_cast<uint8_t>(LoraOpcode::GET_STATUS);
-	cmd[1] = 0;
-	uint8_t state = 0;
-
-	if (STRHAL_SPI_Master_Transceive(spiId, cmd, 2, 2, &state, 1, 100) != 1)
-		return 0;
-
-	return state;
+	uint8_t dummy;
+	return STRHAL_SPI_Master_Transceive(spiId, buffer, length, 0, &dummy, 0, 10) != 1;
 }
 
-uint8_t LoRa1276F30_Radio::getErrors()
+bool LoRa1276F30_Radio::lora_readRegister(uint8_t address, uint8_t &received) const
 {
-	uint8_t cmd[2];
-	cmd[0] = static_cast<uint8_t>(LoraOpcode::GET_DEVICE_ERRORS);
-	cmd[1] = 0;
-	uint8_t errors = 0;
-
-	if (STRHAL_SPI_Master_Transceive(spiId, cmd, 2, 2, &errors, 1, 100) != 1)
-		return 0;
-
-	return errors;
+	return lora_singleTransfer(address & 0x7f, 0x00, received);
 }
 
-uint8_t LoRa1276F30_Radio::getReg(const LoraAddr &address)
+bool LoRa1276F30_Radio::lora_writeRegister(uint8_t address, uint8_t value) const
 {
-	uint8_t reg = 0;
-	(void) readReg(address, &reg, 1);
-	return reg;
+	return lora_singleTransfer(address | 0x80, value);
 }
 
-bool LoRa1276F30_Radio::setPacketType()
+bool LoRa1276F30_Radio::lora_writeRegisterSafe(uint8_t address, uint8_t value)
 {
-	uint8_t parameter = 0x01; // Lora Packet
-	return writeCommand(LoraOpcode::SET_PACKET_TYPE, &parameter, 1, 10);
+	uint8_t mode = GetMode();
+	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
+		SetSleep();
+	bool ret = lora_writeRegister(address, value);
+	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
+		lora_writeRegister(REG_OP_MODE, mode);
+	return ret;
 }
 
-bool LoRa1276F30_Radio::calibrateImage()
+bool LoRa1276F30_Radio::lora_explicitHeaderMode() const
 {
-	uint8_t parameter[2] =
-	{ 0x6B, 0x6F }; // Calibrate for 433MHz
-	return writeCommand(LoraOpcode::CALIBRATE_IMAGE, parameter, 2, 10);
+	lora_writeRegister(REG_MODEM_CONFIG_1,
+					   lora_readRegister(REG_MODEM_CONFIG_1) & 0xfe);
 }
-
-bool LoRa1276F30_Radio::setRFFrequency()
-{
-	uint32_t frf = (FREQUENCY * (uint32_t(1) << 25)) / 32.0;
-	//uint32_t frf = (uint32_t) ((double) 433550000 / (double) (32000000/(uint32_t(1) << 25)));
-	//uint32_t frf = (uint32_t) ((double) 433000000 / (double) (32000000/(uint32_t(1) << 25)));
-	uint8_t parameter[4] =
-	{ (uint8_t) ((frf >> 24) & 0xFF), (uint8_t) ((frf >> 16) & 0xFF), (uint8_t) ((frf >> 8) & 0xFF), (uint8_t) (frf & 0xFF) };
-	return writeCommand(LoraOpcode::SET_FREQUENCY, parameter, 4, 10);
-}
-
-bool LoRa1276F30_Radio::setPAConfig()
-{
-	uint8_t parameter[4] =
-	{ 0x04, 0x07, 0x00, 0x01 }; // optimal PA settings for +22dBm
-	//uint8_t parameter[4] = { 0x02, 0x02, 0x00, 0x01 };
-	return writeCommand(LoraOpcode::SET_PA_CONFIG, parameter, 4, 10);
-}
-
-bool LoRa1276F30_Radio::SetTxParams()
-{
-	uint8_t parameter[2] =
-	{ 0x16, 0x00 }; // +22dBm and 40us ramp up/down
-	//uint8_t parameter[2] = { 0xEF, 0x02 };
-	return writeCommand(LoraOpcode::SET_TX_PARAMS, parameter, 2, 10);
-}
-
-bool LoRa1276F30_Radio::SetBufferBaseAddress()
-{
-	uint8_t parameter[2] =
-	{ 0x00, 0x00 }; // set addresses to 0
-	return writeCommand(LoraOpcode::SET_BUFFER_BASE_ADDR, parameter, 2, 10);
-}
-
-bool LoRa1276F30_Radio::setModulationParams()
-{
-	uint8_t parameter[4] =
-	{ SPREADING_FACTOR, 0x05, 0x02, 0x00 }; // SF7, BW500kHz, CR4/6, no low data optimize
-	return writeCommand(LoraOpcode::SET_MODULATION_PARAM, parameter, 4, 10);
-}
-
-bool LoRa1276F30_Radio::setPacketParams()
-{
-	uint8_t parameter[6] =
-	{ 0x00, PREAMBLE_LENGTH, 0x01, PKT_LENGTH, CRC_ENABLED, 0x00 }; // 8bit preamble, fixed length header, paket length, crc, normal iq
-	return writeCommand(LoraOpcode::SET_PACKET_PARAM, parameter, 6, 10);
-}
-
-bool LoRa1276F30_Radio::setDioIrqParams()
-{
-	uint8_t parameter[8] =
-	{ 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00 };
-	return writeCommand(LoraOpcode::SET_DIO_IRQ_PARAM, parameter, 8, 10);
-}
-
-bool LoRa1276F30_Radio::setTx()
-{
-	uint8_t parameter[3] =
-	{ 0x00, 0x00, 0x00 };
-	return writeCommand(LoraOpcode::SET_TX, parameter, 3, 10);
-}
-
-/*
- void EXTI1_IRQHandler(void) {
- if(LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_1)) {
- LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_1);
- }
- }*/

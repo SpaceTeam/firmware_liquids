@@ -311,7 +311,7 @@ bool LoRa1276F30_Radio::lora_explicitHeaderMode() const
 	return lora_writeRegister(REG_MODEM_CONFIG_1, value & 0xfe);
 }
 
-bool lora_implicitHeaderMode() const
+bool LoRa1276F30_Radio::lora_implicitHeaderMode() const
 {
 	uint8_t value;
 	if(!lora_readRegister(REG_MODEM_CONFIG_1, value)) return false;

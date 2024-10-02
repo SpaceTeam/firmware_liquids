@@ -56,14 +56,31 @@ int LoRa1276F30_Radio::Configure()
 	SetSpreadingFactor(SF7);
 	SetCodingRate(CR6_8);
 	SetSignalBandwidth(BW250);
-	SetPreambleLength(settings.PreambleLength); //<- settings was not defined
+	SetPreambleLength(8);
 	SetSyncWord(228);
-	lora_implicitHeaderMode(); //<- funktion existiert nicht, bei explicit gehts
+	lora_implicitHeaderMode();
+	imageCalibration();
 	lora_writeRegister(REG_PAYLOAD_LENGTH, PKT_LENGTH);
 	EnableCRC();
 	ReadVersion();
 
 	return 0;
+}
+
+bool LoRa1276F30_Radio::imageCalibration() const
+{
+	if(!lora_writeRegister(REG_ImageCal, 1 << 6)) return false;
+	uint8_t val = 0;
+	uint32_t startTime = time_t();
+	do
+	{
+		if ((time_t() - startTime) > 200)
+		{
+			return false;
+		}
+		if(!lora_readRegister(REG_ImageCal, val)) return false;
+	} while(val & (1 << 5));
+	return true;
 }
 
 uint8_t LoRa1276F30_Radio::ReadVersion() const
@@ -201,9 +218,9 @@ bool LoRa1276F30_Radio::DisableCRC()
 
 int LoRa1276F30_Radio::resetFunc()
 {
-	STRHAL_GPIO_Write(&reset, STRHAL_GPIO_VALUE_H);
-	LL_mDelay(10);
 	STRHAL_GPIO_Write(&reset, STRHAL_GPIO_VALUE_L);
+	LL_mDelay(1);
+	STRHAL_GPIO_Write(&reset, STRHAL_GPIO_VALUE_H);
 
 	return 0;
 }
@@ -255,17 +272,14 @@ bool LoRa1276F30_Radio::sendBytes(uint8_t *buffer, uint8_t n)
 
 bool LoRa1276F30_Radio::lora_singleTransfer(uint8_t address, uint8_t value, uint8_t &received) const
 {
-	std::array<uint8_t, 2> data = {address, value};
-	std::array<uint8_t, 2> recv;
-	bool ret = STRHAL_SPI_Master_Transceive(spiId, data.data(), data.size(), 0, recv.data(), recv.size(), 10) != 1;
-	received = recv[1];
-	return ret;
+	const uint8_t data[] = {address, value};
+	return STRHAL_SPI_Master_Transceive(spiId, data, sizeof(data), 1, &received, 1, 100) != 1;
 }
 
 bool LoRa1276F30_Radio::lora_fifoTransfer(uint8_t address, const uint8_t *buffer, size_t length) const
 {
 	uint8_t dummy;
-	return STRHAL_SPI_Master_Transceive(spiId, buffer, length, 0, &dummy, 0, 10) != 1;
+	return STRHAL_SPI_Master_Transceive(spiId, buffer, length, length, &dummy, 0, 100) != 1;
 }
 
 bool LoRa1276F30_Radio::lora_readRegister(uint8_t address, uint8_t &received) const
@@ -293,6 +307,13 @@ bool LoRa1276F30_Radio::lora_writeRegisterSafe(uint8_t address, uint8_t value)
 bool LoRa1276F30_Radio::lora_explicitHeaderMode() const
 {
 	uint8_t value;
-	lora_writeRegister(REG_MODEM_CONFIG_1,
-					   lora_readRegister(REG_MODEM_CONFIG_1, value) & 0xfe);
+	if(!lora_readRegister(REG_MODEM_CONFIG_1, value)) return false;
+	return lora_writeRegister(REG_MODEM_CONFIG_1, value & 0xfe);
+}
+
+bool lora_implicitHeaderMode() const
+{
+	uint8_t value;
+	if(!lora_readRegister(REG_MODEM_CONFIG_1, value)) return false;
+	return lora_writeRegister(REG_MODEM_CONFIG_1, value | 0x01);
 }

@@ -34,6 +34,7 @@
 #define REG_TEMP 0x3C
 #define REG_OCP 0x0B
 #define LR_RegHopPeriod 0x24
+#define REG_ImageCal 0x3b
 
 // modes
 #define MODE_LONG_RANGE_MODE 0x80
@@ -130,6 +131,8 @@ private:
 	bool lora_writeRegister(uint8_t address, uint8_t value) const;
 	bool lora_writeRegisterSafe(uint8_t address, uint8_t value);
 	bool lora_explicitHeaderMode() const;
+	bool lora_implicitHeaderMode() const;
+	bool imageCalibration() const;
 
 	STRHAL_SPI_Id_t spiId;
 	STRHAL_SPI_Config_t spiConf;

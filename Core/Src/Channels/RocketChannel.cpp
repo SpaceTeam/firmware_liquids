@@ -73,9 +73,9 @@ ROCKET_STATE RocketChannel::currentStateLogic(uint64_t time)
 		return depress(time);
 	case ABORT:
 		return abort(time);
-	case PRESSURIZE_TANKS:
+	//case PRESSURIZE_TANKS:
 
-		return pressurize_tanks(time);
+		//return pressurize_tanks(time);
 	default:
 		break;
 	}
@@ -140,7 +140,7 @@ void RocketChannel::nextStateLogic(ROCKET_STATE nextState, uint64_t time)
 			ventValveChannel.setState(0);
 		}
 		break;
-	case PRESSURIZE_TANKS:
+	/*case PRESSURIZE_TANKS:
 
 		STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_L);
 		STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_H);
@@ -148,7 +148,7 @@ void RocketChannel::nextStateLogic(ROCKET_STATE nextState, uint64_t time)
 		ventValveChannel.setState(1);
 
 		break;
-
+*/
 	default:
 		break;
 	}
@@ -352,7 +352,7 @@ ROCKET_STATE RocketChannel::pressurize_tanks(uint64_t time)
 	{
 		return ABORT;
 	}
-	return PRESSURIZE_TANKS;
+	return ABORT;//PRESSURIZE_TANKS;
 }
 
 int RocketChannel::reset()
@@ -377,7 +377,7 @@ int RocketChannel::processMessage(uint8_t commandId, uint8_t *returnData, uint8_
 	case ROCKET_REQ_INTERNAL_CONTROL:
 		if (state == PAD_IDLE)
 		{
-			externalNextState = (is_main_ecu) ? IGNITION_SEQUENCE : PRESSURIZE_TANKS;
+			externalNextState = (is_main_ecu) ? IGNITION_SEQUENCE :IGNITION_SEQUENCE;//: PRESSURIZE_TANKS;
 		}
 		return 0;
 	case ROCKET_REQ_ABORT:
@@ -423,12 +423,12 @@ int RocketChannel::setVariable(uint8_t variableId, int32_t data)
 		refreshDivider = data;
 		refreshCounter = 0;
 		return 0;
-	case ROCKET_SENSOR_SLOPE:
+	/*case ROCKET_SENSOR_SLOPE:
 		sensor_slope = (double) data / 1000.0;
 		return 0;
 	case ROCKET_SENSOR_OFFSET:
 		sensor_offset = (double) data / 1000.0;
-		return 0;
+		return 0;*/
 	case ROCKET_MINIMUM_CHAMBER_PRESSURE:
 		chamberPressureMin = (double) data / 1000.0;
 		return 0;
@@ -453,12 +453,12 @@ int RocketChannel::getVariable(uint8_t variableId, int32_t &data) const
 	case ROCKET_STATE_REFRESH_DIVIDER:
 		data = (int32_t) refreshDivider;
 		return 0;
-	case ROCKET_SENSOR_SLOPE:
+	/*case ROCKET_SENSOR_SLOPE:
 		data = (int32_t) (sensor_slope * 1000);
 		return 0;
 	case ROCKET_SENSOR_OFFSET:
 		data = (int32_t) (sensor_offset * 1000);
-		return 0;
+		return 0;*/
 	case ROCKET_MINIMUM_CHAMBER_PRESSURE:
 		data = (int32_t) (chamberPressureMin * 1000);
 		return 0;

@@ -2,6 +2,7 @@
 #define LORA1276F30_RADIO_H
 
 #include <STRHAL.h>
+#include <cstdio>
 
 // registers
 #define REG_FIFO 0x00
@@ -98,12 +99,12 @@ typedef struct
 class LoRa1276F30_Radio
 {
 public:
-	LoRa1276F30_Radio(const STRHAL_SPI_Id_t &spiId, const STRHAL_SPI_Config_t &spiConf, const STRHAL_GPIO_t &dio0, const STRHAL_GIO_t &reset);
+	LoRa1276F30_Radio(const STRHAL_SPI_Id_t &spiId, const STRHAL_SPI_Config_t &spiConf, const STRHAL_GPIO_t &dio0, const STRHAL_GPIO_t &reset);
 	// LPS25HB_Baro(const LPS25HB_Baro &other) = delete;
 	// LPS25HB_Baro& operator=(const LPS25HB_Baro &other) = delete;
 
 	int init();
-	int reset();
+	int resetFunc();
 	uint8_t ReadVersion() const;
 
 	bool sendBytes(uint8_t *buffer, uint8_t n);
@@ -113,7 +114,7 @@ private:
 	bool SetLoraMode();
 	bool SetIdle() const;
 	bool SetSleep() const;
-	bool GetMode() const;
+	uint8_t GetMode() const;
 	bool SetFrequency(uint32_t frequency);
 	bool SetTxPower(uint8_t level);
 	bool SetSpreadingFactor(const spreadingFactor_t &sf);
@@ -133,6 +134,7 @@ private:
 	STRHAL_SPI_Id_t spiId;
 	STRHAL_SPI_Config_t spiConf;
 	const STRHAL_GPIO_t dio0;
+	const STRHAL_GPIO_t reset;
 };
 
 #endif /*LORA1276F30_RADIO*/

@@ -102,14 +102,22 @@ int SAM_M8Q_GNSS::sendConfiguration(GNSSConstellation constellation, GNSSSbasCon
 	ret &= clearConfig();
 	//ret &= setTimepulse();
 	ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_VELNED, 1);    // NAV-VELNED
+	if(ret!=1)
+		return ret;
 	ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_POSLLH, 1);    // NAV-POSLLH
 	ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_SOL, 1);       // NAV-SOL
+	if(ret!=1)
+		return ret;
 	ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_TIMEUTC, 5);   // NAV-TIMEUTC
 	ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_DOP, 1);       // NAV-DOP
+	if(ret!=1)
+		return ret;
 	ret &= enableMessage(UBLOX_NAV_CLASS, UBLOX_NAV_SVINFO, 5);    // NAV-SVINFO
 
 	ret &= setMode(mode);                // Set the requested gps mode
 	ret &= setSbas(sbas);                // Set SBAS configuration
+	if(ret!=1)
+		return ret;
 	if (constellation == GNSSConstellation::ALL)
 	{ // Some Modules dont allow 10Hz when using ALL GPS
 		ret &= setMessageRate((uint16_t) 200);

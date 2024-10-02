@@ -4,8 +4,11 @@
 
 #include <cstring>
 #include <cstdio>
+#include <array>
+#include <ctime>
+#include <time.h>
 
-LoRa1276F30_Radio::LoRa1276F30_Radio(const STRHAL_SPI_Id_t &spiId, const STRHAL_SPI_Config_t &spiConf, const STRHAL_GPIO_t &dio0, const STRHAL_GIO_t &reset) : spiId(spiId), spiConf(spiConf), dio0(dio0)
+LoRa1276F30_Radio::LoRa1276F30_Radio(const STRHAL_SPI_Id_t &spiId, const STRHAL_SPI_Config_t &spiConf, const STRHAL_GPIO_t &dio0, const STRHAL_GPIO_t &reset) : spiId(spiId), spiConf(spiConf), dio0(dio0), reset(reset)
 {
 }
 
@@ -34,7 +37,7 @@ int LoRa1276F30_Radio::init()
 
 	STRHAL_SPI_Master_Run(spiId);
 	LL_mDelay(10);
-	reset();
+	resetFunc();
 
 	return Configure();
 }
@@ -53,11 +56,12 @@ int LoRa1276F30_Radio::Configure()
 	SetSpreadingFactor(SF7);
 	SetCodingRate(CR6_8);
 	SetSignalBandwidth(BW250);
-	SetPreambleLength(settings.PreambleLength);
+	SetPreambleLength(settings.PreambleLength); //<- settings was not defined
 	SetSyncWord(228);
-	lora_implicitHeaderMode();
+	lora_implicitHeaderMode(); //<- funktion existiert nicht, bei explicit gehts
 	lora_writeRegister(REG_PAYLOAD_LENGTH, PKT_LENGTH);
 	EnableCRC();
+	ReadVersion();
 
 	return 0;
 }
@@ -138,7 +142,7 @@ bool LoRa1276F30_Radio::SetSpreadingFactor(const spreadingFactor_t &sf)
 		ret &= lora_writeRegister(REG_DETECTION_THRESHOLD, 0x0a);
 	}
 
-	ret &= lora_writeRegister(REG_MODEM_CONFIG_2, static_cast<uint8_t>((lora_readRegister(REG_MODEM_CONFIG_2) & 0x0f) | ((sfNumber << 4) & 0xf0)));
+	ret &= lora_writeRegister(REG_MODEM_CONFIG_2, static_cast<uint8_t>((lora_readRegister(REG_MODEM_CONFIG_2, sfNumber) & 0x0f) | ((sfNumber << 4) & 0xf0)));
 	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
 		ret &= lora_writeRegister(REG_OP_MODE, mode);
 }
@@ -146,7 +150,7 @@ bool LoRa1276F30_Radio::SetSpreadingFactor(const spreadingFactor_t &sf)
 bool LoRa1276F30_Radio::SetSignalBandwidth(const bandwith_t &sbw)
 {
 	uint8_t bw = static_cast<uint8_t>(sbw);
-	return lora_writeRegisterSafe(REG_MODEM_CONFIG_1, static_cast<uint8_t>((lora_readRegister(REG_MODEM_CONFIG_1) & 0x0f) | (bw << 4)));
+	return lora_writeRegisterSafe(REG_MODEM_CONFIG_1, static_cast<uint8_t>((lora_readRegister(REG_MODEM_CONFIG_1, bw) & 0x0f) | (bw << 4)));
 }
 
 bool LoRa1276F30_Radio::SetCodingRate(const codingRate_t &codingrate)
@@ -189,13 +193,13 @@ bool LoRa1276F30_Radio::EnableCRC()
 bool LoRa1276F30_Radio::DisableCRC()
 {
 	uint8_t val;
-	if (!lora_readRegister(REG_MODEM_CONFIG_2))
+	if (!lora_readRegister(REG_MODEM_CONFIG_2, val))
 		return false;
 	return lora_writeRegisterSafe(REG_MODEM_CONFIG_2,
 								  val & 0xfb);
 }
 
-int LoRa1276F30_Radio::reset()
+int LoRa1276F30_Radio::resetFunc()
 {
 	STRHAL_GPIO_Write(&reset, STRHAL_GPIO_VALUE_H);
 	LL_mDelay(10);
@@ -223,22 +227,22 @@ bool LoRa1276F30_Radio::sendBytes(uint8_t *buffer, uint8_t n)
 		}
 	}
 	bool ret = true;
-	ret &= lora_setIdle();
+	ret &= SetIdle();
 	ret &= lora_writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK); // Clear irq
 	ret &= lora_writeRegister(LR_RegHopPeriod, 0x00);			// No FHSS
 	ret &= lora_writeRegister(REG_DIO_MAPPING_1, 1 << 6);
 	ret &= lora_writeRegister(REG_FIFO_ADDR_PTR, 0);
 	ret &= lora_fifoTransfer(REG_FIFO, buffer, n);
-	if (messageSize == 0)
+	if (PKT_LENGTH==0)//messageSize == 0)
 		ret &= lora_writeRegister(REG_PAYLOAD_LENGTH, n);
 	ret &= lora_writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX);
-	uint32_t startTime = time_now();
+	uint32_t startTime = time_t();
 	uint8_t val;
 	if (!lora_readRegister(REG_IRQ_FLAGS, val))
 		return false;
 	while ((val & IRQ_TX_DONE_MASK) == 0)
 	{
-		if ((time_now() - startTime) > 200)
+		if ((time_t() - startTime) > 200)
 		{
 			return false;
 		}
@@ -271,7 +275,8 @@ bool LoRa1276F30_Radio::lora_readRegister(uint8_t address, uint8_t &received) co
 
 bool LoRa1276F30_Radio::lora_writeRegister(uint8_t address, uint8_t value) const
 {
-	return lora_singleTransfer(address | 0x80, value);
+	uint8_t received;
+	return lora_singleTransfer(address | 0x80, value, received);
 }
 
 bool LoRa1276F30_Radio::lora_writeRegisterSafe(uint8_t address, uint8_t value)
@@ -287,6 +292,7 @@ bool LoRa1276F30_Radio::lora_writeRegisterSafe(uint8_t address, uint8_t value)
 
 bool LoRa1276F30_Radio::lora_explicitHeaderMode() const
 {
+	uint8_t value;
 	lora_writeRegister(REG_MODEM_CONFIG_1,
-					   lora_readRegister(REG_MODEM_CONFIG_1) & 0xfe);
+					   lora_readRegister(REG_MODEM_CONFIG_1, value) & 0xfe);
 }

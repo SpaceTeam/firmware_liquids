@@ -58,11 +58,11 @@ int LoRa1276F30_Radio::Configure()
 	SetSignalBandwidth(BW250);
 	SetPreambleLength(8);
 	SetSyncWord(228);
-	lora_implicitHeaderMode();
-	imageCalibration();
+	lora_explicitHeaderMode();
+	//imageCalibration();
 	lora_writeRegister(REG_PAYLOAD_LENGTH, PKT_LENGTH);
 	EnableCRC();
-	ReadVersion();
+	//ReadVersion();
 
 	return 0;
 }
@@ -95,6 +95,7 @@ bool LoRa1276F30_Radio::SetLoraMode()
 	bool ret = true;
 	ret &= lora_writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE);
 	ret &= lora_writeRegister(REG_OP_MODE, MODE_STDBY);
+	return ret;
 }
 
 bool LoRa1276F30_Radio::SetIdle() const
@@ -126,6 +127,7 @@ bool LoRa1276F30_Radio::SetFrequency(uint32_t frequency)
 	ret &= lora_writeRegister(REG_FRF_LSB, (uint8_t)(frf >> 0));
 	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
 		ret &= lora_writeRegister(REG_OP_MODE, mode);
+	return ret;
 }
 
 bool LoRa1276F30_Radio::SetTxPower(uint8_t level)
@@ -162,6 +164,7 @@ bool LoRa1276F30_Radio::SetSpreadingFactor(const spreadingFactor_t &sf)
 	ret &= lora_writeRegister(REG_MODEM_CONFIG_2, static_cast<uint8_t>((lora_readRegister(REG_MODEM_CONFIG_2, sfNumber) & 0x0f) | ((sfNumber << 4) & 0xf0)));
 	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
 		ret &= lora_writeRegister(REG_OP_MODE, mode);
+	return ret;
 }
 
 bool LoRa1276F30_Radio::SetSignalBandwidth(const bandwith_t &sbw)
@@ -249,9 +252,8 @@ bool LoRa1276F30_Radio::sendBytes(uint8_t *buffer, uint8_t n)
 	ret &= lora_writeRegister(LR_RegHopPeriod, 0x00);			// No FHSS
 	ret &= lora_writeRegister(REG_DIO_MAPPING_1, 1 << 6);
 	ret &= lora_writeRegister(REG_FIFO_ADDR_PTR, 0);
-	ret &= lora_fifoTransfer(REG_FIFO, buffer, n);
-	if (PKT_LENGTH==0)//messageSize == 0)
-		ret &= lora_writeRegister(REG_PAYLOAD_LENGTH, n);
+	ret &= lora_fifoTransfer(REG_FIFO, data, PKT_LENGTH);
+	ret &= lora_writeRegister(REG_PAYLOAD_LENGTH, PKT_LENGTH);
 	ret &= lora_writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX);
 	uint32_t startTime = time_t();
 	uint8_t val;
@@ -273,13 +275,13 @@ bool LoRa1276F30_Radio::sendBytes(uint8_t *buffer, uint8_t n)
 bool LoRa1276F30_Radio::lora_singleTransfer(uint8_t address, uint8_t value, uint8_t &received) const
 {
 	const uint8_t data[] = {address, value};
-	return STRHAL_SPI_Master_Transceive(spiId, data, sizeof(data), 1, &received, 1, 100) != 1;
+	return STRHAL_SPI_Master_Transceive(spiId, data, sizeof(data), 1, &received, 1, 100) > 0;
 }
 
 bool LoRa1276F30_Radio::lora_fifoTransfer(uint8_t address, const uint8_t *buffer, size_t length) const
 {
 	uint8_t dummy;
-	return STRHAL_SPI_Master_Transceive(spiId, buffer, length, length, &dummy, 0, 100) != 1;
+	return STRHAL_SPI_Master_Transceive(spiId, buffer, length, length, &dummy, 0, 100) > 0;
 }
 
 bool LoRa1276F30_Radio::lora_readRegister(uint8_t address, uint8_t &received) const

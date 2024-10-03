@@ -6,8 +6,8 @@
 
 RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		GenericChannel(node_id, fw_version, refresh_divider),
-		ledRed({ GPIOD, 1, STRHAL_GPIO_TYPE_OPP }),
-		ledGreen({ GPIOD, 2, STRHAL_GPIO_TYPE_OPP }),
+		led1({ GPIOD, 1, STRHAL_GPIO_TYPE_OPP }),
+		led2({ GPIOD, 2, STRHAL_GPIO_TYPE_OPP }),
 		baro(STRHAL_SPI_SPI1,{ STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6, STRHAL_SPI_SPI1_MOSI_PA7, STRHAL_SPI_SPI1_NSS_PA4, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_HH, 0x7, 0 },{ GPIOA, 3, STRHAL_GPIO_TYPE_IHZ }),
 		imu(STRHAL_SPI_SPI3,{ STRHAL_SPI_SPI3_SCK_PC10, STRHAL_SPI_SPI3_MISO_PC11, STRHAL_SPI_SPI3_MOSI_PC12, STRHAL_SPI_SPI3_NSS_PA15, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_HH, 0x7, 0 },{ GPIOD, 0, STRHAL_GPIO_TYPE_IHZ }, 0x12),
 		lora(STRHAL_SPI_SPI2,{ STRHAL_SPI_SPI2_SCK_PB13, STRHAL_SPI_SPI2_MISO_PB14, STRHAL_SPI_SPI2_MOSI_PB15, STRHAL_SPI_SPI2_NSS_PB12, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_LL, 0x7, 0 },{ GPIOC, 1, STRHAL_GPIO_TYPE_IHZ },{ GPIOB, 11, STRHAL_GPIO_TYPE_IHZ }),
@@ -25,12 +25,17 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		gps_latitude(RCUv2_GNSS_LAT, &gnss.gnssData.latitude, 1),
 		gps_altitude(RCUv2_GNSS_ALT, &gnss.gnssData.altitude, 1),
 		gps_status(RCUv2_GNSS_STATUS, &gnss.gnssData.status, 1),
+
+		out0(RCUv2_OUT0, { GPIOA, 0, STRHAL_GPIO_TYPE_IHZ }, 1),
+		out1(RCUv2_OUT1, { GPIOC, 2, STRHAL_GPIO_TYPE_IHZ }, 1),
+		out2(RCUv2_OUT2, { GPIOC, 0, STRHAL_GPIO_TYPE_IHZ }, 1),
+		out3(RCUv2_OUT3, { GPIOC, 10, STRHAL_GPIO_TYPE_IHZ }, 1),
 		radio(Radio::instance(node_id, lora)),
 		speaker(STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PB10)
 {
 	// set pointer to radio object for static callbacks, enable Lora
 	//GenericChannel::radioPtr = &radio; <- this might cause hardfault later on
-	setLoraActive(true); // has to be enabled by request
+	setLoraActive(false); // has to be enabled by request
 
 	registerChannel(&sense_5V);
 	registerChannel(&sense_12V);
@@ -59,8 +64,8 @@ int RCUv2::init()
 		return -1;
 
 	// init status LEDs
-	STRHAL_GPIO_SingleInit(&ledRed, STRHAL_GPIO_TYPE_OPP);
-	STRHAL_GPIO_SingleInit(&ledGreen, STRHAL_GPIO_TYPE_OPP);
+	STRHAL_GPIO_SingleInit(&led1, STRHAL_GPIO_TYPE_OPP);
+	STRHAL_GPIO_SingleInit(&led2, STRHAL_GPIO_TYPE_OPP);
 
 	// init debug uart
 	if (STRHAL_UART_Instance_Init(STRHAL_UART_DEBUG) != 0)
@@ -80,7 +85,7 @@ int RCUv2::init()
 
 	speaker.init();
 
-	STRHAL_GPIO_Write(&ledGreen, STRHAL_GPIO_VALUE_H);
+	STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_H);
 	return 0;
 }
 
@@ -96,7 +101,7 @@ int RCUv2::exec()
 	if (radio.exec() != 0)
 		return -1;
 
-	STRHAL_GPIO_Write(&ledRed, STRHAL_GPIO_VALUE_H);
+	STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
 	STRHAL_UART_Debug_Write_Blocking("RUNNING\n", 8, 50);
 
 	speaker.beep(2, 400, 300);
@@ -114,9 +119,13 @@ int RCUv2::exec()
 	bool msgStarted = false;
 #endif
 	uint64_t prevTime = STRHAL_Systick_GetTick();
+	bool swi = false;
+	speaker.beep(1, 100, 100);
 	while (1)
 	{
-		detectReadoutMode();
+		//speaker.beep(1, 100, 100);
+		//detectReadoutMode();
+		testIMU();
 #ifdef UART_DEBUG
 
 		uint8_t tempBuf[64] =
@@ -159,6 +168,17 @@ int RCUv2::exec()
 		if(STRHAL_Systick_GetTick() - prevTime > 1000)
 		{
 			prevTime = STRHAL_Systick_GetTick();
+			//speaker.beep(1, 100, 0);
+			if(swi){
+
+				STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_L);
+				STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_L);
+			}else{
+				STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
+				STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_H);
+
+			}
+			swi=!swi;
 			/*
 			char buf[64] = { 0 };
 			uint16_t measurement = 0;
@@ -182,4 +202,38 @@ int RCUv2::exec()
 	speaker.beep(6, 100, 100);
 
 	return 0;
+}
+
+void RCUv2::testIMU()
+{
+	char buf[64] = { 0 };
+
+	imu.read();
+
+	uint16_t x_accel_measurement = 0;
+	uint16_t y_accel_measurement = 0;
+	uint16_t z_accel_measurement = 0;
+	imu.getMeasurement(x_accel_measurement, IMUMeasurement::X_ACCEL);
+	imu.getMeasurement(y_accel_measurement, IMUMeasurement::Y_ACCEL);
+	imu.getMeasurement(z_accel_measurement, IMUMeasurement::Z_ACCEL);
+	sprintf(buf, "x: %d, y: %d, z: %d\n", x_accel_measurement, y_accel_measurement, z_accel_measurement);
+	STRHAL_UART_Debug_Write_Blocking(buf, strlen(buf), 100);
+	double x_accel = (double)(((int16_t)x_accel_measurement) * 16.0 / 32768.0);
+	if( x_accel * x_accel > 0.25){
+		speaker.beep(1, 100, 500);
+	}
+
+	double y_accel = (double)(((int16_t)y_accel_measurement) * 16.0 / 32768.0);
+	if( y_accel * y_accel > 0.25){
+		STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_H);
+	}else{
+		STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_L);
+	}
+
+	double z_accel = (double)(((int16_t)z_accel_measurement) * 16.0 / 32768.0);
+	if( z_accel * z_accel > 0.25){
+		STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
+	}else{
+		STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_L);
+	}
 }

@@ -44,27 +44,28 @@ int LoRa1276F30_Radio::init()
 
 int LoRa1276F30_Radio::Configure()
 {
-	SetSleep();
-	SetFrequency(868e6);
-	lora_writeRegister(REG_FIFO_TX_BASE_ADDR, 0);
-	lora_writeRegister(REG_FIFO_RX_BASE_ADDR, 0);
-	lora_writeRegister(REG_OCP, 0x0B);
-	lora_writeRegister(REG_LNA, 0x23);
-	lora_writeRegister(0x36, 0x02); // See Errata note
-	lora_writeRegister(0x3A, 0x64); // See Errata note
-	SetTxPower(17);
-	SetSpreadingFactor(SF7);
-	SetCodingRate(CR6_8);
-	SetSignalBandwidth(BW250);
-	SetPreambleLength(8);
-	SetSyncWord(228);
-	lora_explicitHeaderMode();
-	//imageCalibration();
-	lora_writeRegister(REG_PAYLOAD_LENGTH, PKT_LENGTH);
-	EnableCRC();
+	bool ret = true;
+	ret &= SetSleep();
+	ret &= SetFrequency(868e6);
+	ret &= lora_writeRegister(REG_FIFO_TX_BASE_ADDR, 0);
+	ret &= lora_writeRegister(REG_FIFO_RX_BASE_ADDR, 0);
+	ret &= lora_writeRegister(REG_OCP, 0x0B);
+	ret &= lora_writeRegister(REG_LNA, 0x23);
+	ret &= lora_writeRegister(0x36, 0x02); // See Errata note
+	ret &= lora_writeRegister(0x3A, 0x64); // See Errata note
+	ret &= SetTxPower(17);
+	ret &= SetSpreadingFactor(SF7);
+	ret &= SetCodingRate(CR6_8);
+	ret &= SetSignalBandwidth(BW250);
+	ret &= SetPreambleLength(8);
+	ret &= SetSyncWord(228);
+	ret &= lora_explicitHeaderMode();
+	//ret &= imageCalibration();
+	ret &= lora_writeRegister(REG_PAYLOAD_LENGTH, PKT_LENGTH);
+	ret &= EnableCRC();
 	//ReadVersion();
 
-	return 0;
+	return ret;
 }
 
 bool LoRa1276F30_Radio::imageCalibration() const

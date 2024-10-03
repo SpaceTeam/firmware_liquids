@@ -71,7 +71,7 @@ int RCUv2::init()
 	if (STRHAL_UART_Instance_Init(STRHAL_UART_DEBUG) != 0)
 		return -1;
 
-	if (lora.init() != 0)
+	if (lora.init() != true)
 		return -1;
 
 	if (can.init(receptorLora, heartbeatCan, COMMode::LISTENER_COM_MODE) != 0)
@@ -119,13 +119,10 @@ int RCUv2::exec()
 	bool msgStarted = false;
 #endif
 	uint64_t prevTime = STRHAL_Systick_GetTick();
-	bool swi = false;
-	speaker.beep(1, 100, 100);
 	while (1)
 	{
-		//speaker.beep(1, 100, 100);
 		//detectReadoutMode();
-		testIMU();
+		testGNSS();
 #ifdef UART_DEBUG
 
 		uint8_t tempBuf[64] =
@@ -168,17 +165,6 @@ int RCUv2::exec()
 		if(STRHAL_Systick_GetTick() - prevTime > 1000)
 		{
 			prevTime = STRHAL_Systick_GetTick();
-			//speaker.beep(1, 100, 0);
-			if(swi){
-
-				STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_L);
-				STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_L);
-			}else{
-				STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
-				STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_H);
-
-			}
-			swi=!swi;
 			/*
 			char buf[64] = { 0 };
 			uint16_t measurement = 0;
@@ -235,5 +221,22 @@ void RCUv2::testIMU()
 		STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
 	}else{
 		STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_L);
+	}
+}
+
+void RCUv2::testGNSS()
+{
+	char buf[64] = { 0 };
+	int32_t lon = gnss.gnssData.longitude;
+	int32_t lat = gnss.gnssData.latitude;
+	int32_t alt = gnss.gnssData.altitude;
+
+	int32_t status = gnss.gnssData.status;
+
+	if(status>0){
+		speaker.beep(2, 400, 500);
+		speaker.beep(gnss.gnssData.status,100,500);
+		speaker.beep(gnss.gnssData.altitude/10,100,100);
+		speaker.beep(2, 400, 500);
 	}
 }

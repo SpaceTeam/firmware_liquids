@@ -63,7 +63,6 @@ ROCKET_STATE RocketChannel::currentStateLogic(uint64_t time)
 	case POWERED_ASCENT:
 		return poweredAscent(time);
 	case UNPOWERED_ASCENT:
-		// wait until end of flight command from PMU2
 		if (time - timeLastTransition > 1000)
 		{
 			return DEPRESS;
@@ -205,7 +204,7 @@ ROCKET_STATE RocketChannel::ignitionSequence(uint64_t time)
 		}
 		break;
 	case IgnitionSequence::IGNITION_ON:
-		if (time - timeLastTransition > IGNITIONTIME(-3000))
+		if (time - timeLastTransition > IGNITIONTIME(0))
 		{
 			(void) internalIgniterChannel.setState(65000);
 			can.SetRemoteVariable(DEVICE_ID_GSE_ELEC_EXTERNAL_IGNITER, DIGITAL_OUT_STATE, 65000);
@@ -213,35 +212,37 @@ ROCKET_STATE RocketChannel::ignitionSequence(uint64_t time)
 		}
 		break;
 	case IgnitionSequence::ENABLE_OX_PRESSURANT:
-		if (time - timeLastTransition > IGNITIONTIME(-1200))
+		if (time - timeLastTransition > IGNITIONTIME(1800))
 		{
 			SetRemoteRocketState(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_INTERNAL_CONTROL);
 			ignitionState = IgnitionSequence::OPEN_OX_MAIN;
 		}
 		break;
 	case IgnitionSequence::OPEN_OX_MAIN:
-		if (time - timeLastTransition > IGNITIONTIME(-1000))
+		if (time - timeLastTransition > IGNITIONTIME(2000))
 		{
 			oxServoChannel.setTargetPos(65535);
 			ignitionState = IgnitionSequence::ENABLE_FUEL_PRESSURANT;
 		}
 		break;
 	case IgnitionSequence::ENABLE_FUEL_PRESSURANT:
-		if (time - timeLastTransition > IGNITIONTIME(-200))
+		if (time - timeLastTransition > IGNITIONTIME(2300))
 		{
 			SetRemoteRocketState(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_INTERNAL_CONTROL);
 			ignitionState = IgnitionSequence::OPEN_FUEL_MAIN;
 		}
 		break;
 	case IgnitionSequence::OPEN_FUEL_MAIN:
-		if (time - timeLastTransition > IGNITIONTIME(0))
+		if (time - timeLastTransition > IGNITIONTIME(2500))
 		{
+
 			fuelServoChannel.setTargetPos(65535);
+			timeSinceBothMainValvesOpen = time;
 			ignitionState = IgnitionSequence::IGNITION_OFF;
 		}
 		break;
 	case IgnitionSequence::IGNITION_OFF:
-		if (time - timeLastTransition > IGNITIONTIME(0))
+		if (time - timeLastTransition > IGNITIONTIME(3100))
 		{
 			(void) internalIgniterChannel.setState(0);
 			can.SetRemoteVariable(DEVICE_ID_GSE_ELEC_EXTERNAL_IGNITER, DIGITAL_OUT_STATE, 0);
@@ -256,46 +257,8 @@ ROCKET_STATE RocketChannel::ignitionSequence(uint64_t time)
 
 ROCKET_STATE RocketChannel::holddown(uint64_t time)
 {
-	if (holdDownTimeout > 0)
-	{
-		if (time - timeLastTransition > holdDownTimeout)
-		{ // release after x s to lessen apogee
-			if (chamberPressureChannel.getMeasurement() < chamberPressureMin)
-			{ // if holddown timeout has passed, still check for chamber pressure
-				chamberPressureGoodCounter = 0;
-				chamberPressureLowCounter++;
-			}
-			else
-			{
-				chamberPressureLowCounter = 0;
-				chamberPressureGoodCounter++;
-			}
-
-			// if either event (low or good pressure) occurs exclusively for a specified amount of times -> abort (low)/release(good)
-			if (chamberPressureLowCounter > CHAMBER_PRESSURE_LOW_COUNT_MAX)
-			{
-				//return ABORT; do not abort in test environment
-			}
-
-			if (chamberPressureGoodCounter > CHAMBER_PRESSURE_GOOD_COUNT_MIN)
-			{
-				//TODO calibrate holddown servo
-				return POWERED_ASCENT;
-
-			}
-		}
-		else
-		{
-			chamberPressureGoodCounter = 0;
-			chamberPressureLowCounter = 0;
-		}
-	}
-	else
-	{
-		//if (chamberPressureChannel.getMeasurement() >= chamberPressureMin)
-		//{
-		//	return POWERED_ASCENT;
-		//}
+	if ((time - timeSinceBothMainValvesOpen < holdDownTimeout) || (holdDownTimeout == 0))
+	{ // release after x s to lessen apogee
 		if (chamberPressureChannel.getMeasurement() < chamberPressureMin)
 		{ // if holddown timeout has passed, still check for chamber pressure
 			chamberPressureGoodCounter = 0;
@@ -312,20 +275,19 @@ ROCKET_STATE RocketChannel::holddown(uint64_t time)
 		{
 			//return ABORT; do not abort in test environment
 		}
-
 		if (chamberPressureGoodCounter > CHAMBER_PRESSURE_GOOD_COUNT_MIN)
 		{
 			//TODO calibrate holddown servo
 			return POWERED_ASCENT;
+
 		}
 	}
 	return HOLD_DOWN;
-
 }
 
 ROCKET_STATE RocketChannel::poweredAscent(uint64_t time)
 {
-	if (time - timeLastTransition > 5500)
+	if (time - timeSinceBothMainValvesOpen > 5500)
 	{ // motor burnout, close valves, IMPORTANT!: total burn time before shutoff is powered + unpowered ascent
 		return UNPOWERED_ASCENT;
 	}
@@ -334,9 +296,8 @@ ROCKET_STATE RocketChannel::poweredAscent(uint64_t time)
 
 ROCKET_STATE RocketChannel::depress(uint64_t time)
 {
-	if (oxPressureChannel.getMeasurement() < 10 && fuelPressureChannel.getMeasurement() < 10)
+	if (GetSensorReading(oxPressureChannel) < 1.5 && GetSensorReading(fuelPressureChannel) < 1.5)
 	{ // PMU2 sent end of flight, depress rocket and go to idle state once pressures drop below a minimum
-	  // TODO: add variable for depress maximum pressures
 		return PAD_IDLE;
 	}
 	return DEPRESS;
@@ -501,7 +462,12 @@ void RocketChannel::getRocketState(uint8_t *data, uint8_t &n)
 
 void RocketChannel::SetRemoteRocketState(DeviceIds device_id, ROCKET_CMDs state)
 {
-
-	uint8_t empty_buffer[10] = {0};
+	uint8_t empty_buffer[10] =
+	{ 0 };
 	can.sendAsMaster(device_id, state, empty_buffer, sizeof(uint32_t));
+}
+double RocketChannel::GetSensorReading(const ADCChannel& sensor_channel)
+{
+	uint16_t data = sensor_channel.getMeasurement();
+	return ((double) data * sensor_slope + sensor_offset);
 }

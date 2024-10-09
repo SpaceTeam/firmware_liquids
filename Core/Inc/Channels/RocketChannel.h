@@ -64,6 +64,7 @@ class RocketChannel: public AbstractChannel
 		void setRocketState(uint8_t *data, uint8_t &n);
 		void getRocketState(uint8_t *data, uint8_t &n);
 		void SetRemoteRocketState(DeviceIds device_id, ROCKET_CMDs state);
+		double GetSensorReading(const ADCChannel& sensor_channel);
 
 		const ADCChannel &fuelPressureChannel;
 		const ADCChannel &oxPressureChannel;
@@ -86,9 +87,10 @@ class RocketChannel: public AbstractChannel
 		uint16_t chamberPressureLowCounter = 0;
 		uint16_t chamberPressureGoodCounter = 0;
 		uint16_t autoCheckBadCounter = 0;
-		uint16_t holdDownTimeout = 0;
+		uint16_t holdDownTimeout = 500;
 		uint64_t timeLastSample = 0;
 		uint64_t timeLastTransition = 0;
+		uint64_t timeSinceBothMainValvesOpen = 0;
 		ROCKET_STATE internalNextState = PAD_IDLE;
 		ROCKET_STATE externalNextState = PAD_IDLE;
 

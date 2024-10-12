@@ -121,7 +121,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Startup/startup_stm32g491metx.s|Src/system_stm32g4xx.c|Src/stm32g4xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/RCU.cpp|Startup/startup_stm32g491metx.s|Src/system_stm32g4xx.c|Src/stm32g4xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G474|STM32G491" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -239,7 +239,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Startup/startup_stm32g491metx.s|Src/system_stm32g4xx.c|Src/stm32g4xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/RCU.cpp|Startup/startup_stm32g491metx.s|Src/system_stm32g4xx.c|Src/stm32g4xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G474|STM32G491" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -365,7 +365,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G474|STM32G4xx/LL_Driver/Src/stm32g4xx_ll_usb.c|STM32H7xx|STM32G4xx/LL_Driver/Src/stm32g4xx_ll_fmc.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -475,7 +475,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G474|STM32G491/LL_Driver/Src/stm32g4xx_ll_usb.c|STM32H7xx|STM32G491/LL_Driver/Src/stm32g4xx_ll_fmc.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -618,7 +618,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G474|STM32G491/LL_Driver/Src/stm32g4xx_ll_usb.c|STM32H7xx|STM32G491/LL_Driver/Src/stm32g4xx_ll_fmc.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -761,7 +761,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G474|STM32G491/LL_Driver/Src/stm32g4xx_ll_usb.c|STM32H7xx|STM32G491/LL_Driver/Src/stm32g4xx_ll_fmc.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -924,7 +924,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Startup/startup_stm32g491metx.s|Src/system_stm32g4xx.c|Src/stm32g4xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/RCU.cpp|Startup/startup_stm32g491metx.s|Src/system_stm32g4xx.c|Src/stm32g4xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G474|STM32G491" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -1087,7 +1087,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Startup/startup_stm32g491metx.s|Src/system_stm32g4xx.c|Src/stm32g4xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/RCU.cpp|Startup/startup_stm32g491metx.s|Src/system_stm32g4xx.c|Src/stm32g4xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G474|STM32G491" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -1227,7 +1227,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G474|STM32G491/LL_Driver/Src/stm32g4xx_ll_usb.c|STM32H7xx|STM32G491/LL_Driver/Src/stm32g4xx_ll_fmc.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -1371,7 +1371,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G474|STM32G491/LL_Driver/Src/stm32g4xx_ll_usb.c|STM32H7xx|STM32G491/LL_Driver/Src/stm32g4xx_ll_fmc.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -1555,7 +1555,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G491|STM32G474/LL_Driver/Src/stm32g4xx_ll_usb.c|STM32H7xx|STM32G491/LL_Driver/Src/stm32g4xx_ll_fmc.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -1740,7 +1740,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G474|STM32G491|STM32G474/LL_Driver/Src/stm32g4xx_ll_usb.c|STM32H7xx|STM32G491/LL_Driver/Src/stm32g4xx_ll_fmc.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -1924,7 +1924,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G491|STM32G474/LL_Driver/Src/stm32g4xx_ll_usb.c|STM32H7xx|STM32G491/LL_Driver/Src/stm32g4xx_ll_fmc.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -2034,7 +2034,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G491|STM32G474|STM32G491/LL_Driver/Src/stm32g4xx_ll_usb.c|STM32H7xx|STM32G491/LL_Driver/Src/stm32g4xx_ll_fmc.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -2219,7 +2219,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G491|STM32G474/LL_Driver/Src/stm32g4xx_ll_usb.c|STM32H7xx|STM32G491/LL_Driver/Src/stm32g4xx_ll_fmc.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
@@ -2404,7 +2404,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="Src/PMU.cpp|Src/RCU.cpp|Src/system_stm32h7xx.c|Startup/startup_stm32h750vbtx.s|Src/stm32h7xx_it.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="STM32G431|STM32G491|STM32G474/LL_Driver/Src/stm32g4xx_ll_usb.c|STM32H7xx|STM32G491/LL_Driver/Src/stm32g4xx_ll_fmc.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>

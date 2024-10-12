@@ -21,13 +21,15 @@ class Radio: public AbstractCom
 
 		static int send(uint32_t id, uint8_t *data, uint8_t n);
 
-		static constexpr uint32_t MSG_SIZE = 95; //143
-		static constexpr uint8_t ECU_START_ADDR = 0;
-		static constexpr uint8_t ECU_MSG_SIZE = 55; //51 + 4
-		static constexpr uint8_t PMU_START_ADDR = ECU_START_ADDR + ECU_MSG_SIZE;
-		static constexpr uint8_t PMU_MSG_SIZE = 0; //44 + 4
-		static constexpr uint8_t RCU_START_ADDR = PMU_START_ADDR + PMU_MSG_SIZE;
+		static constexpr uint8_t ENGINE_ECU_START_ADDR = 0;
+		static constexpr uint8_t ENGINE_ECU_MSG_SIZE = 49; //44 + 4 + 1
+		static constexpr uint8_t FUEL_ECU_START_ADDR = ENGINE_ECU_START_ADDR + ENGINE_ECU_MSG_SIZE;
+		static constexpr uint8_t FUEL_ECU_MSG_SIZE = 49; //44 + 4 + 1
+		static constexpr uint8_t OX_ECU_START_ADDR = FUEL_ECU_START_ADDR + FUEL_ECU_MSG_SIZE;
+		static constexpr uint8_t OX_ECU_MSG_SIZE = 49; //44 + 4 + 1
+		static constexpr uint8_t RCU_START_ADDR = OX_ECU_START_ADDR + FUEL_ECU_MSG_SIZE;
 		static constexpr uint8_t RCU_MSG_SIZE = 40;
+		static constexpr uint32_t MSG_SIZE = ENGINE_ECU_MSG_SIZE + FUEL_ECU_MSG_SIZE + OX_ECU_MSG_SIZE + RCU_MSG_SIZE; //187
 		static uint8_t msgArray[MSG_SIZE];
 
 	private:

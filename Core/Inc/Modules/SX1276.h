@@ -50,7 +50,7 @@ public:
 	unsigned char init(const loraSettings_t *settings);
 	loraStatus_e getStatus();
 	uint8_t ready();
-	int sendBytes(const uint8_t *buffer, uint8_t length);
+	int sendBytes( uint8_t *buffer, uint8_t length);
 	void setMessageSize(uint8_t size);
 	uint8_t getMessageSize();
 	void setReceive();

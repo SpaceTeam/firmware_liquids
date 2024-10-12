@@ -135,9 +135,11 @@ int GenericChannel::setVariable(uint8_t variableId, int32_t data)
 			{
 				setLoraActive(false);
 			}
-			else
+			else if(data == 1)
 			{
 				setLoraActive(true);
+			}else{
+
 			}
 			return 0;
 		default:
@@ -317,21 +319,30 @@ void GenericChannel::receptorLora(uint32_t id, uint8_t *data, uint32_t n)
 	uint8_t nodeid = msgId.info.node_id;
 	uint8_t ret_n = 0;
 
-	if (nodeid == 6)
-	{ // ECU
+	if (nodeid == NODE_ID_LAMARR_ENGINE_ECU)
+	{
 		if (loraActive)
 		{
-			Radio::msgArray[Radio::ECU_START_ADDR] = 1;
-			memcpy(&Radio::msgArray[Radio::ECU_START_ADDR + 1], msgData.bit.data.uint8, Radio::ECU_MSG_SIZE - 1);
+			Radio::msgArray[Radio::ENGINE_ECU_START_ADDR] = 1;
+			memcpy(&Radio::msgArray[Radio::ENGINE_ECU_START_ADDR + 1], msgData.bit.data.uint8, Radio::ENGINE_ECU_MSG_SIZE - 1);
 		}
 		return;
 	}
-	else if (nodeid == 7)
-	{ // PMU
+	else if (nodeid == NODE_ID_LAMARR_FUEL_ECU)
+	{
 		if (loraActive)
 		{
-			Radio::msgArray[Radio::PMU_START_ADDR] = 1;
-			memcpy(&Radio::msgArray[Radio::PMU_START_ADDR + 1], msgData.bit.data.uint8, Radio::PMU_MSG_SIZE - 1);
+			Radio::msgArray[Radio::FUEL_ECU_START_ADDR] = 1;
+			memcpy(&Radio::msgArray[Radio::FUEL_ECU_START_ADDR + 1], msgData.bit.data.uint8, Radio::FUEL_ECU_MSG_SIZE - 1);
+		}
+		return;
+	}
+	else if (nodeid == NODE_ID_LAMARR_FUEL_ECU)
+	{
+		if (loraActive)
+		{
+			Radio::msgArray[Radio::OX_ECU_START_ADDR] = 1;
+			memcpy(&Radio::msgArray[Radio::OX_ECU_START_ADDR + 1], msgData.bit.data.uint8, Radio::OX_ECU_MSG_SIZE - 1);
 		}
 		return;
 	}

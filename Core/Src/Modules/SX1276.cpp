@@ -84,11 +84,8 @@ unsigned char SX1276::init(const loraSettings_t *settings)
 
 void SX1276::ConfigureLora()
 {
-
-	uint8_t mode = readRegister(REG_OP_MODE);
 	setSleep();
 	setFrequency(currentSettings.frequency);
-	mode = readRegister(REG_OP_MODE);
 	writeRegister(REG_FIFO_TX_BASE_ADDR, 0);
 	writeRegister(REG_FIFO_RX_BASE_ADDR, 0);
 	writeRegister(REG_OCP, 0x0B);
@@ -96,19 +93,12 @@ void SX1276::ConfigureLora()
 	writeRegister(0x36, 0x02); // See Errata note
 	writeRegister(0x3A, 0x64); // See Errata note
 	setTxPower(currentSettings.txPower);
-	mode = readRegister(REG_OP_MODE);
 	setSpreadingFactor(currentSettings.spreadingFactor);
-	mode = readRegister(REG_OP_MODE);
 	setCodingRate4(currentSettings.codingRateDenominator);
-	mode = readRegister(REG_OP_MODE);
 	setSignalBandwidth(currentSettings.signalBandwith);
-	mode = readRegister(REG_OP_MODE);
 	setPreambleLength(currentSettings.preambleLength);
-	mode = readRegister(REG_OP_MODE);
 	setSyncWord(currentSettings.syncword);
-	mode = readRegister(REG_OP_MODE);
 	setMessageSize(currentSettings.messageSize);
-	mode = readRegister(REG_OP_MODE);
 	if (currentSettings.crc)
 	{
 		crc();
@@ -119,9 +109,6 @@ void SX1276::ConfigureLora()
 	}
 
 	setLoraMode();
-
-	loraStatus_e s = getStatus();
-
 }
 
 void SX1276::Reset(bool reconfigure)
@@ -155,7 +142,7 @@ uint8_t SX1276::ready()
 	return (stat != tx) && (stat != rx) && (stat != disconnected);
 }
 
-int SX1276::sendBytes(const uint8_t *buffer, uint8_t length)
+int SX1276::sendBytes( uint8_t *buffer, uint8_t length)
 {
 	int ret = length;
 	loraStatus_e stat = getStatus();

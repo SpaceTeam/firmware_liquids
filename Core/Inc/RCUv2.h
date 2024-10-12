@@ -31,6 +31,8 @@ class RCUv2: public GenericChannel
 		void testGNSS();
 		void beep(int frequency, int length, int delay);
 		void startupBeep();
+		void superMario();
+		void gnssBeep();
 
 	private:
 		STRHAL_GPIO_t led1, led2;

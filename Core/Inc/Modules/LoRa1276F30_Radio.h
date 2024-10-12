@@ -19,7 +19,7 @@
 #define REG_IRQ_FLAGS 0x12
 #define REG_RX_NB_BYTES 0x13
 #define REG_PKT_RSSI_VALUE 0x1a
-#define REG_PKT_SNR_VALUE 0x1b
+//#define REG_PKT_SNR_VALUE 0x1b
 #define REG_MODEM_CONFIG_1 0x1d
 #define REG_MODEM_CONFIG_2 0x1e
 #define REG_PREAMBLE_MSB 0x20
@@ -31,7 +31,6 @@
 #define REG_SYNC_WORD 0x39
 #define REG_DIO_MAPPING_1 0x40
 #define REG_VERSION 0x42
-#define REG_TEMP 0x3C
 #define REG_OCP 0x0B
 #define LR_RegHopPeriod 0x24
 #define REG_ImageCal 0x3b
@@ -120,7 +119,7 @@ private:
 	bool SetTxPower(uint8_t level);
 	bool SetSpreadingFactor(const spreadingFactor_t &sf);
 	bool SetSignalBandwidth(const bandwith_t &sbw);
-	bool SetCodingRate(const codingRate_t &codingrate);
+	bool SetCodingRate4(uint8_t denominator);
 	bool SetPreambleLength(uint16_t length);
 	bool SetSyncWord(uint8_t sw);
 	bool EnableCRC();

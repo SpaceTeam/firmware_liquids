@@ -54,15 +54,15 @@ int LoRa1276F30_Radio::Configure()
 	ret &= lora_writeRegister(0x36, 0x02); // See Errata note
 	ret &= lora_writeRegister(0x3A, 0x64); // See Errata note
 	ret &= SetTxPower(17);
-	ret &= SetSpreadingFactor(SF7);
-	ret &= SetCodingRate(CR6_8);
-	ret &= SetSignalBandwidth(BW250);
+	ret &= SetSpreadingFactor(SF10);
+	ret &= SetCodingRate4(6);
+	ret &= SetSignalBandwidth(BW500);
 	ret &= SetPreambleLength(8);
-	ret &= SetSyncWord(228);
+	ret &= SetSyncWord(0xE4);
 	ret &= lora_explicitHeaderMode();
 	//ret &= imageCalibration();
 	ret &= lora_writeRegister(REG_PAYLOAD_LENGTH, PKT_LENGTH);
-	ret &= EnableCRC();
+	//ret &= EnableCRC();
 	//ReadVersion();
 
 	return ret;
@@ -174,14 +174,21 @@ bool LoRa1276F30_Radio::SetSignalBandwidth(const bandwith_t &sbw)
 	return lora_writeRegisterSafe(REG_MODEM_CONFIG_1, static_cast<uint8_t>((lora_readRegister(REG_MODEM_CONFIG_1, bw) & 0x0f) | (bw << 4)));
 }
 
-bool LoRa1276F30_Radio::SetCodingRate(const codingRate_t &codingrate)
+bool LoRa1276F30_Radio::SetCodingRate4(uint8_t denominator)
 {
-	uint8_t cr = static_cast<uint8_t>(codingrate) - 4;
-	uint8_t val;
-	if (!lora_readRegister(REG_MODEM_CONFIG_1, val))
-		return false;
-	return lora_writeRegisterSafe(REG_MODEM_CONFIG_1,
-								  static_cast<uint8_t>((val & 0xf1) | (cr << 1)));
+	if (denominator < 5)
+	{
+		denominator = 5;
+	}
+	else if (denominator > 8)
+	{
+		denominator = 8;
+	}
+
+	uint8_t dummy;
+	uint8_t cr = denominator - 4;
+	lora_writeRegisterSafe(REG_MODEM_CONFIG_1,
+					  (lora_readRegister(REG_MODEM_CONFIG_1, dummy) & 0xf1) | (cr << 1));
 }
 
 bool LoRa1276F30_Radio::SetPreambleLength(uint16_t length)
@@ -236,7 +243,7 @@ bool LoRa1276F30_Radio::sendBytes(uint8_t *buffer, uint8_t n)
 	{
 		return false;
 	}
-	for (int i = 0; i < PKT_LENGTH; i++)
+	for (uint8_t i = 0; i < PKT_LENGTH; i++)
 	{
 		if (i < n)
 		{
@@ -253,7 +260,7 @@ bool LoRa1276F30_Radio::sendBytes(uint8_t *buffer, uint8_t n)
 	ret &= lora_writeRegister(LR_RegHopPeriod, 0x00);			// No FHSS
 	ret &= lora_writeRegister(REG_DIO_MAPPING_1, 1 << 6);
 	ret &= lora_writeRegister(REG_FIFO_ADDR_PTR, 0);
-	ret &= lora_fifoTransfer(REG_FIFO, data, PKT_LENGTH);
+	lora_fifoTransfer(REG_FIFO, data, PKT_LENGTH);
 	ret &= lora_writeRegister(REG_PAYLOAD_LENGTH, PKT_LENGTH);
 	ret &= lora_writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX);
 	uint32_t startTime = time_t();

@@ -3,7 +3,6 @@
 #include <vector>
 #include <chrono>
 #include <thread>
-
 #include <stm32g4xx_ll_exti.h>
 #include <stm32g4xx_ll_system.h>
 
@@ -13,15 +12,18 @@
 #include <ctime>
 #include <time.h>
 
+
+
 // Interface functions
-bool SX1276::singleTransfer(uint8_t address, uint8_t value)
+uint8_t SX1276::singleTransfer(uint8_t address, uint8_t value)
 {
-	uint8_t recv;
 	const uint8_t data[] = {address, value};
-	return STRHAL_SPI_Master_Transceive(spiId, data, sizeof(data), 1, &recv, 1, 100);
+	uint8_t recv;
+	STRHAL_SPI_Master_Transceive(spiId, data, sizeof(data), 1, &recv, 1, 100);
+	return recv;
 }
 
-bool SX1276::fifoTransfer(uint8_t address, const uint8_t *buffer, size_t len)
+void SX1276::fifoTransfer(uint8_t address, const uint8_t *buffer, size_t len)
 {
 	uint8_t dummy;
 	std::vector<uint8_t> buf;
@@ -30,30 +32,30 @@ bool SX1276::fifoTransfer(uint8_t address, const uint8_t *buffer, size_t len)
 	{
 		buf.push_back(buffer[i]);
 	}
-	return STRHAL_SPI_Master_Transceive(spiId, &buf[0], len, len, &dummy, 0, 100);
+	STRHAL_SPI_Master_Transceive(spiId, buf.data(), buf.size(), buf.size(), &dummy, 0, 100);
 }
 
-bool SX1276::readRegister(uint8_t address)
+uint8_t SX1276::readRegister(uint8_t address)
 {
 	return singleTransfer(address & 0x7f, 0x00);
 }
 
-bool SX1276::writeRegister(uint8_t address, uint8_t value)
+void SX1276::writeRegister(uint8_t address, uint8_t value)
 {
-	return singleTransfer(address | 0x80, value);
+	singleTransfer(address | 0x80, value);
 }
 
-bool SX1276::writeRegisterSafe(uint8_t address, uint8_t value)
+void SX1276::writeRegisterSafe(uint8_t address, uint8_t value)
 {
-	bool ret = true;
 	uint8_t mode = getMode();
 	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
-		ret &= setSleep();
-	ret &= writeRegister(address, value);
+		setSleep();
+	writeRegister(address, value);
 	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
-		ret &= writeRegister(REG_OP_MODE, mode);
-	return ret;
+		writeRegister(REG_OP_MODE, mode);
 }
+
+// DIO0 Interrupt for send and receive
 
 
 /**** Functions ****/
@@ -64,7 +66,15 @@ SX1276::SX1276(const STRHAL_SPI_Id_t &spiId, const STRHAL_SPI_Config_t &spiConf,
 
 unsigned char SX1276::init(const loraSettings_t *settings)
 {
+
 	loraLocked = 0;
+	STRHAL_GPIO_SingleInit(&dio0, STRHAL_GPIO_TYPE_IHZ);
+	STRHAL_GPIO_SingleInit(&reset, STRHAL_GPIO_TYPE_IHZ);
+
+	if (STRHAL_SPI_Master_Init(spiId, &spiConf) < 0)
+		return -1;
+
+	STRHAL_SPI_Master_Run(spiId);
 
 	memcpy(&currentSettings, settings, sizeof(loraSettings_t));
 	ConfigureLora();
@@ -72,35 +82,57 @@ unsigned char SX1276::init(const loraSettings_t *settings)
 	return 1;
 }
 
-bool SX1276::ConfigureLora()
+void SX1276::ConfigureLora()
 {
-	bool ret = true;
-	ret &= setSleep();
-	ret &= setFrequency(currentSettings.frequency);
-	ret &= writeRegister(REG_FIFO_TX_BASE_ADDR, 0);
-	ret &= writeRegister(REG_FIFO_RX_BASE_ADDR, 0);
-	ret &= writeRegister(REG_OCP, 0x0B);
-	ret &= writeRegister(REG_LNA, 0x23);
-	ret &= writeRegister(0x36, 0x02); // See Errata note
-	ret &= writeRegister(0x3A, 0x64); // See Errata note
-	ret &= setTxPower(currentSettings.txPower);
-	ret &= setSpreadingFactor(currentSettings.spreadingFactor);
-	ret &= setCodingRate4(currentSettings.codingRateDenominator);
-	ret &= setSignalBandwidth(currentSettings.signalBandwith);
-	ret &= setPreambleLength(currentSettings.preambleLength);
-	ret &= setSyncWord(currentSettings.syncword);
-	ret &= setMessageSize(currentSettings.messageSize);
+
+	uint8_t mode = readRegister(REG_OP_MODE);
+	setSleep();
+	setFrequency(currentSettings.frequency);
+	mode = readRegister(REG_OP_MODE);
+	writeRegister(REG_FIFO_TX_BASE_ADDR, 0);
+	writeRegister(REG_FIFO_RX_BASE_ADDR, 0);
+	writeRegister(REG_OCP, 0x0B);
+	writeRegister(REG_LNA, 0x23);
+	writeRegister(0x36, 0x02); // See Errata note
+	writeRegister(0x3A, 0x64); // See Errata note
+	setTxPower(currentSettings.txPower);
+	mode = readRegister(REG_OP_MODE);
+	setSpreadingFactor(currentSettings.spreadingFactor);
+	mode = readRegister(REG_OP_MODE);
+	setCodingRate4(currentSettings.codingRateDenominator);
+	mode = readRegister(REG_OP_MODE);
+	setSignalBandwidth(currentSettings.signalBandwith);
+	mode = readRegister(REG_OP_MODE);
+	setPreambleLength(currentSettings.preambleLength);
+	mode = readRegister(REG_OP_MODE);
+	setSyncWord(currentSettings.syncword);
+	mode = readRegister(REG_OP_MODE);
+	setMessageSize(currentSettings.messageSize);
+	mode = readRegister(REG_OP_MODE);
 	if (currentSettings.crc)
 	{
-		ret &= crc();
+		crc();
 	}
 	else
 	{
-		ret &= noCrc();
+		noCrc();
 	}
 
-	ret &= setLoraMode();
-	return ret;
+	setLoraMode();
+
+	loraStatus_e s = getStatus();
+
+}
+
+void SX1276::Reset(bool reconfigure)
+{
+	setSleep();
+	writeRegister(REG_DETECTION_OPTIMIZE, 0x83);
+	writeRegister(0x2F, 0x40);
+	if (reconfigure)
+	{
+		ConfigureLora();
+	}
 }
 
 loraStatus_e SX1276::getStatus()
@@ -123,65 +155,47 @@ uint8_t SX1276::ready()
 	return (stat != tx) && (stat != rx) && (stat != disconnected);
 }
 
-bool SX1276::sendBytes(const uint8_t *buffer, uint8_t length)
+int SX1276::sendBytes(const uint8_t *buffer, uint8_t length)
 {
-	bool ret = true;
-	uint8_t data[messageSize];
-	if (length > messageSize)
+	int ret = length;
+	loraStatus_e stat = getStatus();
+	if ((stat == tx) || (stat == disconnected))
+		return 0;
+	setIdle();
+	writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK); // Clear irq
+	writeRegister(LR_RegHopPeriod, 0x00);			// No FHSS
+	writeRegister(REG_DIO_MAPPING_1, 1 << 6);
+	writeRegister(REG_FIFO_ADDR_PTR, 0);
+	fifoTransfer(REG_FIFO, buffer, length);
+	if (messageSize == 0)
+		writeRegister(REG_PAYLOAD_LENGTH, length);
+	writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX);
+	auto startTime = std::chrono::system_clock::now();
+	while ((readRegister(REG_IRQ_FLAGS) & IRQ_TX_DONE_MASK) == 0)
 	{
-		return false;
-	}
-	for (uint8_t i = 0; i < messageSize; i++)
-	{
-		if (i < length)
+		if (std::chrono::duration_cast<std::chrono::milliseconds>((std::chrono::system_clock::now() - startTime)).count() > 200)
 		{
-			data[i] = buffer[i];
-		}
-		else
-		{
-			data[i] = 0;
+			ret = -1;
+			break;
 		}
 	}
-	ret &= setIdle();
-	ret &= writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK); // Clear irq
-	ret &= writeRegister(LR_RegHopPeriod, 0x00);			// No FHSS
-	ret &= writeRegister(REG_DIO_MAPPING_1, 1 << 6);
-	ret &= writeRegister(REG_FIFO_ADDR_PTR, 0);
-	ret &= fifoTransfer(REG_FIFO, data, messageSize);
-	ret &= writeRegister(REG_PAYLOAD_LENGTH, messageSize);
-	ret &= writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX);
-	uint32_t startTime = time_t();
-	uint8_t val = readRegister(REG_IRQ_FLAGS);
-	uint8_t val;
-	if (!readRegister(REG_IRQ_FLAGS, val))
-		return false;
-	while ((val & IRQ_TX_DONE_MASK) == 0)
-	{
-		if ((time_t() - startTime) > 200)
-		{
-			return false;
-		}
-		if (!readRegister(REG_IRQ_FLAGS, val))
-			return false;
-	}
-	ret &= writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);
+	writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);
+	stat = idle;
 	return ret;
 }
 
-bool SX1276::setMessageSize(uint8_t size)
+void SX1276::setMessageSize(uint8_t size)
 {
-	bool ret = true;
 	if (size > 0)
 	{
-		ret &= implicitHeaderMode();
-		ret &= writeRegister(REG_PAYLOAD_LENGTH, size);
+		implicitHeaderMode();
+		writeRegister(REG_PAYLOAD_LENGTH, size);
 	}
 	else
 	{
-		ret &= explicitHeaderMode();
+		explicitHeaderMode();
 	}
 	messageSize = size;
-	return ret;
 }
 
 uint8_t SX1276::getMessageSize()
@@ -189,22 +203,20 @@ uint8_t SX1276::getMessageSize()
 	return messageSize;
 }
 
-bool SX1276::setReceive()
+void SX1276::setReceive()
 {
-	bool ret = true;
 	uint32_t mode = getMode();
 	if (mode != (MODE_LONG_RANGE_MODE | MODE_RX_CONTINUOUS))
 	{
-		ret &= writeRegister(REG_OP_MODE, MODE_STDBY);
-		ret &= writeRegister(REG_DIO_MAPPING_1, 0);
-		// ret &= writeRegister(LR_RegHopPeriod, 0xFF);	//No FHSS
-		ret &= writeRegister(LR_RegHopPeriod, 0x00); // No FHSS
-		ret &= writeRegister(REG_PAYLOAD_LENGTH, getMessageSize());
-		ret &= writeRegister(REG_FIFO_ADDR_PTR, 0);
-		ret &= writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE);
-		ret &= writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_RX_CONTINUOUS);
+		writeRegister(REG_OP_MODE, MODE_STDBY);
+		writeRegister(REG_DIO_MAPPING_1, 0);
+		// writeRegister(LR_RegHopPeriod, 0xFF);	//No FHSS
+		writeRegister(LR_RegHopPeriod, 0x00); // No FHSS
+		writeRegister(REG_PAYLOAD_LENGTH, getMessageSize());
+		writeRegister(REG_FIFO_ADDR_PTR, 0);
+		writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE);
+		writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_RX_CONTINUOUS);
 	}
-	return ret;
 }
 
 uint8_t SX1276::parsePacket()
@@ -342,25 +354,23 @@ int8_t SX1276::getTemperature()
 	return temp;
 }
 
-bool SX1276::setLoraMode()
+void SX1276::setLoraMode()
 {
-	bool ret = true;
-	ret &= writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE);
-	ret &= writeRegister(REG_OP_MODE, MODE_STDBY);
-	return ret;
+	writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE);
+	writeRegister(REG_OP_MODE, MODE_STDBY);
 }
 
-bool SX1276::setIdle()
+void SX1276::setIdle()
 {
-	return writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY);
+	writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY);
 }
 
-bool SX1276::setSleep()
+void SX1276::setSleep()
 {
-	return writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_SLEEP);
+	writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_SLEEP);
 }
 
-bool SX1276::setTxPower(uint8_t level)
+void SX1276::setTxPower(uint8_t level)
 {
 	if (level < 2)
 	{
@@ -370,29 +380,26 @@ bool SX1276::setTxPower(uint8_t level)
 	{
 		level = 17;
 	}
-	return writeRegisterSafe(REG_PA_CONFIG, PA_BOOST | (level - 2));
+	writeRegisterSafe(REG_PA_CONFIG, PA_BOOST | (level - 2));
 }
 
-bool SX1276::setFrequency(uint32_t frequency)
+void SX1276::setFrequency(uint32_t frequency)
 {
-	bool ret = true;
 	_frequency = frequency;
 
 	uint64_t frf = ((uint64_t)frequency << 19) / 32000000;
 	uint8_t mode = getMode();
 	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
-		ret &= setSleep();
-	ret &= writeRegister(REG_FRF_MSB, (uint8_t)(frf >> 16));
-	ret &= writeRegister(REG_FRF_MID, (uint8_t)(frf >> 8));
-	ret &= writeRegister(REG_FRF_LSB, (uint8_t)(frf >> 0));
+		setSleep();
+	writeRegister(REG_FRF_MSB, (uint8_t)(frf >> 16));
+	writeRegister(REG_FRF_MID, (uint8_t)(frf >> 8));
+	writeRegister(REG_FRF_LSB, (uint8_t)(frf >> 0));
 	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
-		ret &= writeRegister(REG_OP_MODE, mode);
-	return ret;
+		writeRegister(REG_OP_MODE, mode);
 }
 
-bool SX1276::setSpreadingFactor(uint8_t sf)
+void SX1276::setSpreadingFactor(uint8_t sf)
 {
-	bool ret = true;
 	if (sf < 6)
 	{
 		sf = 6;
@@ -403,25 +410,26 @@ bool SX1276::setSpreadingFactor(uint8_t sf)
 	}
 	uint8_t mode = getMode();
 	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
-		ret &= setSleep();
+		setSleep();
+	mode = getMode();
 	if (sf == 6)
 	{
-		ret &= writeRegister(REG_DETECTION_OPTIMIZE, 0xc5);
-		ret &= writeRegister(REG_DETECTION_THRESHOLD, 0x0c);
+		writeRegister(REG_DETECTION_OPTIMIZE, 0xc5);
+		writeRegister(REG_DETECTION_THRESHOLD, 0x0c);
 	}
 	else
 	{
-		ret &= writeRegister(REG_DETECTION_OPTIMIZE, 0xc3);
-		ret &= writeRegister(REG_DETECTION_THRESHOLD, 0x0a);
+		writeRegister(REG_DETECTION_OPTIMIZE, 0xc3);
+		writeRegister(REG_DETECTION_THRESHOLD, 0x0a);
 	}
 
-	ret &= writeRegister(REG_MODEM_CONFIG_2, (readRegister(REG_MODEM_CONFIG_2) & 0x0f) | ((sf << 4) & 0xf0));
+	writeRegister(REG_MODEM_CONFIG_2, (readRegister(REG_MODEM_CONFIG_2) & 0x0f) | ((sf << 4) & 0xf0));
+	mode = getMode();
 	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
-		ret &= writeRegister(REG_OP_MODE, mode);
-	return ret;
+		writeRegister(REG_OP_MODE, mode);
 }
 
-bool SX1276::setSignalBandwidth(uint32_t sbw)
+void SX1276::setSignalBandwidth(uint32_t sbw)
 {
 	uint8_t bw = 9;
 
@@ -465,10 +473,10 @@ bool SX1276::setSignalBandwidth(uint32_t sbw)
 	{
 		bw = 9;
 	}
-	return writeRegisterSafe(REG_MODEM_CONFIG_1, (readRegister(REG_MODEM_CONFIG_1) & 0x0f) | (bw << 4));
+	writeRegisterSafe(REG_MODEM_CONFIG_1, (readRegister(REG_MODEM_CONFIG_1) & 0x0f) | (bw << 4));
 }
 
-bool SX1276::setCodingRate4(uint8_t denominator)
+void SX1276::setCodingRate4(uint8_t denominator)
 {
 	if (denominator < 5)
 	{
@@ -480,26 +488,24 @@ bool SX1276::setCodingRate4(uint8_t denominator)
 	}
 
 	uint8_t cr = denominator - 4;
-	return writeRegisterSafe(REG_MODEM_CONFIG_1,
+	writeRegisterSafe(REG_MODEM_CONFIG_1,
 					  (readRegister(REG_MODEM_CONFIG_1) & 0xf1) | (cr << 1));
 }
 
-bool SX1276::setPreambleLength(uint16_t length)
+void SX1276::setPreambleLength(uint16_t length)
 {
-	bool ret = true;
 	uint8_t mode = getMode();
 	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
-		ret &= setSleep();
-	ret &= writeRegister(REG_PREAMBLE_MSB, (uint8_t)(length >> 8));
-	ret &= writeRegister(REG_PREAMBLE_LSB, (uint8_t)(length >> 0));
+		setSleep();
+	writeRegister(REG_PREAMBLE_MSB, (uint8_t)(length >> 8));
+	writeRegister(REG_PREAMBLE_LSB, (uint8_t)(length >> 0));
 	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
-		ret &= writeRegister(REG_OP_MODE, mode);
-	return ret;
+		writeRegister(REG_OP_MODE, mode);
 }
 
-bool SX1276::setSyncWord(uint8_t sw)
+void SX1276::setSyncWord(uint8_t sw)
 {
-	return writeRegisterSafe(REG_SYNC_WORD, sw);
+	writeRegisterSafe(REG_SYNC_WORD, sw);
 }
 
 uint8_t SX1276::getMode()
@@ -509,15 +515,15 @@ uint8_t SX1276::getMode()
 	return mode;
 }
 
-bool SX1276::crc()
+void SX1276::crc()
 {
-	return writeRegisterSafe(REG_MODEM_CONFIG_2,
+	writeRegisterSafe(REG_MODEM_CONFIG_2,
 					  readRegister(REG_MODEM_CONFIG_2) | 0x04);
 }
 
-bool SX1276::noCrc()
+void SX1276::noCrc()
 {
-	return writeRegisterSafe(REG_MODEM_CONFIG_2,
+	writeRegisterSafe(REG_MODEM_CONFIG_2,
 					  readRegister(REG_MODEM_CONFIG_2) & 0xfb);
 }
 
@@ -528,15 +534,15 @@ uint8_t SX1276::random()
 	return reg;
 }
 
-bool SX1276::explicitHeaderMode()
+void SX1276::explicitHeaderMode()
 {
-	return writeRegister(REG_MODEM_CONFIG_1,
+	writeRegister(REG_MODEM_CONFIG_1,
 				  readRegister(REG_MODEM_CONFIG_1) & 0xfe);
 }
 
-bool SX1276::implicitHeaderMode()
+void SX1276::implicitHeaderMode()
 {
-	return writeRegister(REG_MODEM_CONFIG_1,
+	writeRegister(REG_MODEM_CONFIG_1,
 				  readRegister(REG_MODEM_CONFIG_1) | 0x01);
 }
 
@@ -544,3 +550,4 @@ bool SX1276::messageReceived()
 {
 	return messagePending;
 }
+

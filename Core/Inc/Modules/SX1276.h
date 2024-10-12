@@ -6,6 +6,12 @@
 #include <STRHAL.h>
 #include <cstdio>
 
+#include <array>
+#include <vector>
+#include <string.h>
+#include <mutex>
+#include <climits>
+
 #define SX1276_OK 0
 #define SX1276_ERROR 1
 
@@ -44,10 +50,10 @@ public:
 	unsigned char init(const loraSettings_t *settings);
 	loraStatus_e getStatus();
 	uint8_t ready();
-	bool sendBytes(const uint8_t *buffer, uint8_t length);
-	bool setMessageSize(uint8_t size);
+	int sendBytes(const uint8_t *buffer, uint8_t length);
+	void setMessageSize(uint8_t size);
 	uint8_t getMessageSize();
-	bool setReceive();
+	void setReceive();
 	uint8_t parsePacket();
 	uint8_t packetRssi();
 	float packetSnr();
@@ -56,33 +62,37 @@ public:
 	uint16_t readBytes(uint8_t *buffer, uint16_t length);
 	int16_t peek();
 	int8_t getTemperature();
-	bool setLoraMode();
-	bool setIdle();
-	bool setSleep();
-	bool setTxPower(uint8_t level);
-	bool setFrequency(uint32_t frequency);
-	bool setSpreadingFactor(uint8_t sf);
-	bool setSignalBandwidth(uint32_t sbw);
-	bool setCodingRate4(uint8_t denominator);
-	bool setPreambleLength(uint16_t length);
-	bool setSyncWord(uint8_t sw);
+	void setLoraMode();
+	void setIdle();
+	void setSleep();
+	void setTxPower(uint8_t level);
+	void setFrequency(uint32_t frequency);
+	void setSpreadingFactor(uint8_t sf);
+	void setSignalBandwidth(uint32_t sbw);
+	void setCodingRate4(uint8_t denominator);
+	void setPreambleLength(uint16_t length);
+	void setSyncWord(uint8_t sw);
 	uint8_t getMode();
-	bool crc();
-	bool noCrc();
+	void crc();
+	void noCrc();
 	uint8_t random();
-	bool explicitHeaderMode();
-	bool implicitHeaderMode();
+	void explicitHeaderMode();
+	void implicitHeaderMode();
 
 	bool messageReceived();
 
+	uint8_t Send(uint8_t* buffer, size_t len);
+	template <const size_t dataToSend>
+	uint8_t SendReceive(std::array<uint8_t, dataToSend> &data, std::array<uint8_t, dataToSend> &recv, const size_t toSend = dataToSend);
+
 private:
-	bool singleTransfer(uint8_t address, uint8_t value);
-	bool fifoTransfer(uint8_t address, const uint8_t* buffer, size_t len);
-	bool readRegister(uint8_t address);
-	bool writeRegister(uint8_t address, uint8_t value);
-	bool writeRegisterSafe(uint8_t address, uint8_t value);
-	bool Reset(bool reconfigure);
-	bool ConfigureLora();
+	uint8_t singleTransfer(uint8_t address, uint8_t value);
+	void fifoTransfer(uint8_t address, const uint8_t* buffer, size_t len);
+	uint8_t readRegister(uint8_t address);
+	void writeRegister(uint8_t address, uint8_t value);
+	void writeRegisterSafe(uint8_t address, uint8_t value);
+	void Reset(bool reconfigure);
+	void ConfigureLora();
 
 	loraSettings_t currentSettings;
 	uint32_t _frequency;

@@ -26,16 +26,16 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		gps_altitude(RCUv2_GNSS_ALT, &gnss.gnssData.altitude, 1),
 		gps_status(RCUv2_GNSS_STATUS, &gnss.gnssData.status, 1),
 
-		out0(RCUv2_OUT0, { GPIOA, 0, STRHAL_GPIO_TYPE_IHZ }, 1),
-		out1(RCUv2_OUT1, { GPIOC, 2, STRHAL_GPIO_TYPE_IHZ }, 1),
-		out2(RCUv2_OUT2, { GPIOC, 0, STRHAL_GPIO_TYPE_IHZ }, 1),
-		out3(RCUv2_OUT3, { GPIOC, 10, STRHAL_GPIO_TYPE_IHZ }, 1),
+		out0(RCUv2_OUT0, { GPIOA, 0, STRHAL_GPIO_TYPE_IHZ }, 0),
+		out1(RCUv2_OUT1, { GPIOC, 2, STRHAL_GPIO_TYPE_IHZ }, 0),
+		out2(RCUv2_OUT2, { GPIOC, 0, STRHAL_GPIO_TYPE_IHZ }, 0),
+		out3(RCUv2_OUT3, { GPIOC, 10, STRHAL_GPIO_TYPE_IHZ }, 0),
 		radio(Radio::instance(node_id, lora)),
 		speaker(STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PB10)
 {
 	// set pointer to radio object for static callbacks, enable Lora
 	//GenericChannel::radioPtr = &radio; <- this might cause hardfault later on
-	setLoraActive(false); // has to be enabled by request
+	setLoraActive(true); // has to be enabled by request
 
 	registerChannel(&sense_5V);
 	registerChannel(&sense_12V);
@@ -51,6 +51,12 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	registerChannel(&gps_altitude);
 	registerChannel(&gps_status);
 
+	registerChannel(&out0);
+	registerChannel(&out1);
+	registerChannel(&out2);
+	registerChannel(&out3);
+
+
 	registerModule(&flash);
 	registerModule(&gnss);
 	registerModule(&baro);
@@ -60,6 +66,21 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 
 int RCUv2::init()
 {
+
+	loraSettings_t lora_settings;
+
+	memset(&lora_settings, 0, sizeof(loraSettings_t));
+
+	lora_settings.codingRateDenominator = 6;
+	lora_settings.crc = 1;
+	lora_settings.frequency = 868e6;
+	lora_settings.preambleLength = 8;
+	lora_settings.signalBandwith = 500e3;
+	lora_settings.spreadingFactor = 10;
+	lora_settings.syncword = 0xE4;
+	lora_settings.txPower = 17;
+	lora_settings.messageSize = 95;
+
 	if (STRHAL_Init(STRHAL_SYSCLK_SRC_EXT, 8000000) != STRHAL_NOICE)
 		return -1;
 
@@ -71,7 +92,7 @@ int RCUv2::init()
 	if (STRHAL_UART_Instance_Init(STRHAL_UART_DEBUG) != 0)
 		return -1;
 
-	if (lora.init() != true)
+	if (lora.init(&lora_settings) != true)
 		return -1;
 
 	if (can.init(receptorLora, heartbeatCan, COMMode::LISTENER_COM_MODE) != 0)
@@ -104,8 +125,9 @@ int RCUv2::exec()
 	STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
 	STRHAL_UART_Debug_Write_Blocking("RUNNING\n", 8, 50);
 
-	speaker.beep(2, 400, 300);
+	startupBeep();
 
+	//speaker.beep(1,100,100);
 	LL_mDelay(2000);
 
 	STRHAL_UART_Listen(STRHAL_UART_DEBUG);
@@ -239,4 +261,19 @@ void RCUv2::testGNSS()
 		speaker.beep(gnss.gnssData.altitude/10,100,100);
 		speaker.beep(2, 400, 500);
 	}
+}
+void RCUv2::beep(int freq, int length, int delay){
+	speaker.setPWM(freq);
+	speaker.beep(1, length, delay);
+}
+
+void RCUv2::startupBeep(){
+	beep(523, 400, 50);
+	beep(392, 100, 50);
+	beep(392, 100, 50);
+	beep(440, 100, 150);
+	beep(392, 400, 150);
+	beep(494, 200, 50);
+	beep(523, 400, 50);
+	speaker.setPWM(500);
 }

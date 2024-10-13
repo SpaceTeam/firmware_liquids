@@ -28,7 +28,7 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		out0(RCUv2_OUT0, { GPIOA, 0, STRHAL_GPIO_TYPE_IHZ }, 1),
 		out1(RCUv2_OUT1, { GPIOC, 2, STRHAL_GPIO_TYPE_IHZ }, 1),
 		out2(RCUv2_OUT2, { GPIOC, 0, STRHAL_GPIO_TYPE_IHZ }, 1),
-		out3(RCUv2_OUT3, { GPIOBC, 10, STRHAL_GPIO_TYPE_IHZ }, 1),
+		out3(RCUv2_OUT3, { GPIOC, 10, STRHAL_GPIO_TYPE_IHZ }, 1),
 		radio(Radio::instance(node_id, lora)),
 		speaker(STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PB10)
 {

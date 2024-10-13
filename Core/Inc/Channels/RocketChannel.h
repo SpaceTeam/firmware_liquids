@@ -15,7 +15,8 @@
 enum class IgnitionSequence : int
 {
 	INIT = 0,
-	IGNITION_ON,
+	IGNITION_ON1,
+	IGNITION_ON2,
 	ENABLE_OX_PRESSURANT,
 	OPEN_OX_MAIN,
 	ENABLE_FUEL_PRESSURANT,
@@ -26,7 +27,7 @@ enum class IgnitionSequence : int
 class RocketChannel: public AbstractChannel
 {
 	public:
-		RocketChannel(uint8_t id, const ADCChannel &fuelPressureChannel,const ADCChannel &oxPressureChannel, const ADCChannel &chamberPressureChannel, ServoChannel &fuelServoChannel, ServoChannel &oxServoChannel, PIControlChannel &piControlChannel, PyroChannel &internalIgniterChannel, PyroChannel &ventValveChannel, uint8_t is_main_ecu, uint32_t refreshDivider);
+		RocketChannel(uint8_t id, const ADCChannel &fuelPressureChannel,const ADCChannel &oxPressureChannel, const ADCChannel &chamberPressureChannel, ServoChannel &fuelServoChannel, ServoChannel &oxServoChannel, PIControlChannel &piControlChannel, PyroChannel &internalIgniter1Channel, PyroChannel &internalIgniter2Channel, PyroChannel &ventValveChannel, uint8_t is_main_ecu, uint32_t refreshDivider);
 		RocketChannel(const RocketChannel &other) = delete;
 		RocketChannel& operator=(const RocketChannel &other) = delete;
 		RocketChannel(const RocketChannel &&other) = delete;
@@ -40,8 +41,11 @@ class RocketChannel: public AbstractChannel
 		int processMessage(uint8_t commandId, uint8_t *returnData, uint8_t &n) override;
 
 		static constexpr uint16_t EXEC_SAMPLE_TICKS = 1;
-		static constexpr uint16_t CHAMBER_PRESSURE_LOW_COUNT_MAX = 100;
-		static constexpr uint16_t CHAMBER_PRESSURE_GOOD_COUNT_MIN = 50;
+		static constexpr uint16_t HOLDDOWN_DELAY = 1000;
+		static constexpr uint16_t CHAMBER_PRESSURE_LOW_PENALTY = 3;
+		static constexpr uint16_t CHAMBER_PRESSURE_LOW_COUNT_MAX = 5;
+		static constexpr uint16_t CHAMBER_PRESSURE_GOOD_COUNT_MIN = 100;
+		static constexpr uint16_t FLIGHT_BURN_TIME = 4500;
 		static constexpr uint16_t AUTO_CHECK_BAD_COUNT_MAX = 10;
 
 	protected:
@@ -72,7 +76,8 @@ class RocketChannel: public AbstractChannel
 		ServoChannel &fuelServoChannel;
 		ServoChannel &oxServoChannel;
 		PIControlChannel &piControlChannel;
-		PyroChannel &internalIgniterChannel;
+		PyroChannel &internalIgniter1Channel;
+		PyroChannel &internalIgniter2Channel;
 		PyroChannel &ventValveChannel;
 		uint8_t is_main_ecu;
 		ROCKET_STATE state;
@@ -80,14 +85,14 @@ class RocketChannel: public AbstractChannel
 
 	    double sensor_slope = 0.01888275146;
 	    double sensor_offset = -15;
-		double chamberPressureMin = 0;
+		double chamberPressureMin = 9.5;
 		double fuelPressureMin = 0;
 		double oxPressureMin = 0;
 
 		uint16_t chamberPressureLowCounter = 0;
 		uint16_t chamberPressureGoodCounter = 0;
 		uint16_t autoCheckBadCounter = 0;
-		uint16_t holdDownTimeout = 500;
+		uint16_t holdDownTimeout = 10000;
 		uint64_t timeLastSample = 0;
 		uint64_t timeLastTransition = 0;
 		uint64_t timeSinceBothMainValvesOpen = 0;

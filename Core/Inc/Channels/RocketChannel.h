@@ -40,17 +40,6 @@ class RocketChannel: public AbstractChannel
 		int getVariable(uint8_t variableId, int32_t &data) const override;
 
 	private:
-		/* XXX ROCKET_STATE currentStateLogic(uint64_t time);
-		void nextStateLogic(ROCKET_STATE nextState, uint64_t time);
-
-		ROCKET_STATE autoCheck(uint64_t time);
-		ROCKET_STATE ignitionSequence(uint64_t time);
-		ROCKET_STATE holddown(uint64_t time);
-		ROCKET_STATE poweredAscent(uint64_t time);
-		ROCKET_STATE depress(uint64_t time);
-		ROCKET_STATE abort(uint64_t time);
-		ROCKET_STATE pressurize_tanks(uint64_t time);*/
-
 		ROCKET_STATE nextState(uint64_t time, uint64_t stateTime) const;
 		void stateEnter(ROCKET_STATE state, uint64_t time);
 		void stateExit(ROCKET_STATE state, uint64_t time);

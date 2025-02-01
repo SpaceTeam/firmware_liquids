@@ -138,6 +138,16 @@ extern const ChannelLookUpEntry channellookUp[];
 //#define LAMARR_ECU_NODE_ID NODE_ID_LAMARR_FUEL_ECU
 //#define LAMARR_ECU_NODE_ID NODE_ID_LAMARR_GSE_PNEU
 //#define LAMARR_ECU_NODE_ID NODE_ID_LAMARR_GSE_ELEC
-#define LAMARR_ECU_NODE_ID NODE_ID_LAMARR_ENGINE_ECU
+#define IS_MAIN_ECU
+
+
+#ifdef IS_MAIN_ECU
+	#ifdef LAMARR_ECU_NODE_ID
+		#error config error
+	#endif
+	#define LAMARR_ECU_NODE_ID NODE_ID_LAMARR_ENGINE_ECU
+#else
+	#define IS_NOT_MAIN_ECU
+#endif
 
 #endif /* INC_NODEINFOS_H_ */

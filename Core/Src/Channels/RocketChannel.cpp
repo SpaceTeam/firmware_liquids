@@ -335,7 +335,14 @@ int RocketChannel::processMessage(uint8_t commandId, uint8_t *returnData, uint8_
 #endif
 		}
 		return 0;
-	case ROCKET_REQ_SET_ROCKET_STATE: // XXX: Bad!
+	case ROCKET_REQ_SET_ROCKET_STATE:
+		// Only permits limited set of state transitions required by ECUI
+		if (state == RS_HOLDDOWN) {
+			stateOverride = RS_POWERED_ASCENT;
+		} else if (state == RS_ABORT) {
+			stateOverride = RS_PAD_IDLE;
+		}
+		return 0;
 	case ROCKET_REQ_ABORT:
 		stateOverride = RS_ABORT;
 		return 0;

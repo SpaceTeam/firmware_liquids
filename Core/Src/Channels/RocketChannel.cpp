@@ -337,25 +337,35 @@ int RocketChannel::processMessage(uint8_t commandId, uint8_t *returnData, uint8_
 		return 0;
 	case ROCKET_REQ_SET_ROCKET_STATE:
 		// Only permits limited set of state transitions required by ECUI
+#if defined(IS_MAIN_ECU)
 		if (state == RS_HOLDDOWN) {
 			stateOverride = RS_POWERED_ASCENT;
 		} else if (state == RS_ABORT) {
 			stateOverride = RS_PAD_IDLE;
 		}
+#elif !defined(IS_NOT_MAIN_ECU)
+	#error config error
+#endif
 		return 0;
 	case ROCKET_REQ_ABORT:
 		stateOverride = RS_ABORT;
 		return 0;
 	case ROCKET_REQ_END_OF_FLIGHT: // TODO: Reachable?
+#if defined(IS_MAIN_ECU)
 		if (state == RS_UNPOWERED_ASCENT) {
 			stateOverride = RS_DEPRESSURIZE;
 		}
+#elif !defined(IS_NOT_MAIN_ECU)
+	#error config error
+#endif
 		return 0;
 	case ROCKET_REQ_AUTO_CHECK:
 #if defined(IS_MAIN_ECU) // TODO: Correct?
 		if (state == RS_PAD_IDLE) {
 			stateOverride = RS_AUTOCHECK;
 		}
+#elif !defined(IS_NOT_MAIN_ECU)
+	#error config error
 #endif
 		return 0;
 	default:

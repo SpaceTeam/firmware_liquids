@@ -62,9 +62,10 @@ int RocketChannel::exec() {
 
 	if (newState != RS_UNCHANGED) {
 		stateExit(state, time);
-		stateEnter(newState, time);
-		state = newState;
 		timeLastTransition = time;
+		stateEnter(newState, time);
+		stateTime = time - timeLastTransition;
+		state = newState;
 	}
 
 	stateDo(state, time, stateTime);

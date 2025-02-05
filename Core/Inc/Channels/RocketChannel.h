@@ -46,7 +46,8 @@ class RocketChannel: public AbstractChannel
 		void stateDo(ROCKET_STATE state, uint64_t time, uint64_t stateTime);
 
 		void getRocketState(uint8_t *data, uint8_t &n);
-		void setRemoteRocketState(DeviceIds device_id, ROCKET_CMDs state);
+		void setRocketState(uint8_t *data, uint8_t &n);
+		void sendRemoteCommand(DeviceIds device_id, ROCKET_CMDs command);
 		double getSensorReading(const ADCChannel &sensor_channel) const;
 
 		const ADCChannel &fuelPressureChannel;

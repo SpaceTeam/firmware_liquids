@@ -175,8 +175,8 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 	case RS_ABORT: {
 		fuelServoChannel.setTargetPos(0);
 		piControlChannel.setEnabled(0);
-		setRemoteRocketState(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
-		setRemoteRocketState(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
+		sendRemoteCommand(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
+		sendRemoteCommand(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
 		(void) internalIgniter1Channel.setState(0);
 		(void) internalIgniter2Channel.setState(0);
 	} break;
@@ -204,13 +204,13 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 		(void) internalIgniter2Channel.setState(65000);
 	} break;
 	case RS_IGNITION_OX_PRESSURIZE: {
-		setRemoteRocketState(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_INTERNAL_CONTROL);
+		sendRemoteCommand(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_INTERNAL_CONTROL);
 	} break;
 	case RS_IGNITION_OX_OPEN: {
 		piControlChannel.setEnabled(1);
 	} break;
 	case RS_IGNITION_FUEL_PRESSURIZE: {
-		setRemoteRocketState(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_INTERNAL_CONTROL);
+		sendRemoteCommand(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_INTERNAL_CONTROL);
 	} break;
 	case RS_IGNITION_FUEL_OPEN: {
 		fuelServoChannel.setTargetPos(65535);
@@ -337,16 +337,10 @@ int RocketChannel::processMessage(uint8_t commandId, uint8_t *returnData, uint8_
 		}
 		return 0;
 	case ROCKET_REQ_SET_ROCKET_STATE:
-		// Only permits limited set of state transitions required by ECUI
-#if defined(IS_MAIN_ECU)
-		if (state == RS_HOLDDOWN) {
-			stateOverride = RS_POWERED_ASCENT;
-		} else if (state == RS_ABORT) {
-			stateOverride = RS_PAD_IDLE;
-		}
-#elif !defined(IS_NOT_MAIN_ECU)
-	#error config error
-#endif
+		setRocketState(returnData, n);
+		return 0;
+	case ROCKET_REQ_GET_ROCKET_STATE:
+		getRocketState(returnData, n);
 		return 0;
 	case ROCKET_REQ_ABORT:
 		stateOverride = RS_ABORT;
@@ -440,15 +434,40 @@ int RocketChannel::getVariable(uint8_t variableId, int32_t &data) const {
 }
 
 void RocketChannel::getRocketState(uint8_t *data, uint8_t &n) {
-	RocketStateResMsg_t *rocketStateResponseMsg;
-
-	rocketStateResponseMsg = (RocketStateResMsg_t*) data;
+	RocketStateResMsg_t *rocketStateResponseMsg = (RocketStateResMsg_t*) data;
 	rocketStateResponseMsg->state = state;
 	rocketStateResponseMsg->status = WRITABLE;
 	n += sizeof(RocketStateResMsg_t);
 }
 
-void RocketChannel::setRemoteRocketState(DeviceIds device_id, ROCKET_CMDs state) {
+void RocketChannel::setRocketState(uint8_t *data, uint8_t &n)
+{
+	const RocketStateReqMsg_t *rocketStateRequestMsg = (RocketStateReqMsg_t*) data;
+	RocketStateResMsg_t *rocketStateResponseMsg = (RocketStateResMsg_t*) data;
+	const ROCKET_STATE requestedState = static_cast<ROCKET_STATE>(rocketStateRequestMsg->state);
+
+#if defined(IS_MAIN_ECU)
+	if ((state == RS_HOLDDOWN && requestedState == RS_POWERED_ASCENT)
+	||  (state == RS_ABORT && requestedState == RS_PAD_IDLE))
+	{
+		stateOverride = requestedState;
+		rocketStateResponseMsg->state = state;
+		rocketStateResponseMsg->status = SUCCESS;
+	} else {
+		rocketStateResponseMsg->state = state;
+		rocketStateResponseMsg->status = FAILURE_WRITE_PROTECTED;
+	}
+#elif defined(IS_NOT_MAIN_ECU)
+	rocketStateResponseMsg->state = state;
+	rocketStateResponseMsg->status = FAILURE_WRITE_PROTECTED;
+#else
+	#error config error
+#endif
+	n += sizeof(RocketStateResMsg_t);
+}
+
+
+void RocketChannel::sendRemoteCommand(DeviceIds device_id, ROCKET_CMDs command) {
 	uint8_t empty_buffer[10] =
 	{ 0 };
 	can.sendAsMaster(device_id, state, empty_buffer, sizeof(uint32_t));

@@ -470,7 +470,7 @@ void RocketChannel::setRocketState(uint8_t *data, uint8_t &n)
 void RocketChannel::sendRemoteCommand(DeviceIds device_id, ROCKET_CMDs command) {
 	uint8_t empty_buffer[10] =
 	{ 0 };
-	can.sendAsMaster(device_id, state, empty_buffer, sizeof(uint32_t));
+	can.sendAsMaster(device_id, command, empty_buffer, sizeof(uint32_t));
 }
 
 double RocketChannel::getSensorReading(const ADCChannel &sensor_channel) const {

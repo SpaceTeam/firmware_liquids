@@ -106,7 +106,7 @@ int ServoChannel::exec()
 	{
 		case ServoState::IDLE:
 		case ServoState::READY:
-			STRHAL_TIM_PWM_Enable(&pwmChannel, false);
+			STRHAL_TIM_PWM_SetDuty(&pwmChannel, 0);
 			STRHAL_GPIO_Write(&led, STRHAL_GPIO_VALUE_L);
 			break;
 

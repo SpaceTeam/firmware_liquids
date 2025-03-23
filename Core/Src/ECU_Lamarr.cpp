@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include "STRHAL.h"
 
 #include "NodeInfos.h"
 
@@ -123,6 +124,12 @@ int ECU_Lamarr::exec()
 #endif
 	while (1)
 	{
+		if(STRHAL_GET_INIT_BIT()){
+			speaker.beep(6, 100, 100);
+			STRHAL_SET_INIT_BIT(0);
+
+		}
+
 		//testServo(servo_0);
 		//testChannels();
 		//detectReadoutMode();

@@ -15,13 +15,6 @@ cmake_minimum_required(VERSION 3.20)
 ###################### CONSTANTS ######################################
 set (PROJECT_TYPE_EXECUTABLE          "exe")
 set (PROJECT_TYPE_STATIC_LIBRARY      "static-lib")
-set (RUNTIME_LIBRARY_REDUCED_C        "--specs=nano.specs")
-set (RUNTIME_LIBRARY_STD_C            "")
-set (RUNTIME_LIBRARY_SYSCALLS_MINIMAL "--specs=nosys.specs")
-set (RUNTIME_LIBRARY_SYSCALLS_NONE    "")
-set (MFLOAT_ABI_SOFTWARE              "-mfloat-abi=soft")
-set (MFLOAT_ABI_HARDWARE              "-mfloat-abi=hard")
-set (MFLOAT_ABI_MIX                   "-mfloat-abi=softfp")
 #######################################################################
 
 ###################### VARIABLES ######################################
@@ -30,7 +23,7 @@ set (PROJECT_TYPE             "exe")
 set (LINKER_SCRIPT            "${CMAKE_SOURCE_DIR}/Linker/STM32G491METX_FLASH.ld")
 set (MCPU                     "-mcpu=Cortex-M4")
 set (MFPU                     "-mfpu=fpv4-sp-d16")
-set (MFLOAT_ABI               "")
+set (MFLOAT_ABI               "-mfloat-abi=hard")
 set (RUNTIME_LIBRARY          "--specs=nano.specs")
 set (RUNTIME_LIBRARY_SYSCALLS "--specs=nosys.specs")
 
@@ -46,6 +39,7 @@ set (PROJECT_DEFINES
 	STM32G474xx
 	USE_FULL_LL_DRIVER
 	ECU_LAMARR_BOARD
+	$<$<CONFIG:Debug>:DEBUG>
     )
 
 set (PROJECT_INCLUDES
@@ -87,7 +81,9 @@ include_directories (${PROJECT_INCLUDES})
 
 set (CMAKE_EXECUTABLE_SUFFIX ".elf")
 set (CMAKE_STATIC_LIBRARY_SUFFIX ".a")
-set (CMAKE_C_FLAGS "${MCPU} -std=gnu11 ${MCPU} ${MFPU} ${MFLOAT_ABI} ${RUNTIME_LIBRARY} -mthumb -Wall")
-set (CMAKE_CXX_FLAGS "${MCPU} -std=gnu++17 ${MCPU} ${MFPU} ${MFLOAT_ABI} ${RUNTIME_LIBRARY} -mthumb -Wall")
-set (CMAKE_EXE_LINKER_FLAGS "-T${LINKER_SCRIPT} ${RUNTIME_LIBRARY_SYSCALLS} -Wl,-Map=test.map -Wl,--gc-sections -static -u _printf_float  -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group")
+set (CMAKE_C_FLAGS "${MCPU} -std=gnu11 ${MCPU} ${MFPU} ${MFLOAT_ABI} ${RUNTIME_LIBRARY} -mthumb -Wall -ffunction-sections -fdata-sections -fstack-usage")
+set (CMAKE_CXX_FLAGS "${MCPU} -std=gnu++17 ${MCPU} ${MFPU} ${MFLOAT_ABI} ${RUNTIME_LIBRARY} -mthumb -Wall -ffunction-sections -fdata-sections -fstack-usage")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -ggdb")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb")
+set (CMAKE_EXE_LINKER_FLAGS "-T${LINKER_SCRIPT} ${RUNTIME_LIBRARY_SYSCALLS} -Wl,-Map=${PROJECT_NAME}.map -Wl,--gc-sections -static -u _printf_float  -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group")
 set (CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp")

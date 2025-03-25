@@ -76,11 +76,20 @@ set (PROJECT_INCLUDES
 project(${PROJECT_NAME})
 enable_language(ASM)
 
+add_custom_target(
+    generate_git_hash
+    COMMAND bash gen_git_hash.sh ./
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating Git hash information"
+)
+
 if (${PROJECT_TYPE} MATCHES ${PROJECT_TYPE_EXECUTABLE})
   add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+  add_dependencies(${PROJECT_NAME} generate_git_hash)
   add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_SIZE} $<TARGET_FILE:${CMAKE_PROJECT_NAME}>)
 elseif (${PROJECT_TYPE} MATCHES ${PROJECT_TYPE_STATIC_LIBRARY})
   add_library(${PROJECT_NAME} ${PROJECT_SOURCES})
+  add_dependencies(${PROJECT_NAME} generate_git_hash)
 endif()
 
 add_compile_definitions (${PROJECT_DEFINES})

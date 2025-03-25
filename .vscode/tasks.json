@@ -12,7 +12,7 @@
         {
             "type": "shell",
             "label": "CubeProg: Flash project (SWD)",
-            "command": "STM32_Programmer_CLI",
+            "command": "${config:STM32VSCodeExtension.cubeCLT.path}/STM32CubeProgrammer/bin/STM32_Programmer_CLI",
             "args": [
                 "--connect",
                 "port=swd",
@@ -51,7 +51,7 @@
         {
             "type": "shell",
             "label": "CubeProg: List all available communication interfaces",
-            "command": "STM32_Programmer_CLI",
+            "command": "${config:STM32VSCodeExtension.cubeCLT.path}/STM32CubeProgrammer/bin/STM32_Programmer_CLI",
             "args": ["--list"],
             "options": {
                 "cwd": "${workspaceFolder}"

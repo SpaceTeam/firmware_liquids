@@ -27,7 +27,7 @@
             "serverArgs": [
                 "-m","0",
             ],
-            //"preLaunchTask": "Build + Flash"
+            "preLaunchTask": "Build + Flash"
             /* If you use external loader, add additional arguments */
             //"serverArgs": ["--extload", "path/to/ext/loader.stldr"],
         },

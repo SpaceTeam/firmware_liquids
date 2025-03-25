@@ -70,3 +70,5 @@ Mkfile.old
 dkms.conf
 
 git_version.h
+
+build/

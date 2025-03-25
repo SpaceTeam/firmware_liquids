@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <cstring>
 #include "STRHAL.h"
-
+#include <stm32g474xx.h>
 #include "NodeInfos.h"
 
 #define IS_MAIN_ECU (LAMARR_ECU_NODE_ID == NODE_ID_LAMARR_ENGINE_ECU)
@@ -124,10 +124,39 @@ int ECU_Lamarr::exec()
 #endif
 	while (1)
 	{
-		if(STRHAL_GET_INIT_BIT()){
-			speaker.beep(6, 100, 100);
-			STRHAL_SET_INIT_BIT(0);
+		STRHAL_GPIO_Write(&led_1, STRHAL_GPIO_VALUE_H);
+		char buf[150];
 
+		if(READ_BIT(FDCAN1->CCCR,FDCAN_CCCR_INIT)){
+			speaker.beep(6, 100, 100);
+			speaker.beep(6, 100, 100);
+			speaker.beep(6, 100, 100);
+			speaker.beep(6, 100, 100);
+
+
+
+			sprintf(buf, "DLEC: %li, LEC: %li, RESI: %li, BO: %li, PXE: %li,  PSR Register: %lx, ECR Register: %lx \r\n", READ_BIT(FDCAN1->PSR,FDCAN_PSR_DLEC),
+					READ_BIT(FDCAN1->PSR,FDCAN_PSR_LEC), READ_BIT(FDCAN1->PSR,FDCAN_PSR_RESI),READ_BIT(FDCAN1->PSR,FDCAN_PSR_BO),READ_BIT(FDCAN1->PSR,FDCAN_PSR_PXE), READ_REG(FDCAN1->PSR),READ_REG(FDCAN1->ECR));
+			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
+
+			speaker.beep(6, 100, 100);
+
+			LL_mDelay(60000);
+
+
+			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
+
+			speaker.beep(6, 100, 100);
+			LL_mDelay(20000);
+
+			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
+			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
+			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
+			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
+
+
+			speaker.beep(6, 100, 100);
+			CLEAR_BIT(FDCAN1->CCCR, FDCAN_CCCR_INIT);
 		}
 
 		//testServo(servo_0);

@@ -1,3 +1,5 @@
+#ifdef RCU_BOARD
+
 #include "../Inc/RCU.h"
 
 #include <cstdio>
@@ -183,3 +185,5 @@ int RCU::exec()
 
 	return 0;
 }
+
+#endif // RCU_BOARD

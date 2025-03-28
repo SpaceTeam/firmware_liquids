@@ -1,3 +1,5 @@
+#ifdef RCU_BOARD
+
 #ifndef RCU_H
 #define RCU_H
 
@@ -50,3 +52,5 @@ class RCU: public GenericChannel
 };
 
 #endif /*RCU_H*/
+
+#endif /*RCU_BOARD*/

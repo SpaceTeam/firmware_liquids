@@ -38,7 +38,6 @@ set (PROJECT_DEFINES
 	# LIST COMPILER DEFINITIONS HERE
 	STM32G474xx
 	USE_FULL_LL_DRIVER
-	ECU_LAMARR_BOARD
 	$<$<CONFIG:Debug>:DEBUG>
     )
 
@@ -81,8 +80,8 @@ include_directories (${PROJECT_INCLUDES})
 
 set (CMAKE_EXECUTABLE_SUFFIX ".elf")
 set (CMAKE_STATIC_LIBRARY_SUFFIX ".a")
-set (CMAKE_C_FLAGS "${MCPU} -std=gnu11 ${MCPU} ${MFPU} ${MFLOAT_ABI} ${RUNTIME_LIBRARY} -mthumb -Wall -ffunction-sections -fdata-sections -fstack-usage")
-set (CMAKE_CXX_FLAGS "${MCPU} -std=gnu++17 ${MCPU} ${MFPU} ${MFLOAT_ABI} ${RUNTIME_LIBRARY} -mthumb -Wall -ffunction-sections -fdata-sections -fstack-usage")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MCPU} -std=gnu11 ${MCPU} ${MFPU} ${MFLOAT_ABI} ${RUNTIME_LIBRARY} -mthumb -Wall -ffunction-sections -fdata-sections -fstack-usage")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MCPU} -std=gnu++17 ${MCPU} ${MFPU} ${MFLOAT_ABI} ${RUNTIME_LIBRARY} -mthumb -Wall -ffunction-sections -fdata-sections -fstack-usage")
 set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -ggdb")
 set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb")
 set (CMAKE_EXE_LINKER_FLAGS "-T${LINKER_SCRIPT} ${RUNTIME_LIBRARY_SYSCALLS} -Wl,-Map=${PROJECT_NAME}.map -Wl,--gc-sections -static -u _printf_float  -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group")

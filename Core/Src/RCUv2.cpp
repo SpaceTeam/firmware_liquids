@@ -1,3 +1,5 @@
+#ifdef RCU_V2_BOARD
+
 #include "../Inc/RCUv2.h"
 
 #include <cstdio>
@@ -494,3 +496,4 @@ void RCUv2::superMario(){
 	beep(380,100,575);
 }
 
+#endif /* RCU_V2_BOARD */

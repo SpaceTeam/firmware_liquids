@@ -97,20 +97,27 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
 		{ 0 };
 		id3.info.direction = NODE2MASTER_DIRECTION;
 		id3.info.special_cmd = STANDARD_SPECIAL_CMD;
-		id3.info.node_id = 6;
+		id3.info.node_id = NODE_ID_LAMARR_ENGINE_ECU;
 
 		Can_MessageId_t id4 =
 		{ 0 };
 		id4.info.direction = NODE2MASTER_DIRECTION;
 		id4.info.special_cmd = STANDARD_SPECIAL_CMD;
-		id4.info.node_id = 7;
+		id4.info.node_id = NODE_ID_LAMARR_FUEL_ECU;
+
+		Can_MessageId_t id5 =
+		{ 0 };
+		id4.info.direction = NODE2MASTER_DIRECTION;
+		id4.info.special_cmd = STANDARD_SPECIAL_CMD;
+		id4.info.node_id = NODE_ID_LAMARR_OX_ECU;
 
 		STRHAL_FDCAN_Filter_t mainFilter[] =
 		{
 		{ .value_id1 = id.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK },
 		{ .value_id1 = id2.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK },
 		{ .value_id1 = id3.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK },
-		{ .value_id1 = id4.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK } };
+		{ .value_id1 = id4.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK },
+		{ .value_id1 = id5.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK } };
 
 		if (STRHAL_CAN_Subscribe(MAIN_CAN_BUS, STRHAL_FDCAN_RX0, mainFilter, 4, receptor) != 4)
 			return -1;

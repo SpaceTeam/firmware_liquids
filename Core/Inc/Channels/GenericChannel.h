@@ -48,6 +48,11 @@ class GenericChannel: public AbstractChannel
 		static GenericChannel* gcPtr;
 		static Radio* radioPtr;
 		static bool loraActive;
+		static bool lora_hf_enabled;
+		static uint16_t lora_hf_timeout;
+		static uint16_t lora_lf_delay;
+		static uint64_t lora_hf_enabled_time;
+		static uint16_t lora_skip_counter;
 		static void setLoraActive(bool enable);
 		static void heartbeatCan();
 		static void heartbeatLora();

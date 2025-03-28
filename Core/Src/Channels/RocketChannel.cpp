@@ -73,7 +73,6 @@ ROCKET_STATE RocketChannel::currentStateLogic(uint64_t time)
 	case ABORT:
 		return abort(time);
 	case PRESSURIZE_TANKS:
-
 		return pressurize_tanks(time);
 	default:
 		break;

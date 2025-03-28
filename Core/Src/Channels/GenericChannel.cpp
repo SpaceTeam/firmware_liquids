@@ -5,6 +5,11 @@
 
 GenericChannel* GenericChannel::gcPtr = nullptr; // necessary for static callbacks
 bool GenericChannel::loraActive = false;
+bool GenericChannel::lora_hf_enabled = false;
+uint16_t GenericChannel::lora_hf_timeout = 350;
+uint16_t GenericChannel::lora_lf_delay = 5000;
+uint64_t GenericChannel::lora_hf_enabled_time;
+uint16_t GenericChannel::lora_skip_counter = 0;
 
 GenericChannel::GenericChannel(uint32_t nodeId, uint32_t firmwareVersion, uint32_t refreshDivider) :
 		AbstractChannel(CHANNEL_TYPE_NODE_GENERIC, GENERIC_CHANNEL_ID, refreshDivider), can(Can::instance(nodeId)), flash(W25Qxx_Flash::instance()), nodeId(nodeId), firmwareVersion(GIT_COMMIT_HASH_VALUE)
@@ -19,6 +24,10 @@ uint32_t GenericChannel::getNodeId() const
 
 int GenericChannel::init()
 {
+
+	lora_hf_enabled = false;
+	lora_hf_timeout = 350;
+	lora_lf_delay = 5000;
 	for (AbstractModule *module : modules)
 	{
 		if (module == nullptr)
@@ -56,6 +65,9 @@ int GenericChannel::exec()
 			continue;
 		if (channel->exec() != 0)
 			return -1;
+	}
+	if(STRHAL_Systick_GetTick() - lora_hf_enabled_time > lora_hf_timeout * 1000 && lora_hf_enabled){
+		lora_hf_enabled = false;
 	}
 	return 0;
 }
@@ -135,9 +147,13 @@ int GenericChannel::setVariable(uint8_t variableId, int32_t data)
 			{
 				setLoraActive(false);
 			}
-			else
+			else if(data == 1)
 			{
 				setLoraActive(true);
+			}else{
+				lora_hf_enabled_time = STRHAL_Systick_GetTick();
+				lora_hf_enabled = true;
+				lora_hf_timeout = data;
 			}
 			return 0;
 		default:
@@ -156,7 +172,7 @@ int GenericChannel::getVariable(uint8_t variableId, int32_t &data) const
 			data = (int32_t) loggingEnabled;
 			return 0;
 		case GENERIC_LORA_ENABLED:
-			if (loraActive)
+			if (lora_hf_enabled)
 				data = 1;
 			else
 				data = 0;
@@ -317,21 +333,30 @@ void GenericChannel::receptorLora(uint32_t id, uint8_t *data, uint32_t n)
 	uint8_t nodeid = msgId.info.node_id;
 	uint8_t ret_n = 0;
 
-	if (nodeid == 6)
-	{ // ECU
+	if (nodeid == NODE_ID_LAMARR_ENGINE_ECU)
+	{
 		if (loraActive)
 		{
-			Radio::msgArray[Radio::ECU_START_ADDR] = 1;
-			memcpy(&Radio::msgArray[Radio::ECU_START_ADDR + 1], msgData.bit.data.uint8, Radio::ECU_MSG_SIZE - 1);
+			Radio::msgArray[Radio::ENGINE_ECU_START_ADDR] = 1;
+			memcpy(&Radio::msgArray[Radio::ENGINE_ECU_START_ADDR + 1], msgData.bit.data.uint8, Radio::ENGINE_ECU_MSG_SIZE - 1);
 		}
 		return;
 	}
-	else if (nodeid == 7)
-	{ // PMU
+	else if (nodeid == NODE_ID_LAMARR_FUEL_ECU)
+	{
 		if (loraActive)
 		{
-			Radio::msgArray[Radio::PMU_START_ADDR] = 1;
-			memcpy(&Radio::msgArray[Radio::PMU_START_ADDR + 1], msgData.bit.data.uint8, Radio::PMU_MSG_SIZE - 1);
+			Radio::msgArray[Radio::FUEL_ECU_START_ADDR] = 1;
+			memcpy(&Radio::msgArray[Radio::FUEL_ECU_START_ADDR + 1], msgData.bit.data.uint8, Radio::FUEL_ECU_MSG_SIZE - 1);
+		}
+		return;
+	}
+	else if (nodeid == NODE_ID_LAMARR_FUEL_ECU)
+	{
+		if (loraActive)
+		{
+			Radio::msgArray[Radio::OX_ECU_START_ADDR] = 1;
+			memcpy(&Radio::msgArray[Radio::OX_ECU_START_ADDR + 1], msgData.bit.data.uint8, Radio::OX_ECU_MSG_SIZE - 1);
 		}
 		return;
 	}
@@ -443,6 +468,13 @@ void GenericChannel::heartbeatLora()
 {
 	if (loraActive)
 	{
+		if(!lora_hf_enabled){
+			if(lora_skip_counter<10){
+				lora_skip_counter += 1;
+			}else{
+				LL_mDelay(lora_lf_delay);
+			}
+		}
 		Radio::send(0, Radio::msgArray, Radio::MSG_SIZE);
 	}
 	/*char buf[48] = { 0 };

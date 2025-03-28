@@ -25,7 +25,7 @@ RCU::RCU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		gps_latitude(10, &gnss.gnssData.latitude, 1),
 		gps_altitude(11, &gnss.gnssData.altitude, 1),
 		gps_status(12, &gnss.gnssData.status, 1),
-		radio(Radio::instance(node_id, lora)),
+		radio(Radio::instanceOld(node_id, lora)),
 		speaker(STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PB10)
 {
 	// set pointer to radio object for static callbacks, enable Lora

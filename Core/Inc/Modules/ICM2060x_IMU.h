@@ -16,11 +16,11 @@ struct IMUData
 enum class IMUMeasurement : uint8_t
 {
 	X_ACCEL = 0,
-	Y_ACCEL,
-	Z_ACCEL,
-	X_GYRO,
-	Y_GYRO,
-	Z_GYRO,
+	Y_ACCEL = 1,
+	Z_ACCEL = 2,
+	X_GYRO = 3,
+	Y_GYRO = 4,
+	Z_GYRO =5,
 };
 
 enum class IMUAddr : uint8_t

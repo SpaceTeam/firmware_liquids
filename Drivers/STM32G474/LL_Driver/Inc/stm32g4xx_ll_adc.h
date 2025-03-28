@@ -3876,8 +3876,7 @@ __STATIC_INLINE uint32_t LL_ADC_REG_GetSamplingMode(ADC_TypeDef *ADCx)
   *         @arg @ref LL_ADC_REG_SEQ_SCAN_ENABLE_16RANKS
   * @retval None
   */
-__STATIC_INLINE void LL_ADC_REG_SetSequencerLength(ADC_TypeDef *ADCx, uint32_t SequencerNbRanks)
-{
+__STATIC_INLINE void LL_ADC_REG_SetSequencerLength(ADC_TypeDef *ADCx, uint32_t SequencerNbRanks){
   MODIFY_REG(ADCx->SQR1, ADC_SQR1_L, SequencerNbRanks);
 }
 

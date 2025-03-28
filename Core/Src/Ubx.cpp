@@ -140,8 +140,8 @@ uint32_t Ubx::parseMessage(const struct UBXPacket *ubx, GPSPositionData *GpsPosi
 				case UBX_ID_DOP:
 					parseNavDop(&ubx->payload.nav_dop, GpsPosition);
 					break;
-				case UBX_ID_SOL:
-					parseNavSol(&ubx->payload.nav_sol, GpsPosition);
+				case UBX_ID_PVT:
+					parseNavSol(&ubx->payload.nav_pvt, GpsPosition);
 					break;
 				case UBX_ID_VELNED:
 					parseNavVelned(&ubx->payload.nav_velned, GpsPosition);
@@ -149,8 +149,8 @@ uint32_t Ubx::parseMessage(const struct UBXPacket *ubx, GPSPositionData *GpsPosi
 				case UBX_ID_TIMEUTC:
 					parseNavTimeutc(&ubx->payload.nav_timeutc);
 					break;
-				case UBX_ID_SVINFO:
-					parseNavSvinfo(&ubx->payload.nav_svinfo);
+				case UBX_ID_SAT:
+					parseNavSvinfo(&ubx->payload.nav_sat);
 					break;
 			}
 			break;

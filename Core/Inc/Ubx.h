@@ -11,21 +11,23 @@
 // From u-blox6 receiver protocol specification
 
 // Messages classes
-#define UBX_CLASS_NAV    0x01
+#define UBX_CLASS_NAV     0x01
 #define UBX_CLASS_ACK_NAK 0x05
 
 // Message IDs (all in NAV class)
-#define UBX_ID_POSLLH    0x02
-#define UBX_ID_STATUS    0x03
+#define UBX_ID_POSLLH     0x02
+#define UBX_ID_STATUS     0x03
 #define UBX_ID_DOP        0x04
-#define UBX_ID_SOL        0x06
-#define    UBX_ID_VELNED    0x12
+//#define UBX_ID_SOL        0x06  //DELETED replaced by PVT
+#define UBX_ID_PVT        0x07
+#define UBX_ID_VELNED     0x12
 #define UBX_ID_TIMEUTC    0x21
-#define UBX_ID_SVINFO    0x30
+//#define UBX_ID_SVINFO     0x30 //DELETED replaced by SAT
+#define UBX_ID_SAT        0x35
 
-#define UBX_CLASS_MON    0x0A
+#define UBX_CLASS_MON     0x0a
 
-#define UBX_ID_MONVER   0x04
+#define UBX_ID_MONVER     0x04
 // private structures
 
 #define GPSSATELLITES_PRN_NUMELEM 16
@@ -266,10 +268,10 @@ typedef union
 		struct UBX_NAV_POSLLH nav_posllh;
 		struct UBX_NAV_STATUS nav_status;
 		struct UBX_NAV_DOP nav_dop;
-		struct UBX_NAV_SOL nav_sol;
+		struct UBX_NAV_SOL nav_pvt;
 		struct UBX_NAV_VELNED nav_velned;
 		struct UBX_NAV_TIMEUTC nav_timeutc;
-		struct UBX_NAV_SVINFO nav_svinfo;
+		struct UBX_NAV_SVINFO nav_sat;
 		struct UBX_MON_VER mon_ver;
 } UBXPayload;
 

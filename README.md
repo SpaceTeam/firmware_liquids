@@ -1,6 +1,6 @@
 # Firmware for Liquids Projects
 
-This Repository contains the STM32CubeIDE project of the Liquid Firmware, that consists of the main C++ Application, the [can_houbolt](https://github.com/SpaceTeam/can_houbolt) submodule and the **STRHAL submodule**. The main application interfaces to the [LL Server](https://github.com/SpaceTeam/llserver_ecui_houbolt) via FDCAN and the **can_houbolt** interface imported as a submodule in Core/Inc. To avoid using the HAL and gain more insight and control over the hardware, a custom hardware abstraction layer using only CMSIS and LL, **STRHAL**, was written and imported as a submodule in Drivers/STM32xxxx/STRHAL, where each supported STM32 variant contains the **STRHAL** repo with the respective branch.
+This Repository contains the Firmware for Liquids Projects, that consists of the main C++ Application, the [can_houbolt](https://github.com/SpaceTeam/can_houbolt) submodule and the **STRHAL submodule**. The main application interfaces to the [LL Server](https://github.com/SpaceTeam/llserver_ecui_houbolt) via FDCAN and the **can_houbolt** interface imported as a submodule in Core/Inc. To avoid using the HAL and gain more insight and control over the hardware, a custom hardware abstraction layer using only CMSIS and LL, **STRHAL**, was written and imported as a submodule in Drivers/STM32xxxx/STRHAL, where each supported STM32 variant contains the **STRHAL** repo with the respective branch.
 
 ## Table of Contents  
 1. [Run](#run)
@@ -8,7 +8,35 @@ This Repository contains the STM32CubeIDE project of the Liquid Firmware, that c
 3. [Can_houbolt Protocol](#can_houbolt-protocol)
 
 ## Run 
-This repository is essentially an [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html) Project. Thus, the intended use is said IDE. This makes embedding the software onto ST32 MCUs very easy. For each supported STM32 variant a build configuration has to be added that includes the correct Drivers folders. A proper Run and Debug configuration for the STM32G491 variant is already included and can be copied if needed.
+This repository is currently both a cmake project and an [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html) Project. While opening the project with said IDE is still supported,
+going forward cmake is preferred. `CMakePresets.json` should contain the necessary data so your IDE of choice can open the project. Both VSCode and CLion have been tested to work with the project.
+
+You can also build it manually from the command line using the presets:
+```sh
+cmake --preset "debug" -B build/debug
+cmake --build build/debug
+```
+
+When running the cmake build, `ninja` is used as the build system by default (for better Windows compatibility), so make sure to have it installed.
+
+### VSCode
+The workspace contains some recommended extensions, one of which is the official VSCode extension by ST. Others are for CMake and C/C++ support.
+
+You will need to configure:
+- The path to the `STM32CubeCLT` directory. This is necessary so the default run configuration (for flashing + debugging) works. You can also change it in the settings.
+  The `STM32CubeCLT` package can be downloaded from the ST website.
+- The cmake configure preset. You most likely want to choose `debug` for development. You can later change it using the `Select Configure Preset` command in the command palette.
+
+You should be prompted for both things when you first open the workspace.
+
+### CLion
+CLion already has C/C++/CMake support out of the box, so you don't need to install any additional plugins.
+You will need to configure:
+- The CMake preset to use. You should be prompted for this when you first open the project. Otherwise, go to Settings > Build, Execution, Deployment > CMake. Enable the profiles
+that are annotated with `preset` that you need. _Disable_ the default CMake profile, it does not work.
+- A GDB configuration. The easiest way is to go to Run > New Embedded Configuration and select `STM32CubeIDE ST-LINK GDB Server`. You will need to specify the path to the `STM32CubeIDE` executable.
+  The `STM32CubeIDE` package can be downloaded from the ST website. You can use the default settings for the other options. \
+  The configuration can also be created manually by going to the Run/Debug Configurations and choosing "Embedded GDB Server". You will then however need to enter most of the settings manually.
 
 ## Application Structure
 

@@ -19,7 +19,7 @@ file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
 	"Drivers/STM32G474/*.c"
 	)
 
-project(${PROJECT_NAME})
+ project(${PROJECT_NAME } C CXX ASM
 enable_language(ASM)
 
 # Target to re-generate the git hash file

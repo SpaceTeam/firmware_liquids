@@ -15,7 +15,6 @@ public:
         ++bufSize;
     }
 
-
     T pop() {
         T value = buf[bufReadIndex];
         bufReadIndex = (bufReadIndex + 1) % SIZE;

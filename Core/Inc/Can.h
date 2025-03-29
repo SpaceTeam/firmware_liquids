@@ -24,6 +24,7 @@ class Can: public AbstractCom
 		int init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat) override;
 		int init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode);
 		int exec() override;
+        void handleBufferedMessages();
 
 		static int send(uint32_t id, uint8_t *data, uint8_t n);
 		void SetRemoteVariable(DeviceIds device_id, uint8_t variable_id, int32_t value);

@@ -128,34 +128,6 @@ int ECU_Lamarr::exec()
 		char buf[150];
 
 		if(READ_BIT(FDCAN1->CCCR,FDCAN_CCCR_INIT)){
-			speaker.beep(6, 100, 100);
-			speaker.beep(6, 100, 100);
-			speaker.beep(6, 100, 100);
-			speaker.beep(6, 100, 100);
-
-
-
-			sprintf(buf, "DLEC: %li, LEC: %li, RESI: %li, BO: %li, PXE: %li,  PSR Register: %lx, ECR Register: %lx \r\n", READ_BIT(FDCAN1->PSR,FDCAN_PSR_DLEC),
-					READ_BIT(FDCAN1->PSR,FDCAN_PSR_LEC), READ_BIT(FDCAN1->PSR,FDCAN_PSR_RESI),READ_BIT(FDCAN1->PSR,FDCAN_PSR_BO),READ_BIT(FDCAN1->PSR,FDCAN_PSR_PXE), READ_REG(FDCAN1->PSR),READ_REG(FDCAN1->ECR));
-			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
-
-			speaker.beep(6, 100, 100);
-
-			LL_mDelay(60000);
-
-
-			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
-
-			speaker.beep(6, 100, 100);
-			LL_mDelay(20000);
-
-			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
-			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
-			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
-			STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
-
-
-			speaker.beep(6, 100, 100);
 			CLEAR_BIT(FDCAN1->CCCR, FDCAN_CCCR_INIT);
 		}
 

@@ -4,7 +4,9 @@
 #include "Channels/AbstractChannel.h"
 #include "STRHAL.h"
 #include <AbstractCom.h>
+#include <tuple>
 #include "NodeInfos.h"
+#include "RingBuf.h"
 
 //#include <Communication.h>
 #define MAIN_CAN_BUS STRHAL_FDCAN1
@@ -31,13 +33,16 @@ class Can: public AbstractCom
 	private:
 		Can(uint32_t nodeId);
 
+        static Can* canPtr;
+
 		static void bridgeReceptor(STRHAL_FDCAN_Id_t bus_id, uint32_t id, uint8_t *data, uint32_t n);
 		static void internalReceptor(uint32_t id, uint8_t *data, uint32_t n);
 		static void externalReceptor(uint32_t id, uint8_t *data, uint32_t n);
+        static void bufferingReceptor(uint32_t id, uint8_t *data, uint32_t n);
 
 		static Com_Receptor_t standardReceptor;
 		static uint32_t _nodeId;
-
+        RingBuf<std::tuple<Can_MessageId_t, Can_MessageData_t, uint32_t>, 16> canBuf;
 };
 
 #endif /*CAN_H*/

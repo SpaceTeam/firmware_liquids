@@ -2,7 +2,8 @@
 #include <can_houbolt/can_cmds.h>
 #include <Can.h>
 #include <cstring>
-#include <cstdio>
+
+Can* Can::canPtr = nullptr;
 
 Com_Receptor_t Can::standardReceptor = nullptr;
 uint32_t Can::_nodeId = 0; // TODO fix this pfusch
@@ -10,6 +11,7 @@ uint32_t Can::_nodeId = 0; // TODO fix this pfusch
 Can::Can(uint32_t nodeId) :
 		AbstractCom(nodeId)
 {
+    canPtr = this;
 }
 
 Can& Can::instance(uint32_t nodeId)
@@ -70,7 +72,7 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
 		{ .value_id1 = id.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK },
 		{ .value_id1 = id2.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK } };
 
-		if (STRHAL_CAN_Subscribe(MAIN_CAN_BUS, STRHAL_FDCAN_RX0, mainFilter, 2, receptor) != 2)
+		if (STRHAL_CAN_Subscribe(MAIN_CAN_BUS, STRHAL_FDCAN_RX0, mainFilter, 2, bufferingReceptor) != 2)
 			return -1;
 	}
 	else if (mode == COMMode::LISTENER_COM_MODE)
@@ -143,6 +145,11 @@ int Can::exec()
 	STRHAL_CAN_Run();
 	if (STRHAL_TIM_Heartbeat_StartHeartbeat(STRHAL_TIM_TIM7) != 0)
 		return -1;
+
+    while (!canBuf.isEmpty()) {
+        auto bufferedMsg = canBuf.pop();
+        standardReceptor(std::get<0>(bufferedMsg).uint32, std::get<1>(bufferedMsg).uint8, std::get<2>(bufferedMsg));
+    }
 
 	return 0;
 }
@@ -234,4 +241,15 @@ void Can::internalReceptor(uint32_t id, uint8_t *data, uint32_t n)
 void Can::externalReceptor(uint32_t id, uint8_t *data, uint32_t n)
 {
 	Can::bridgeReceptor(STRHAL_FDCAN1, id, data, n);
+}
+
+void Can::bufferingReceptor(uint32_t id, uint8_t *data, uint32_t n) {
+    canPtr->canBuf.push(std::tuple(
+            Can_MessageId_t{
+                    .uint32 = id,
+            },
+            Can_MessageData_t{
+                    .uint8 = {*data},
+            },
+            n));
 }

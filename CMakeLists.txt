@@ -56,7 +56,7 @@ add_compile_options(
     -ffunction-sections
     -fdata-sections
     -fstack-usage
-    "$<$<CONFIG:Debug>:-g3;-ggdb>"
+    "$<$<CONFIG:Debug>:-g3;-ggdb;-O0>"
     "$<$<COMPILE_LANGUAGE:ASM>:-x;assembler-with-cpp>"
 )
 

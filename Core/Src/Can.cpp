@@ -146,12 +146,14 @@ int Can::exec()
 	if (STRHAL_TIM_Heartbeat_StartHeartbeat(STRHAL_TIM_TIM7) != 0)
 		return -1;
 
+	return 0;
+}
+
+void Can::handleBufferedMessages() {
     while (!canBuf.isEmpty()) {
         auto bufferedMsg = canBuf.pop();
         standardReceptor(std::get<0>(bufferedMsg).uint32, std::get<1>(bufferedMsg).uint8, std::get<2>(bufferedMsg));
     }
-
-	return 0;
 }
 
 int Can::send(uint32_t id, uint8_t *data, uint8_t n)

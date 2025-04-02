@@ -43,7 +43,7 @@ class Can: public AbstractCom
 
 		static Com_Receptor_t standardReceptor;
 		static uint32_t _nodeId;
-        RingBuf<std::tuple<Can_MessageId_t, Can_MessageData_t, uint32_t>, 16> canBuf;
+        RingBuf<std::tuple<Can_MessageId_t, Can_MessageData_t, uint32_t>, 32> canBuf;
 };
 
 #endif /*CAN_H*/

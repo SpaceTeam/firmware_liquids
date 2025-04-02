@@ -127,7 +127,6 @@ int ECU_Lamarr::exec()
 	uint64_t timeLastSamplePrint = STRHAL_Systick_GetTick();
 	int ecr = 0;
 
-	char buf[64];
 	int lec_store = 0;
 	int dlec_store = 0;
 
@@ -160,8 +159,6 @@ int ECU_Lamarr::exec()
 			int tec = READ_BIT(FDCAN1->ECR,FDCAN_ECR_TEC_Msk);
 			tec >>= FDCAN_ECR_TEC_Pos;
 
-			sprintf(buf, "ECR: %i, LEC: %i DLEC %i, REC: %i, TEC: %i\r\n", ecr,lec_store,dlec_store,rec,tec);
-			STRHAL_UART_Debug_Write_Blocking(buf, strlen(buf),100);
 			timeLastSamplePrint = time;
 			i = 0;
 			lec_store = 0;
@@ -180,7 +177,6 @@ int ECU_Lamarr::exec()
 			}
 		}
 		if(READ_BIT(FDCAN1->CCCR,FDCAN_CCCR_INIT)){
-			speaker.beep(getNodeId() % 10, 200, 300);
 			speaker.beep(getNodeId() % 10, 200, 300);
 			speaker.beep(getNodeId() % 10, 200, 300);
 

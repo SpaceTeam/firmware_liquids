@@ -2,6 +2,9 @@
 
 #include <cstdio>
 #include <cstring>
+#include "STRHAL.h"
+#include <stm32g474xx.h>
+#include <stm32g4xx.h>
 
 #include "NodeInfos.h"
 
@@ -121,8 +124,68 @@ int ECU_Lamarr::exec()
 	uint8_t bufIndex = 0;
 	bool msgStarted = false;
 #endif
+	int i = 0;
+	uint64_t timeLastSample = STRHAL_Systick_GetTick();
+	uint64_t timeLastSamplePrint = STRHAL_Systick_GetTick();
+	int ecr = 0;
+
+	int lec_store = 0;
+	int dlec_store = 0;
+
 	while (1)
 	{
+		STRHAL_GPIO_Write(&led_1, STRHAL_GPIO_VALUE_H);
+		uint64_t time = STRHAL_Systick_GetTick();
+
+		if ((time - timeLastSample) > 2000/9) {
+			i = (i+1)%9;
+			timeLastSample = time;
+		}
+
+		int lec = READ_BIT(FDCAN1->PSR,FDCAN_PSR_LEC_Msk);
+		lec >>= FDCAN_PSR_LEC_Pos;
+		int dlec = READ_BIT(FDCAN1->PSR,FDCAN_PSR_DLEC_Msk);
+		dlec >>= FDCAN_PSR_DLEC_Pos;
+		if (lec_store == 0 && lec != 0 && lec !=7) {
+			lec_store = lec;
+		}
+		if (dlec_store == 0 && dlec != 0 && dlec !=7) {
+			dlec_store = dlec;
+		}
+
+		if ((time-timeLastSamplePrint)>2000) {
+			ecr = READ_BIT(FDCAN1->ECR,FDCAN_ECR_CEL_Msk);
+			ecr >>= FDCAN_ECR_CEL_Pos;
+			int rec = READ_BIT(FDCAN1->ECR,FDCAN_ECR_REC_Msk);
+			rec >>= FDCAN_ECR_REC_Pos;
+			int tec = READ_BIT(FDCAN1->ECR,FDCAN_ECR_TEC_Msk);
+			tec >>= FDCAN_ECR_TEC_Pos;
+
+			timeLastSamplePrint = time;
+			i = 0;
+			lec_store = 0;
+			dlec_store = 0;
+		}
+
+		if (i>=5 || i == 1 || i == 3) {
+			pyro_igniter2.setState(0);
+		}
+		else{
+			if ((i == 0 && ecr>=25)|| (i == 2 && ecr >=127) || (i == 4 && ecr >= 191) ) {
+				pyro_igniter2.setState(1);
+			}
+			else {
+				pyro_igniter2.setState(0);
+			}
+		}
+		if(READ_BIT(FDCAN1->CCCR,FDCAN_CCCR_INIT)){
+			speaker.beep(getNodeId() % 10, 200, 300);
+			speaker.beep(getNodeId() % 10, 200, 300);
+
+			CLEAR_BIT(FDCAN1->CCCR, FDCAN_CCCR_INIT);
+		}
+
+
 		//testServo(servo_0);
 		//testChannels();
 		//detectReadoutMode();

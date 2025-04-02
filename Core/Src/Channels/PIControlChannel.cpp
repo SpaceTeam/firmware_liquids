@@ -129,9 +129,6 @@ int PIControlChannel::getSensorData(uint8_t *data, uint8_t &n)
 
 int PIControlChannel::setVariable(uint8_t variableId, int32_t data)
 {
-	char buf[100] = "";
-	sprintf(buf, "     SetVar %ld\n", data);
-	STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
 
 	switch (variableId)
 	{

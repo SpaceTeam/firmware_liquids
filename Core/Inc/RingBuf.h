@@ -26,6 +26,10 @@ public:
         return bufSize == 0;
     }
 
+    [[nodiscard]] uint8_t length() const {
+        return bufSize;
+    }
+
 private:
     T buf[SIZE] = {};
     volatile uint8_t bufReadIndex = 0;

@@ -246,12 +246,11 @@ void Can::externalReceptor(uint32_t id, uint8_t *data, uint32_t n)
 }
 
 void Can::bufferingReceptor(uint32_t id, uint8_t *data, uint32_t n) {
+    Can_MessageData_t msgData = {0};
+    std::memcpy(msgData.uint8, data, 64);
     canPtr->canBuf.push(std::tuple(
             Can_MessageId_t{
                     .uint32 = id,
             },
-            Can_MessageData_t{
-                    .uint8 = {*data},
-            },
-            n));
+            msgData, n));
 }

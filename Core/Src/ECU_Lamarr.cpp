@@ -4,6 +4,8 @@
 #include <cstring>
 #include "STRHAL.h"
 #include <stm32g474xx.h>
+#include <stm32g4xx.h>
+
 #include "NodeInfos.h"
 
 #define IS_MAIN_ECU (LAMARR_ECU_NODE_ID == NODE_ID_LAMARR_ENGINE_ECU)
@@ -151,7 +153,7 @@ int ECU_Lamarr::exec()
 			dlec_store = dlec;
 		}
 
-		if ((time-timeLastSamplePrint)>200) {
+		if ((time-timeLastSamplePrint)>2000) {
 			ecr = READ_BIT(FDCAN1->ECR,FDCAN_ECR_CEL_Msk);
 			ecr >>= FDCAN_ECR_CEL_Pos;
 			int rec = READ_BIT(FDCAN1->ECR,FDCAN_ECR_REC_Msk);

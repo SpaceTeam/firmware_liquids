@@ -41,7 +41,10 @@ sense_12VA(ECU_LAMARR_SENSE_12VA, { ADC4, STRHAL_ADC_CHANNEL_4 }, 1),
 speaker(STRHAL_TIM_TIM3, STRHAL_TIM_TIM3_CH2_PC7),
 
 max_temp_0(STRHAL_SPI_SPI1, { STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6, STRHAL_SPI_SPI1_MOSI_PA7, STRHAL_SPI_SPI1_NSS_PC4, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_LH, 5, 0 }),
-max_temp_1(STRHAL_SPI_SPI1, { STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6, STRHAL_SPI_SPI1_MOSI_PA7, STRHAL_SPI_SPI1_NSS_PA4, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_LH, 5, 0 })
+max_temp_1(STRHAL_SPI_SPI1, { STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6, STRHAL_SPI_SPI1_MOSI_PA7, STRHAL_SPI_SPI1_NSS_PA4, STRHAL_SPI_MODE_MASTER, STRHAL_SPI_CPOL_CPHASE_LH, 5, 0 }),
+overpressure_channel(
+        ECU_LAMARR_OVERPRESSURE, [this] { pyro_igniter0.setState(0); }, [this] { return press_0.getMeasurement(); },
+        W25Qxx_Flash::instance(), 1)
 {
 	registerChannel(&press_0);
 	registerChannel(&press_1);
@@ -65,6 +68,8 @@ max_temp_1(STRHAL_SPI_SPI1, { STRHAL_SPI_SPI1_SCK_PA5, STRHAL_SPI_SPI1_MISO_PA6,
 	registerChannel(&sense_5V);
 	registerChannel(&sense_12V);
 	registerChannel(&sense_12VA);
+
+    registerChannel(&overpressure_channel);
 
 	registerModule(&flash);
 	registerModule(&max_temp_0);

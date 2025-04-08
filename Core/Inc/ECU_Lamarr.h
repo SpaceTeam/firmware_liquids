@@ -2,20 +2,16 @@
 #define ECU_LAMARR_H
 
 #include <Channels/ADCChannel.h>
-#include <Channels/TempChannel.h>
-#include <Channels/DigitalOutChannel.h>
 #include <Channels/DigitalInChannel.h>
-#include <Channels/PyroChannel.h>
-#include <Channels/PIControlChannel.h>
-#include <Channels/PressureControlChannel.h>
-#include <Channels/ServoChannel.h>
 #include <Channels/GenericChannel.h>
+#include <Channels/PIControlChannel.h>
+#include <Channels/PyroChannel.h>
 #include <Channels/RocketChannel.h>
-#include <Can.h>
-#include "../Modules/W25Qxx_Flash.h"
-#include <Speaker.h>
+#include <Channels/ServoChannel.h>
+#include <Channels/TempChannel.h>
 #include <STRHAL.h>
-#include "NodeInfos.h"
+#include <Speaker.h>
+#include "Channels/OverpressureChannel.h"
 
 
 #define MAX_REMOTE_CHANNELS 32
@@ -52,6 +48,8 @@ class ECU_Lamarr: public GenericChannel
 		DigitalInChannel pyro0_cont, pyro1_cont, pyro2_cont, pyro3_cont;
 		PyroChannel pyro_igniter0, pyro_igniter1, pyro_igniter2, pyro_igniter3;
 		PIControlChannel pi_control;
+
+        OverpressureChannel overpressure_channel;
 
 		RocketChannel rocket;
 		ADCChannel sense_5V, sense_12V, sense_12VA;

@@ -33,6 +33,8 @@ enum class Config : int
 	SERVO2_ADC_END,
 	SERVO2_PWM_START,
 	SERVO2_PWM_END,
+	OVERPRESSURE_THRESHOLD,
+	OVERPRESSURE_OPERATING_MODE,
 };
 
 enum class FlashState : int

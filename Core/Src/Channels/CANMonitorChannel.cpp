@@ -40,8 +40,8 @@ int CANMonitorChannel::getSensorData(uint8_t *data, uint8_t &n)
   	FDCAN_StatusRegisters_t *out = (FDCAN_StatusRegisters_t*) (data + n);
 	n += CAN_MONITOR_DATA_N_BYTES;
 
-    out->raw.ecr = STRHAL_CAN_Read_ECR_Reg(fdcan_id);
-    out->raw.psr = STRHAL_CAN_Read_PSR_Reg(fdcan_id);
+    out->raw.ecr = STRHAL_CAN_Read_ECR_Reg(fdcan_id)&(1<<ECR_SIZE)-1;
+    out->raw.psr = STRHAL_CAN_Read_PSR_Reg(fdcan_id)&(1<<PSR_SIZE)-1;
     return 0;
 }
 

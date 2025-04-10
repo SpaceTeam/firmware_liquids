@@ -15,6 +15,8 @@
 #include "../Modules/W25Qxx_Flash.h"
 #include <Speaker.h>
 #include <STRHAL.h>
+#include <Channels/CANMonitorChannel.h>
+
 #include "NodeInfos.h"
 
 
@@ -57,6 +59,7 @@ class ECU_Lamarr: public GenericChannel
 		ADCChannel sense_5V, sense_12V, sense_12VA;
 
 		Speaker speaker;
+		CANMonitorChannel can_monitor;
 		//Modules
 		MAX31865_Temp max_temp_0, max_temp_1;
 };

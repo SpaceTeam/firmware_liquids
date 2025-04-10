@@ -4,13 +4,13 @@
 #include <STRHAL.h>
 
 CANMonitorChannel::CANMonitorChannel(uint8_t id, STRHAL_FDCAN_Id_t fdcan_id, uint32_t refreshDivider) :
-		AbstractChannel(CHANNEL_TYPE_DATA32, id, refreshDivider), fdcan_id(fdcan_id)
+		AbstractChannel(CHANNEL_TYPE_CAN_MONITOR, id, refreshDivider), fdcan_id(fdcan_id)
 {
 }
 
 int CANMonitorChannel::init()
 {
-	if (fdcan_id == STRHAL_FDCAN_Id_t::STRHAL_N_FDCAN)
+	if (fdcan_id == STRHAL_N_FDCAN)
 		return -1;
 
 	return 0;
@@ -18,6 +18,16 @@ int CANMonitorChannel::init()
 
 int CANMonitorChannel::exec()
 {
+	FDCAN_StatusRegisters_t status = {};
+	status.raw.psr = STRHAL_CAN_Read_PSR_Reg(fdcan_id)&((1<<PSR_SIZE)-1);
+	if (lec ==  0 && status.bits.LEC !=0b111)
+	{
+		lec = status.bits.LEC;
+	}
+	if (dlec ==  0 && status.bits.DLEC !=0b111)
+	{
+		dlec = status.bits.DLEC;
+	}
 	return 0;
 }
 
@@ -37,11 +47,13 @@ int CANMonitorChannel::processMessage(uint8_t commandId, uint8_t *returnData, ui
 
 int CANMonitorChannel::getSensorData(uint8_t *data, uint8_t &n)
 {
-  	FDCAN_StatusRegisters_t *out = (FDCAN_StatusRegisters_t*) (data + n);
+  	auto out = (FDCAN_StatusRegisters_t*) (data + n);
 	n += CAN_MONITOR_DATA_N_BYTES;
 
-    out->raw.ecr = STRHAL_CAN_Read_ECR_Reg(fdcan_id)&(1<<ECR_SIZE)-1;
-    out->raw.psr = STRHAL_CAN_Read_PSR_Reg(fdcan_id)&(1<<PSR_SIZE)-1;
+    out->raw.ecr = STRHAL_CAN_Read_ECR_Reg(fdcan_id)&((1<<ECR_SIZE)-1);
+    out->raw.psr = STRHAL_CAN_Read_PSR_Reg(fdcan_id)&((1<<PSR_SIZE)-1);
+	out->bits.LEC = lec;
+	out->bits.DLEC = lec;
     return 0;
 }
 

@@ -31,6 +31,8 @@ class CANMonitorChannel: public AbstractChannel
 
 	private:
 		STRHAL_FDCAN_Id_t fdcan_id;
+		int lec = 0;
+		int dlec = 0;
 };
 
 #endif /*DATA32CHANNEL_H*/

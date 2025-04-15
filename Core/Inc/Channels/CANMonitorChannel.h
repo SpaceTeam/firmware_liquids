@@ -1,5 +1,5 @@
-#ifndef DATA32CHANNEL_H
-#define DATA32CHANNEL_H
+#ifndef CANMONITORCHANNEL
+#define CANMONITORCHANNEL
 
 #include "./Channels/AbstractChannel.h"
 #include <can_houbolt/channels/can_monitor_channel_def.h>
@@ -20,8 +20,6 @@ class CANMonitorChannel: public AbstractChannel
 		int exec() override;
 		int getSensorData(uint8_t *data, uint8_t &n) override;
 
-		int32_t getMeasure() const;
-
 		int processMessage(uint8_t commandId, uint8_t *returnData, uint8_t &n) override;
 
 	protected:
@@ -35,4 +33,4 @@ class CANMonitorChannel: public AbstractChannel
 		int dlec = 0;
 };
 
-#endif /*DATA32CHANNEL_H*/
+#endif CANMONITORCHANNEL

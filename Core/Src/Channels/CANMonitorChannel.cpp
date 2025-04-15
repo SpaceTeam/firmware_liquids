@@ -19,6 +19,9 @@ int CANMonitorChannel::init()
 int CANMonitorChannel::exec()
 {
 	FDCAN_StatusRegisters_t status = {};
+
+	// We store the lec/dlec values because they are reset after each successful transmission.
+	// Should we only have intermittent failures, we can then still report one of these errors.
 	status.raw.psr = STRHAL_CAN_Read_PSR_Reg(fdcan_id)&((1<<PSR_SIZE)-1);
 	if (lec ==  0 && status.bits.LEC !=0b111)
 	{
@@ -53,7 +56,7 @@ int CANMonitorChannel::getSensorData(uint8_t *data, uint8_t &n)
     out->raw.ecr = STRHAL_CAN_Read_ECR_Reg(fdcan_id)&((1<<ECR_SIZE)-1);
     out->raw.psr = STRHAL_CAN_Read_PSR_Reg(fdcan_id)&((1<<PSR_SIZE)-1);
 	out->bits.LEC = lec;
-	out->bits.DLEC = lec;
+	out->bits.DLEC = dlec;
     return 0;
 }
 

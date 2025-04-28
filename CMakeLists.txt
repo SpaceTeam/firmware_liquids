@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 set (PROJECT_NAME             "firmware_liquids")
 # Used by compiler flags:
-set (LINKER_SCRIPT            "${CMAKE_SOURCE_DIR}/Linker/STM32G491METX_FLASH.ld")
+set (LINKER_SCRIPT            "${CMAKE_SOURCE_DIR}/Linker/STM32G474RETX_FLASH.ld")
 set (MCPU                     "-mcpu=Cortex-M4")
 set (MFPU                     "-mfpu=fpv4-sp-d16")
 set (MFLOAT_ABI               "-mfloat-abi=hard")
@@ -13,7 +13,7 @@ set (RUNTIME_LIBRARY_SYSCALLS "--specs=nosys.specs")
 # GLOB_RECURSE is used to find all files matching the pattern in the specified directory and its subdirectories.
 # CONFIGURE_DEPENDS is used to re-check globbed files when rebuilding.
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
-    "Core/Startup/startup_stm32g491metx.s"
+    "Core/Startup/startup_stm32g474retx.s"
     "Core/Src/*.cpp"
     "Core/Src/*.c"
     "Drivers/STM32G474/*.c"

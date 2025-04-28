@@ -74,3 +74,4 @@ git_version.h
 .cproject
 
 build/
+.cache/

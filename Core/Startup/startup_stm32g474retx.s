@@ -201,7 +201,7 @@ g_pfnVectors:
 	.word	UART4_IRQHandler
 	.word	UART5_IRQHandler
 	.word	TIM6_DAC_IRQHandler
-	.word	TIM7_DAC_IRQHandler
+	.word	TIM7_IRQHandler
 	.word	DMA2_Channel1_IRQHandler
 	.word	DMA2_Channel2_IRQHandler
 	.word	DMA2_Channel3_IRQHandler
@@ -211,7 +211,7 @@ g_pfnVectors:
 	.word	ADC5_IRQHandler
 	.word	UCPD1_IRQHandler
 	.word	COMP1_2_3_IRQHandler
-	.word	COMP4_5_6_IRQHandler
+	.word	COMP4_IRQHandler
 	.word	COMP7_IRQHandler
 	.word	HRTIM1_Master_IRQHandler
 	.word	HRTIM1_TIMA_IRQHandler
@@ -451,8 +451,8 @@ g_pfnVectors:
 	.weak	TIM6_DAC_IRQHandler
 	.thumb_set TIM6_DAC_IRQHandler,Default_Handler
 
-	.weak	TIM7_DAC_IRQHandler
-	.thumb_set TIM7_DAC_IRQHandler,Default_Handler
+	.weak	TIM7_IRQHandler
+	.thumb_set TIM7_IRQHandler,Default_Handler
 
 	.weak	DMA2_Channel1_IRQHandler
 	.thumb_set DMA2_Channel1_IRQHandler,Default_Handler
@@ -481,8 +481,8 @@ g_pfnVectors:
 	.weak	COMP1_2_3_IRQHandler
 	.thumb_set COMP1_2_3_IRQHandler,Default_Handler
 
-	.weak	COMP4_5_6_IRQHandler
-	.thumb_set COMP4_5_6_IRQHandler,Default_Handler
+	.weak	COMP4_IRQHandler
+	.thumb_set COMP4_IRQHandler,Default_Handler
 
 	.weak	COMP7_IRQHandler
 	.thumb_set COMP7_IRQHandler,Default_Handler

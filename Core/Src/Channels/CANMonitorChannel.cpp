@@ -18,18 +18,17 @@ int CANMonitorChannel::init()
 
 int CANMonitorChannel::exec()
 {
-	FDCAN_StatusRegisters_t status = {};
 
 	// We store the lec/dlec values because they are reset after each successful transmission.
 	// Should we only have intermittent failures, we can then still report one of these errors.
-	status.raw.psr = STRHAL_CAN_Read_PSR_Reg(fdcan_id)&((1<<PSR_SIZE)-1);
-	if (lec ==  0 && status.bits.LEC !=0b111)
+	uint32_t psr = STRHAL_CAN_Read_PSR_Reg(fdcan_id)&((1<<PSR_SIZE)-1);
+	if (lec ==  0 && FDCAN_StatusRegisters::PSR_Fields::LEC.get(psr) !=0b111)
 	{
-		lec = status.bits.LEC;
+		lec = FDCAN_StatusRegisters::PSR_Fields::LEC.get(psr);
 	}
-	if (dlec ==  0 && status.bits.DLEC !=0b111)
+	if (dlec ==  0 && FDCAN_StatusRegisters::PSR_Fields::DLEC.get(psr) !=0b111)
 	{
-		dlec = status.bits.DLEC;
+		dlec = FDCAN_StatusRegisters::PSR_Fields::LEC.get(psr);
 	}
 	return 0;
 }
@@ -50,14 +49,21 @@ int CANMonitorChannel::processMessage(uint8_t commandId, uint8_t *returnData, ui
 
 int CANMonitorChannel::getSensorData(uint8_t *data, uint8_t &n)
 {
-  	auto out = (FDCAN_StatusRegisters_t*) (data + n);
 	n += CAN_MONITOR_DATA_N_BYTES;
 
-    out->raw.ecr = STRHAL_CAN_Read_ECR_Reg(fdcan_id)&((1<<ECR_SIZE)-1);
-    out->raw.psr = STRHAL_CAN_Read_PSR_Reg(fdcan_id)&((1<<PSR_SIZE)-1);
-	out->bits.LEC = lec;
-	out->bits.DLEC = dlec;
-    return 0;
+	uint32_t ecr = STRHAL_CAN_Read_ECR_Reg(fdcan_id)&((1<<ECR_SIZE)-1);
+	uint32_t psr = STRHAL_CAN_Read_PSR_Reg(fdcan_id)&((1<<PSR_SIZE)-1);
+	uint64_t can_data = 0;
+	FDCAN_StatusRegisters::ECR.set(can_data,ecr);
+	FDCAN_StatusRegisters::PSR.set(can_data,psr);
+	FDCAN_StatusRegisters::PSR_Fields::LEC.set(can_data,lec);
+	FDCAN_StatusRegisters::PSR_Fields::DLEC.set(can_data,dlec);
+	memcpy(data,&can_data,CAN_MONITOR_DATA_N_BYTES);
+	char buf[32];
+	sprintf(buf,"REC: %i, TEC: %i \r\n", FDCAN_StatusRegisters::ECR_Fields::REC.get(can_data) ,FDCAN_StatusRegisters::ECR_Fields::TEC.get(can_data));
+	STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
+
+	return 0;
 }
 
 int CANMonitorChannel::setVariable(uint8_t variableId, int32_t data)

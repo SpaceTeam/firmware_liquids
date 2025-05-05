@@ -2,7 +2,7 @@
 #define CANMONITORCHANNEL
 
 #include "./Channels/AbstractChannel.h"
-#include <can_houbolt/channels/can_monitor_channel_def.h>
+#include <can_houbolt/channels/can_monitor_channel_def.hpp>
 #include <STRHAL.h>
 
 class CANMonitorChannel: public AbstractChannel
@@ -33,4 +33,4 @@ class CANMonitorChannel: public AbstractChannel
 		int dlec = 0;
 };
 
-#endif CANMONITORCHANNEL
+#endif

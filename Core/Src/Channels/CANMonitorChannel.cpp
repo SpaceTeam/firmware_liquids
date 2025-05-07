@@ -49,19 +49,19 @@ int CANMonitorChannel::processMessage(uint8_t commandId, uint8_t *returnData, ui
 
 int CANMonitorChannel::getSensorData(uint8_t *data, uint8_t &n)
 {
-	n += CAN_MONITOR_DATA_N_BYTES;
+	uint64_t *out = (uint64_t *) (data + n);
 
 	uint32_t ecr = STRHAL_CAN_Read_ECR_Reg(fdcan_id)&((1<<ECR_SIZE)-1);
 	uint32_t psr = STRHAL_CAN_Read_PSR_Reg(fdcan_id)&((1<<PSR_SIZE)-1);
-	uint64_t can_data = 0;
-	FDCAN_StatusRegisters::ECR.set(can_data,ecr);
-	FDCAN_StatusRegisters::PSR.set(can_data,psr);
-	FDCAN_StatusRegisters::PSR_Fields::LEC.set(can_data,lec);
-	FDCAN_StatusRegisters::PSR_Fields::DLEC.set(can_data,dlec);
-	memcpy(data,&can_data,CAN_MONITOR_DATA_N_BYTES);
+	FDCAN_StatusRegisters::ECR.set(*out,ecr);
+	FDCAN_StatusRegisters::PSR.set(*out,psr);
+	FDCAN_StatusRegisters::PSR_Fields::LEC.set(*out,lec);
+	FDCAN_StatusRegisters::PSR_Fields::DLEC.set(*out,dlec);
 	char buf[32];
-	sprintf(buf,"REC: %i, TEC: %i \r\n", FDCAN_StatusRegisters::ECR_Fields::REC.get(can_data) ,FDCAN_StatusRegisters::ECR_Fields::TEC.get(can_data));
+	sprintf(buf,"REC: %i, TEC: %i \r\n", FDCAN_StatusRegisters::ECR_Fields::REC.get(*out) ,FDCAN_StatusRegisters::ECR_Fields::TEC.get(*out));
 	STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
+
+	n += CAN_MONITOR_DATA_N_BYTES;
 
 	return 0;
 }

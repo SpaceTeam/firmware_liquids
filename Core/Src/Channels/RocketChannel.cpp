@@ -125,9 +125,11 @@ ROCKET_STATE RocketChannel::nextState(uint64_t time, uint64_t stateTime) const {
 		return RS_UNCHANGED;
 	case RS_IGNITION_FUEL_OPEN:
 		if (stateTime > HOLDDOWN_DELAY) {
-			return RS_HOLDDOWN;
+			return RS_IGNITION_IGNITER_OFF;
 		}
 		return RS_UNCHANGED;
+	case RS_IGNITION_IGNITER_OFF:
+		return RS_HOLDDOWN;
 
 	case RS_HOLDDOWN:
 		if ((time - timeSinceBothMainValvesOpen < holdDownTimeout) || (holdDownTimeout == 0)) {

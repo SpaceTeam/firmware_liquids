@@ -182,21 +182,30 @@ void ECU_Lamarr::testServo(ServoChannel &servo)
 	uint64_t t_last_state = 0;
 	uint64_t t_last_sample = 0;
 	uint8_t state = 0;
+	int i=32000;
 	while (1)
 	{
 		uint64_t t = STRHAL_Systick_GetTick();
-		if ((t - t_last_state) > 10000)
+		if ((t - t_last_state) > 100)
 		{
 			t_last_state = t;
 			if (state == 0)
 			{
-				servo.setTargetPos(63000);
-				state = 1;
+				if(i<63000){
+					servo.setTargetPos(i);
+					i+=100;
+				}else{
+					state = 1;
+				}
 			}
 			else
 			{
-				servo.setTargetPos(0);
-				state = 0;
+				if(i>0){
+					servo.setTargetPos(i);
+					i-=100;
+				}else{
+					state = 0;
+				}
 			}
 
 		}

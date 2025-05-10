@@ -70,3 +70,8 @@ Mkfile.old
 dkms.conf
 
 git_version.h
+.settings/language.settings.xml
+.cproject
+
+build/
+.cache/

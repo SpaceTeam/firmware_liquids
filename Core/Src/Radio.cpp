@@ -3,17 +3,17 @@
 #include <cstring>
 #include <cstdio>
 
-LoRa1276F30_Radio *Radio::lora = nullptr;
+SX1276 *Radio::lora = nullptr;
 uint8_t Radio::msgArray[MSG_SIZE] =
 { 0 };
 
-Radio::Radio(uint32_t nodeId, LoRa1276F30_Radio& lora) :
+Radio::Radio(uint32_t nodeId, SX1276& lora) :
 		AbstractCom(nodeId)
 {
 	Radio::lora = &lora;
 }
 
-Radio& Radio::instance(uint32_t nodeId, LoRa1276F30_Radio& lora)
+Radio& Radio::instance(uint32_t nodeId, SX1276& lora)
 {
 	static Radio radio(nodeId, lora);
 
@@ -24,7 +24,7 @@ int Radio::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat)
 {
 	if (heartbeat)
 	{
-		if (STRHAL_TIM_Heartbeat_Init(STRHAL_TIM_TIM6, 16000, 2000) != 5)
+		if (STRHAL_TIM_Heartbeat_Init(STRHAL_TIM_TIM6, 16000, 10000) != 1)
 			return -1;
 
 		if (STRHAL_TIM_Heartbeat_Subscribe(STRHAL_TIM_TIM6, heartbeat) != 0)

@@ -1,0 +1,123 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "toolchainFile": "${sourceDir}/cubeide-gcc.cmake",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "ECU_LAMARR",
+            "inherits": "default",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_CXX_FLAGS": "-DECU_LAMARR_BOARD",
+                "CMAKE_C_FLAGS": "-DECU_LAMARR_BOARD"
+            }
+        },
+        {
+            "name": "RCU_V2",
+            "inherits": "default",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_CXX_FLAGS": "-DRCU_V2_BOARD",
+                "CMAKE_C_FLAGS": "-DRCU_V2_BOARD"
+            }
+        },
+        {
+            "name": "debug",
+            "inherits": "ECU_LAMARR",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "relWithDebInfo",
+            "inherits": "ECU_LAMARR",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+            }
+        },
+        {
+            "name": "release",
+            "inherits": "ECU_LAMARR",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "minSizeRel",
+            "inherits": "ECU_LAMARR",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "MinSizeRel"
+            }
+        },
+        {
+            "name": "debug (RCU_V2)",
+            "inherits": "RCU_V2",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "relWithDebInfo (RCU_V2)",
+            "inherits": "RCU_V2",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+            }
+        },
+        {
+            "name": "release (RCU_V2)",
+            "inherits": "RCU_V2",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "minSizeRel (RCU_V2)",
+            "inherits": "RCU_V2",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "MinSizeRel"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug",
+            "configurePreset": "debug"
+        },
+        {
+            "name": "relWithDebInfo",
+            "configurePreset": "relWithDebInfo"
+        },
+        {
+            "name": "release",
+            "configurePreset": "release"
+        },
+        {
+            "name": "minSizeRel",
+            "configurePreset": "minSizeRel"
+        },
+        {
+            "name": "debug (RCU_V2)",
+            "configurePreset": "debug (RCU_V2)"
+        },
+        {
+            "name": "relWithDebInfo (RCU_V2)",
+            "configurePreset": "relWithDebInfo (RCU_V2)"
+        },
+        {
+            "name": "release (RCU_V2)",
+            "configurePreset": "release (RCU_V2)"
+        },
+        {
+            "name": "minSizeRel (RCU_V2)",
+            "configurePreset": "minSizeRel (RCU_V2)"
+        }
+    ]
+}

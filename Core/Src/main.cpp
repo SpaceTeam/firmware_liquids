@@ -2,9 +2,6 @@
 
 #include "ECU_uHb.h"
 #include "ECU_Lamarr.h"
-#include "IOBv1.h"
-#include "IOBv3.h"
-#include "IOBv4.h"
 
 #include <STRHAL.h>
 #include "PMU.h"
@@ -116,7 +113,7 @@ int main(void)
 #ifdef UART_DEBUG
 	RCUv2 rcu_v2(8,GIT_COMMIT_HASH_VALUE,100);
 #else
-	RCUv2 rcu_v2(8, GIT_COMMIT_HASH_VALUE, 4);
+	RCUv2 rcu_v2(NODE_ID_LAMARR_RCU_V2, GIT_COMMIT_HASH_VALUE, 4);
 #endif
 
 	if (rcu_v2.init() != 0)

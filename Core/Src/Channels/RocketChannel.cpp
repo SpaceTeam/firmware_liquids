@@ -106,7 +106,7 @@ void RocketChannel::nextStateLogic(ROCKET_STATE nextState, uint64_t time)
 		break;
 	case POWERED_ASCENT:
 	{
-		can.SetRemoteVariable(DEVICE_ID_GSE_PNEU_HOLDDOWN, DIGITAL_OUT_STATE, 1);
+		can.SetRemoteVariable(DEVICE_ID_GSE_PNEU_1_HOLDDOWN, DIGITAL_OUT_STATE, 1);
 		break;
 	}
 	case UNPOWERED_ASCENT:

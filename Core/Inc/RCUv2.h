@@ -50,7 +50,7 @@ class RCUv2: public GenericChannel
 		BaroChannel baro_channel;
 		IMUChannel x_accel, y_accel, z_accel, x_gyro, y_gyro, z_gyro;
 		Data32Channel gps_longitude, gps_latitude, gps_altitude, gps_status;
-		DigitalOutChannel out0,out1,out2,out3;
+		DigitalOutChannel out0, out1, out2, out3;
 
 		// Coms
 		Radio &radio;

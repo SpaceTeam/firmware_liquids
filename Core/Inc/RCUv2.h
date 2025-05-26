@@ -1,3 +1,5 @@
+#ifdef RCU_V2_BOARD
+
 #ifndef RCU_V2_H
 #define RCU_V2_H
 
@@ -57,3 +59,5 @@ class RCUv2: public GenericChannel
 };
 
 #endif /*RCU_V2_H*/
+
+#endif /*RCU_V2_BOARD*/

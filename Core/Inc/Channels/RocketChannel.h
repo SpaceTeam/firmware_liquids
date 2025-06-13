@@ -40,6 +40,14 @@ class RocketChannel: public AbstractChannel
 		int getVariable(uint8_t variableId, int32_t &data) const override;
 
 	private:
+		static constexpr uint16_t EXEC_SAMPLE_TICKS = 1;
+		static constexpr uint16_t HOLDDOWN_DELAY = 1000;
+		static constexpr uint16_t CHAMBER_PRESSURE_LOW_PENALTY = 3;
+		static constexpr uint16_t CHAMBER_PRESSURE_LOW_COUNT_MAX = 5;
+		static constexpr uint16_t CHAMBER_PRESSURE_GOOD_COUNT_MIN = 100;
+		static constexpr uint16_t FLIGHT_BURN_TIME = 4500;
+		static constexpr uint16_t AUTO_CHECK_BAD_COUNT_MAX = 10;
+
 		ROCKET_STATE nextState(uint64_t time, uint64_t stateTime) const;
 		void stateEnter(ROCKET_STATE state, uint64_t time);
 		void stateExit(ROCKET_STATE state, uint64_t time);

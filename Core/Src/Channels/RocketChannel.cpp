@@ -52,6 +52,8 @@ int RocketChannel::exec() {
 
 	uint64_t stateTime = time - timeLastTransition;
 
+	// An external state override always takes precedence over any internal state transitions.
+	// If there is no external override, the next state is computed internally via nextState.
 	ROCKET_STATE newState;
 	if (stateOverride != RS_UNCHANGED) {
 		newState = stateOverride;
@@ -60,6 +62,8 @@ int RocketChannel::exec() {
 		newState = nextState(time, stateTime);
 	}
 
+	// In case of a state transition, the previous state's exit action is performed, followed
+	// by the new state's enter action.
 	if (newState != RS_UNCHANGED) {
 		stateExit(state, time);
 		timeLastTransition = time;
@@ -68,6 +72,8 @@ int RocketChannel::exec() {
 		state = newState;
 	}
 
+	// In any case, the do action of the current state after any possible state transitions
+	// is performed.
 	stateDo(state, time, stateTime);
 
 	return 0;

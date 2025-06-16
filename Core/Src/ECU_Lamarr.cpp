@@ -5,8 +5,6 @@
 
 #include "NodeInfos.h"
 
-#define IS_MAIN_ECU (LAMARR_ECU_NODE_ID == NODE_ID_LAMARR_ENGINE_ECU)
-
 // @formatter:off
 
 ECU_Lamarr::ECU_Lamarr(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) : GenericChannel(node_id, fw_version, refresh_divider),
@@ -28,10 +26,17 @@ pyro_igniter0(ECU_LAMARR_IGNITER0, { ADC1, STRHAL_ADC_CHANNEL_6 }, { GPIOC, 10, 
 pyro_igniter1(ECU_LAMARR_IGNITER1, { ADC1, STRHAL_ADC_CHANNEL_7 }, { GPIOC, 11, STRHAL_GPIO_TYPE_OPP }, pyro1_cont, 1),
 pyro_igniter2(ECU_LAMARR_IGNITER2, { ADC1, STRHAL_ADC_CHANNEL_8 }, { GPIOD, 1, STRHAL_GPIO_TYPE_OPP }, pyro2_cont, 1),
 pyro_igniter3(ECU_LAMARR_IGNITER3, { ADC1, STRHAL_ADC_CHANNEL_9 }, { GPIOD, 2, STRHAL_GPIO_TYPE_OPP }, pyro3_cont, 1),
-pi_control(ECU_LAMARR_PI_CONTROLLER, (GenericChannel&) *this, 0, (IS_MAIN_ECU)? servo_1: servo_0, 1),
+//pi_control(ECU_LAMARR_PI_CONTROLLER, (GenericChannel&) *this, 0, (IS_MAIN_ECU)? servo_1: servo_0, 1),
+#if defined(IS_MAIN_ECU)
+	pi_control(ECU_LAMARR_PI_CONTROLLER, (GenericChannel&) *this, 0, servo_1, 1),
+#elif defined(IS_NOT_MAIN_ECU)
+	pi_control(ECU_LAMARR_PI_CONTROLLER, (GenericChannel&) *this, 0, servo_0, 1),
+#else
+	#error config error
+#endif
 //pressure_control(16, (GenericChannel&)*this, 1, solenoid_0, 1),
 
-rocket(ECU_LAMARR_ROCKET, press_0, press_1, press_2, servo_0, servo_1, pi_control, pyro_igniter1, pyro_igniter2, pyro_igniter0, IS_MAIN_ECU, 1),
+rocket(ECU_LAMARR_ROCKET, press_0, press_1, press_2, servo_0, servo_1, pi_control, pyro_igniter1, pyro_igniter2, pyro_igniter0, 1),
 sense_5V(ECU_LAMARR_SENSE_5V, { ADC4, STRHAL_ADC_CHANNEL_12 }, 1),
 sense_12V(ECU_LAMARR_SENSE_12V, { ADC4, STRHAL_ADC_CHANNEL_13 }, 1),
 sense_12VA(ECU_LAMARR_SENSE_12VA, { ADC4, STRHAL_ADC_CHANNEL_4 }, 1),

@@ -220,7 +220,6 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 	case RS_IGNITION_INIT: {
 		STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
 		STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_H);
-
 		fuelServoChannel.setTargetPos(0);
 		oxServoChannel.setTargetPos(0);
 		(void) internalIgniter1Channel.setState(0);
@@ -261,7 +260,7 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 		(void) internalIgniter2Channel.setState(0);
 	} break;
 	case RS_POWERED_ASCENT: {
-		can.SetRemoteVariable(DEVICE_ID_GSE_PNEU_HOLDDOWN, DIGITAL_OUT_STATE, 1);
+		can.SetRemoteVariable(DEVICE_ID_GSE_1_PNEU_HOLDDOWN, DIGITAL_OUT_STATE, 1);
 	} break;
 	case RS_UNPOWERED_ASCENT: {
 		oxServoChannel.setTargetPos(0);

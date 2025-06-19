@@ -220,7 +220,7 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 		(void) internalIgniter2Channel.setState(0);
 	} break;
 	case RS_POWERED_ASCENT: {
-		can.SetRemoteVariable(DEVICE_ID_GSE_1_PNEU_HOLDDOWN, DIGITAL_OUT_STATE, 1);
+		can.SetRemoteVariable(DEVICE_ID_GSE_PNEU_1_HOLDDOWN, DIGITAL_OUT_STATE, 1);
 	} break;
 	case RS_UNPOWERED_ASCENT: {
 		piControlChannel.setEnabled(0);

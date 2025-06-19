@@ -46,7 +46,7 @@ class RocketChannel: public AbstractChannel
 		static constexpr uint16_t CHAMBER_PRESSURE_GOOD_COUNT_MIN = 100;
 		static constexpr uint16_t AUTO_CHECK_BAD_COUNT_MAX = 10;
 		
-		static constexpr uint16_t FLIGHT_BURN_TIME = 4500;
+		static constexpr uint16_t FLIGHT_BURN_TIME = 15000;
 		static constexpr uint16_t HOLDDOWN_DELAY = 500;
 		static constexpr uint16_t IGNITION_DELAY = 1700;
 
@@ -84,7 +84,7 @@ class RocketChannel: public AbstractChannel
 		uint16_t chamberPressureLowCounter = 0;
 		uint16_t chamberPressureGoodCounter = 0;
 		uint16_t autoCheckBadCounter = 0;
-		uint16_t holdDownTimeout = 10000;
+		uint16_t holdDownTimeout = 3000;
 		uint64_t timeLastSample = 0;
 		uint64_t timeLastTransition = 0;
 		uint64_t timeSinceBothMainValvesOpen = 0;

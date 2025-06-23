@@ -499,6 +499,8 @@ void RocketChannel::setRocketState(uint8_t *data, uint8_t &n)
 
 #if defined(IS_MAIN_ECU)
 	if ((state == RS_HOLDDOWN && requestedState == RS_POWERED_ASCENT)
+	||  (state == RS_ABORT_IGNITION_TIMEOUT && requestedState == RS_PAD_IDLE)
+	||  (state == RS_ABORT_HOLDDOWN && requestedState == RS_PAD_IDLE)
 	||  (state == RS_ABORT && requestedState == RS_PAD_IDLE))
 	{
 		stateOverride = requestedState;

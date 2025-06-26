@@ -129,7 +129,7 @@ ROCKET_STATE RocketChannel::nextState(uint64_t time, uint64_t stateTime) const {
 		if (stateTime > 500) {
 			return RS_ABORT_IGNITION_TIMEOUT;
 		}
-		if (stateTime > 300) {
+		if (stateTime > 100) {
 			return RS_IGNITION_FUEL_OPEN;
 		}
 		return RS_UNCHANGED;
@@ -167,7 +167,7 @@ ROCKET_STATE RocketChannel::nextState(uint64_t time, uint64_t stateTime) const {
 		return RS_UNCHANGED;
 
 	case RS_UNPOWERED_ASCENT:
-		if (stateTime > 45000) {
+		if (stateTime > 15000) {
 			return RS_DEPRESSURIZE;
 		}
 		return RS_UNCHANGED;

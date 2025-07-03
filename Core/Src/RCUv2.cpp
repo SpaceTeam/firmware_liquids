@@ -37,7 +37,7 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 {
 	// set pointer to radio object for static callbacks, enable Lora
 	//GenericChannel::radioPtr = &radio; <- this might cause hardfault later on
-	setLoraActive(true); // has to be enabled by request TODO Change to false
+	setLoraActive(false); // has to be enabled by request TODO Change to false
 
 	registerChannel(&sense_5V);
 	registerChannel(&sense_12V);
@@ -129,8 +129,10 @@ int RCUv2::exec()
 
 	startupBeep();
 
+
 	//speaker.beep(1,100,100);
 	LL_mDelay(2000);
+
 	//superMario();
 
 	STRHAL_UART_Listen(STRHAL_UART_DEBUG);
@@ -272,12 +274,18 @@ void RCUv2::testGNSS()
 		speaker.beep(2, 400, 500);
 	}
 }
-void RCUv2::beep(int freq, int length, int delay){
+void RCUv2::beep(int freq, int length, int delay)
+{
 	speaker.setPWM(freq);
 	speaker.beep(1, length, delay);
 }
 
-void RCUv2::startupBeep(){
+void RCUv2::startupBeep()
+{
+	beep(523,100,50);  //C
+	beep(659,100,50);  //E
+	beep(784,100,50);  //G
+	/*
 	beep(523, 400, 50);
 	beep(392, 100, 50);
 	beep(392, 100, 50);
@@ -285,6 +293,7 @@ void RCUv2::startupBeep(){
 	beep(392, 400, 150);
 	beep(494, 200, 50);
 	beep(523, 400, 50);
+	*/
 	speaker.setPWM(500);
 }
 
@@ -494,6 +503,7 @@ void RCUv2::superMario(){
 	beep(660,100,300);
 	beep(770,100,550);
 	beep(380,100,575);
+	speaker.setPWM(500);
 }
 
 #endif /* RCU_V2_BOARD */

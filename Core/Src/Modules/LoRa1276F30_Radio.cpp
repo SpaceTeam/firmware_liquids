@@ -189,8 +189,7 @@ bool LoRa1276F30_Radio::SetCodingRate4(uint8_t denominator)
 	uint8_t cr = denominator - 4;
 	lora_writeRegisterSafe(REG_MODEM_CONFIG_1,
 					  (lora_readRegister(REG_MODEM_CONFIG_1, dummy) & 0xf1) | (cr << 1));
-
-	return true;					
+	return true;
 }
 
 bool LoRa1276F30_Radio::SetPreambleLength(uint16_t length)

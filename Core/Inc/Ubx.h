@@ -11,23 +11,21 @@
 // From u-blox6 receiver protocol specification
 
 // Messages classes
-#define UBX_CLASS_NAV     0x01
-#define UBX_CLASS_ACK_NAK 0x05
+#define UBX_CLASS_NAV    	0x01
+#define UBX_CLASS_ACK_NAK 	0x05
 
 // Message IDs (all in NAV class)
-#define UBX_ID_POSLLH     0x02
-#define UBX_ID_STATUS     0x03
-#define UBX_ID_DOP        0x04
-//#define UBX_ID_SOL        0x06  //DELETED replaced by PVT
-#define UBX_ID_PVT        0x07
-#define UBX_ID_VELNED     0x12
-#define UBX_ID_TIMEUTC    0x21
-//#define UBX_ID_SVINFO     0x30 //DELETED replaced by SAT
-#define UBX_ID_SAT        0x35
+#define UBX_ID_POSLLH    	0x02
+#define UBX_ID_STATUS    	0x03
+#define UBX_ID_DOP        	0x04
+#define UBX_ID_PVT        	0x07	//CHANGED
+#define UBX_ID_VELNED    	0x12
+#define UBX_ID_TIMEUTC    	0x21
+#define UBX_ID_SVINFO    	0x30 	//DEPRECATED
 
-#define UBX_CLASS_MON     0x0a
+#define UBX_CLASS_MON    	0x0A
 
-#define UBX_ID_MONVER     0x04
+#define UBX_ID_MONVER   	0x04
 // private structures
 
 #define GPSSATELLITES_PRN_NUMELEM 16
@@ -40,7 +38,7 @@
 #define STATUS_RECEIVED    (1 << 1)
 #define DOP_RECEIVED    (1 << 2)
 #define VELNED_RECEIVED    (1 << 3)
-#define SOL_RECEIVED    (1 << 4)
+#define PVT_RECEIVED    (1 << 4)
 #define ALL_RECEIVED    (SOL_RECEIVED | VELNED_RECEIVED | DOP_RECEIVED | POSLLH_RECEIVED)
 #define NONE_RECEIVED    0
 
@@ -124,12 +122,12 @@ struct UBX_NAV_POSLLH
 
 // Receiver Navigation Status
 
-#define STATUS_GPSFIX_NOFIX        0x00
-#define STATUS_GPSFIX_DRONLY    0x01
-#define STATUS_GPSFIX_2DFIX        0x02
-#define STATUS_GPSFIX_3DFIX        0x03
-#define STATUS_GPSFIX_GPSDR        0x04
-#define STATUS_GPSFIX_TIMEONLY    0x05
+#define STATUS_GPSFIX_NOFIX        	0x00
+#define STATUS_GPSFIX_DRONLY    	0x01
+#define STATUS_GPSFIX_2DFIX        	0x02
+#define STATUS_GPSFIX_3DFIX        	0x03
+#define STATUS_GPSFIX_GPSDR        	0x04
+#define STATUS_GPSFIX_TIMEONLY    	0x05
 
 #define STATUS_FLAGS_GPSFIX_OK    (1 << 0)
 #define STATUS_FLAGS_DIFFSOLN    (1 << 1)
@@ -162,14 +160,16 @@ struct UBX_NAV_DOP
 
 // Navigation solution
 
-struct UBX_NAV_SOL
+struct UBX_NAV_SAT
+//u4 -> uint32
+//u2 -> uint16
+//u1 -> uint8
 {
-		uint32_t iTOW;          // GPS Millisecond Time of Week (ms)
-		int32_t fTOW;              // fractional nanoseconds (ns)
-		int16_t week;              // GPS week
-		uint8_t gpsFix;            // GPS fix type
-		uint8_t flags;             // Fix status flags
-		int32_t ecefX;             // ECEF X coordinate (cm)
+		uint32_t iTOW;          // GPS Millisecond Time of Week (ms)		U4
+		uint16_t week;             // GPS week								U2
+		uint8_t gpsFix;            // GPS fix type							u1
+		uint8_t flags;             // Fix status flags						u1
+		int32_t ecefX;             // ECEF X coordinate (cm)				u1
 		int32_t ecefY;             // ECEF Y coordinate (cm)
 		int32_t ecefZ;             // ECEF Z coordinate (cm)
 		uint32_t pAcc;          // 3D Position Accuracy Estimate (cm)
@@ -181,6 +181,43 @@ struct UBX_NAV_SOL
 		uint8_t reserved1;         // Reserved
 		uint8_t numSV;             // Number of SVs used in Nav Solution
 		uint32_t reserved2;     // Reserved
+};
+
+struct UBX_NAV_PVT
+{
+	uint32_t iTOW;			//TODO add comments
+	uint16_t year;
+	uint8_t month;
+	uint8_t day;
+	uint8_t hour;
+	uint8_t min;
+	uint8_t sec;
+	uint8_t valid;
+	uint32_t tAcc;
+	int32_t nano;
+	uint8_t fixType;
+	uint8_t flags;
+	uint8_t flags2;
+	uint8_t numSV;
+	int32_t lon;
+	int32_t lat;
+	int32_t height;
+	int32_t hMSL;
+	uint32_t hAcc;
+	uint32_t vAcc;
+	int32_t velN;
+	int32_t velE;
+	int32_t velD;
+	int32_t gSpeed;
+	int32_t headMot;
+	uint32_t sAcc;
+	uint32_t headAcc;
+	uint16_t pDOP;
+	uint16_t flags3;
+	uint32_t reserved;
+	int32_t headVeh;
+	int16_t magDec;
+	uint16_t magAcc;
 };
 
 // North/East/Down velocity
@@ -268,10 +305,10 @@ typedef union
 		struct UBX_NAV_POSLLH nav_posllh;
 		struct UBX_NAV_STATUS nav_status;
 		struct UBX_NAV_DOP nav_dop;
-		struct UBX_NAV_SOL nav_pvt;
+		struct UBX_NAV_PVT nav_pvt;
 		struct UBX_NAV_VELNED nav_velned;
 		struct UBX_NAV_TIMEUTC nav_timeutc;
-		struct UBX_NAV_SVINFO nav_sat;
+		struct UBX_NAV_SVINFO nav_svinfo;
 		struct UBX_MON_VER mon_ver;
 } UBXPayload;
 
@@ -322,7 +359,7 @@ class Ubx
 		static uint32_t parseMessage(const struct UBXPacket *ubx, GPSPositionData *GpsPosition, int *receivedack);
 
 		static void parseNavPosllh(const struct UBX_NAV_POSLLH *posllh, GPSPositionData *GpsPosition);
-		static void parseNavSol(const struct UBX_NAV_SOL *sol, GPSPositionData *GpsPosition);
+		static void parseNavPvt(const struct UBX_NAV_PVT *sol, GPSPositionData *GpsPosition);
 		static void parseNavDop(const struct UBX_NAV_DOP *dop, GPSPositionData *GpsPosition);
 		static void parseNavVelned(const struct UBX_NAV_VELNED *velned, GPSPositionData *GpsPosition);
 		static void parseNavTimeutc(const struct UBX_NAV_TIMEUTC *timeutc);

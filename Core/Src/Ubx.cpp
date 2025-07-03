@@ -141,7 +141,7 @@ uint32_t Ubx::parseMessage(const struct UBXPacket *ubx, GPSPositionData *GpsPosi
 					parseNavDop(&ubx->payload.nav_dop, GpsPosition);
 					break;
 				case UBX_ID_PVT:
-					parseNavSol(&ubx->payload.nav_pvt, GpsPosition);
+					parseNavPvt(&ubx->payload.nav_pvt, GpsPosition);
 					break;
 				case UBX_ID_VELNED:
 					parseNavVelned(&ubx->payload.nav_velned, GpsPosition);
@@ -149,8 +149,8 @@ uint32_t Ubx::parseMessage(const struct UBXPacket *ubx, GPSPositionData *GpsPosi
 				case UBX_ID_TIMEUTC:
 					parseNavTimeutc(&ubx->payload.nav_timeutc);
 					break;
-				case UBX_ID_SAT:
-					parseNavSvinfo(&ubx->payload.nav_sat);
+				case UBX_ID_SVINFO:
+					parseNavSvinfo(&ubx->payload.nav_svinfo);
 					break;
 			}
 			break;
@@ -186,7 +186,7 @@ void Ubx::parseNavPosllh(const struct UBX_NAV_POSLLH *posllh, GPSPositionData *G
 		}
 	}
 }
-
+/*		DEPRECATED USE NAV_PVT INSTEAD
 void Ubx::parseNavSol(const struct UBX_NAV_SOL *sol, GPSPositionData *GpsPosition)
 {
 	if (checkMsgtracker(sol->iTOW, SOL_RECEIVED))
@@ -203,6 +203,35 @@ void Ubx::parseNavSol(const struct UBX_NAV_SOL *sol, GPSPositionData *GpsPositio
 					break;
 				case STATUS_GPSFIX_3DFIX:
 					GpsPosition->Status = (sol->flags & STATUS_FLAGS_DIFFSOLN) ? GPSPOSITION_STATUS_DIFF3D : GPSPOSITION_STATUS_FIX3D;
+					break;
+				default:
+					GpsPosition->Status = GPSPOSITION_STATUS_NOFIX;
+			}
+		}
+		else
+		{ // fix is not valid so we make sure to treat is as NOFIX
+			GpsPosition->Status = GPSPOSITION_STATUS_NOFIX;
+		}
+	}
+}
+*/
+
+void Ubx::parseNavPvt(const struct UBX_NAV_PVT *pvt, GPSPositionData *GpsPosition)
+{
+	if (checkMsgtracker(pvt->iTOW, PVT_RECEIVED))
+	{
+		GpsPosition->Satellites = pvt->numSV;
+		GpsPosition->Accuracy = pvt->vAcc / 100.0f;
+
+		if (pvt->flags & STATUS_FLAGS_GPSFIX_OK)
+		{
+			switch (pvt->fixType)
+			{
+				case STATUS_GPSFIX_2DFIX:
+					GpsPosition->Status = GPSPOSITION_STATUS_FIX2D;
+					break;
+				case STATUS_GPSFIX_3DFIX:
+					GpsPosition->Status = (pvt->flags & STATUS_FLAGS_DIFFSOLN) ? GPSPOSITION_STATUS_DIFF3D : GPSPOSITION_STATUS_FIX3D;
 					break;
 				default:
 					GpsPosition->Status = GPSPOSITION_STATUS_NOFIX;

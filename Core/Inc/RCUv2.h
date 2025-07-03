@@ -13,8 +13,8 @@
 #include <Radio.h>
 #include <Channels/IMUChannel.h>
 #include "../Modules/W25Qxx_Flash.h"
-#include "../Modules/SAM_M8Q_GNSS.h"
 #include "../Modules/SX1276.h"
+#include "../Modules/SAM_M10Q_GNSS.h"
 #include <Speaker.h>
 
 #include <STRHAL.h>
@@ -43,8 +43,8 @@ class RCUv2: public GenericChannel
 		// Modules
 		LPS25HB_Baro baro;
 		ICM2060x_IMU imu;
-		SAM_M8Q_GNSS gnss;
 		SX1276 lora;
+		SAM_M10Q_GNSS gnss;
 
 		// Channels
 		ADCChannel sense_5V, sense_12V;

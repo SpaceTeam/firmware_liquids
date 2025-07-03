@@ -150,6 +150,8 @@ int RCUv2::exec()
 	while (1)
 	{
 		//detectReadoutMode();
+		//testBaro();
+		//testIMU();
 		//testGNSS();
 
 #ifdef UART_DEBUG
@@ -210,9 +212,17 @@ int RCUv2::exec()
 			*/
 		}
 
-		if(gnss.gnssData.status>1&&!gnssFix){
-			gnssBeep();
-			gnssFix = true;
+		if(!gnssFix)
+		{
+			if(gnss.gnssData.status>1)
+			{
+				gnssBeep();
+				gnssFix = true;
+			}
+		}
+		else
+		{
+			testGNSS();
 		}
 
 		if (GenericChannel::exec() != 0)
@@ -224,6 +234,18 @@ int RCUv2::exec()
 	return 0;
 }
 
+void RCUv2::testBaro()
+{
+	char buf[64] = { 0 };
+
+	baro.read();
+
+	int32_t measurement = 0;
+	baro.getMeasurement(measurement);
+
+	sprintf(buf, "measurement: %ld\n", measurement);
+	STRHAL_UART_Debug_Write_Blocking(buf, strlen(buf), 100);
+}
 void RCUv2::testIMU()
 {
 	char buf[64] = { 0 };
@@ -233,41 +255,52 @@ void RCUv2::testIMU()
 	uint16_t x_accel_measurement = 0;
 	uint16_t y_accel_measurement = 0;
 	uint16_t z_accel_measurement = 0;
+
 	imu.getMeasurement(x_accel_measurement, IMUMeasurement::X_ACCEL);
 	imu.getMeasurement(y_accel_measurement, IMUMeasurement::Y_ACCEL);
 	imu.getMeasurement(z_accel_measurement, IMUMeasurement::Z_ACCEL);
+
 	sprintf(buf, "x: %d, y: %d, z: %d\n", x_accel_measurement, y_accel_measurement, z_accel_measurement);
 	STRHAL_UART_Debug_Write_Blocking(buf, strlen(buf), 100);
+
 	double x_accel = (double)(((int16_t)x_accel_measurement) * 16.0 / 32768.0);
-	if( x_accel * x_accel > 0.25){
+	if( x_accel * x_accel > 0.25)
+	{
 		speaker.beep(1, 100, 500);
 	}
 
 	double y_accel = (double)(((int16_t)y_accel_measurement) * 16.0 / 32768.0);
-	if( y_accel * y_accel > 0.25){
+	if( y_accel * y_accel > 0.25)
+	{
 		STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_H);
-	}else{
+	}
+	else
+	{
 		STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_L);
 	}
 
 	double z_accel = (double)(((int16_t)z_accel_measurement) * 16.0 / 32768.0);
-	if( z_accel * z_accel > 0.25){
+	if( z_accel * z_accel > 0.25)
+	{
 		STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
-	}else{
+	}
+	else
+	{
 		STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_L);
 	}
 }
 
 void RCUv2::testGNSS()
 {
-	char buf[64] = { 0 };
-	int32_t lon = gnss.gnssData.longitude;
-	int32_t lat = gnss.gnssData.latitude;
-	int32_t alt = gnss.gnssData.altitude;
+	//char buf[64] = { 0 };
+	//int32_t lon = gnss.gnssData.longitude;
+	//int32_t lat = gnss.gnssData.latitude;
+	//int32_t alt = gnss.gnssData.altitude;
 
 	int32_t status = gnss.gnssData.status;
 
-	if(status>0){
+	if(status>0)
+	{
 		speaker.beep(2, 400, 500);
 		speaker.beep(gnss.gnssData.status,100,500);
 		speaker.beep(gnss.gnssData.altitude/10,100,100);
@@ -297,7 +330,8 @@ void RCUv2::startupBeep()
 	speaker.setPWM(500);
 }
 
-void RCUv2::gnssBeep(){
+void RCUv2::gnssBeep()
+{
 	beep(523,100,50);
 	beep(587,100,50);
 	beep(622,100,150);
@@ -307,7 +341,8 @@ void RCUv2::gnssBeep(){
 }
 
 
-void RCUv2::superMario(){
+void RCUv2::superMario()
+{
 	//Brought to you by E-Mobility
 	beep(660,100,150);
 	beep(660,100,300);

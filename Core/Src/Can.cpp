@@ -195,6 +195,8 @@ void Can::sendAsMaster(DeviceIds device_id, uint8_t commandId, uint8_t *data, ui
 }
 void Can::sendAsMaster(uint8_t receiverNodeId, uint8_t receiverChannelId, uint8_t commandId, uint8_t *data, uint8_t n)
 {
+	LL_mDelay(1);
+
 	Can_MessageId_t msgId =
 	{ 0 };
 	msgId.info.special_cmd = STANDARD_SPECIAL_CMD;

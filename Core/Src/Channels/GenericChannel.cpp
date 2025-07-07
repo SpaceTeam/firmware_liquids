@@ -52,6 +52,7 @@ int GenericChannel::init()
 int GenericChannel::exec()
 {
     can.handleBufferedMessages();
+	can.sendOutstandingMessages();
     for (AbstractModule *module : modules)
 	{
 		if (module == nullptr)

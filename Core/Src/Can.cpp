@@ -72,7 +72,7 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
 		{ .value_id1 = id.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK },
 		{ .value_id1 = id2.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK } };
 
-		if (STRHAL_CAN_Subscribe(MAIN_CAN_BUS, STRHAL_FDCAN_RX0, mainFilter, 2, bufferingReceptor) != 2)
+		if (STRHAL_CAN_Subscribe(MAIN_CAN_BUS, STRHAL_FDCAN_RX0, mainFilter, 2, bufferingReceptor, transmissionCompletedReceptor) != 2)
 			return -1;
 	}
 	else if (mode == COMMode::LISTENER_COM_MODE)
@@ -121,7 +121,7 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
 		{ .value_id1 = id4.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK },
 		{ .value_id1 = id5.uint32, .mask_id2 = mask.uint32, .type = FDCAN_FILTER_MASK } };
 
-		if (STRHAL_CAN_Subscribe(MAIN_CAN_BUS, STRHAL_FDCAN_RX0, mainFilter, 4, receptor) != 4)
+		if (STRHAL_CAN_Subscribe(MAIN_CAN_BUS, STRHAL_FDCAN_RX0, mainFilter, 4, receptor, transmissionCompletedReceptor) != 4)
 			return -1;
 	}
 	else if (mode == COMMode::BRIDGE_COM_MODE)
@@ -130,10 +130,10 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
 		{
 		{ .value_id1 = 0x00, .mask_id2 = 0xFFFF, .type = FDCAN_FILTER_RANGE } };
 
-		if (STRHAL_CAN_Subscribe(STRHAL_FDCAN1, STRHAL_FDCAN_RX0, mainFilter, 1, Can::internalReceptor) != 1)
+		if (STRHAL_CAN_Subscribe(STRHAL_FDCAN1, STRHAL_FDCAN_RX0, mainFilter, 1, Can::internalReceptor, transmissionCompletedReceptor) != 1)
 			return -1;
 
-		if (STRHAL_CAN_Subscribe(STRHAL_FDCAN2, STRHAL_FDCAN_RX0, mainFilter, 1, Can::externalReceptor) != 1)
+		if (STRHAL_CAN_Subscribe(STRHAL_FDCAN2, STRHAL_FDCAN_RX0, mainFilter, 1, Can::externalReceptor, transmissionCompletedReceptor) != 1)
 			return -1;
 	}
 
@@ -150,8 +150,8 @@ int Can::exec()
 }
 
 void Can::handleBufferedMessages() {
-    while (!canBuf.isEmpty()) {
-        auto bufferedMsg = canBuf.pop();
+    while (!canRxBuf.isEmpty()) {
+        auto bufferedMsg = canRxBuf.pop();
         standardReceptor(std::get<0>(bufferedMsg).uint32, std::get<1>(bufferedMsg).uint8, std::get<2>(bufferedMsg));
     }
 }
@@ -248,9 +248,43 @@ void Can::externalReceptor(uint32_t id, uint8_t *data, uint32_t n)
 void Can::bufferingReceptor(uint32_t id, uint8_t *data, uint32_t n) {
     Can_MessageData_t msgData = {0};
     std::memcpy(msgData.uint8, data, 64);
-    canPtr->canBuf.push(std::tuple(
+    canPtr->canRxBuf.push(std::tuple(
             Can_MessageId_t{
                     .uint32 = id,
             },
             msgData, n));
+}
+
+void Can::sendBuffered(Can_MessageId_t msg_id, Can_MessageData_t msg_data, uint32_t n) {
+	sendOutstandingMessages(); // ensure we send any outstanding messages before sending new ones
+	if (!canTxBuf.isEmpty()) {
+		canTxBuf.push(std::tuple(msg_id, msg_data, n));
+		return; // buffer is not empty, do not send immediately
+	}
+	auto result = STRHAL_CAN_Send(MAIN_CAN_BUS, msg_id.uint32, msg_data.uint8, n);
+	if (result == -STRHAL_CAN_EFULL) {
+		canTxBuf.push(std::tuple(msg_id, msg_data, n));
+	}
+}
+
+volatile bool isSending = false;
+void Can::sendOutstandingMessages() {
+	if (isSending) {
+		return; // already sending, avoid re-entrancy
+	}
+	isSending = true;
+	// attempt to send all messages in the tx buffer
+	while (!canTxBuf.isEmpty()) {
+		auto bufferedMsg = canTxBuf.peek();
+		auto result = STRHAL_CAN_Send(MAIN_CAN_BUS, std::get<0>(bufferedMsg).uint32, std::get<1>(bufferedMsg).uint8, std::get<2>(bufferedMsg));
+		if (result == -STRHAL_CAN_EFULL) {
+			break; // buffer is full, stop sending
+		}
+		canTxBuf.pop(); // message sent successfully, remove from buffer
+	}
+	isSending = false; // reset sending state
+}
+
+void Can::transmissionCompletedReceptor() {
+	canPtr->sendOutstandingMessages();
 }

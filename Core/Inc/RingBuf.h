@@ -22,6 +22,10 @@ public:
         return value;
     }
 
+    const T& peek() const {
+        return buf[bufReadIndex];
+    }
+
     [[nodiscard]] bool isEmpty() const {
         return bufSize == 0;
     }

@@ -5,11 +5,11 @@
 
 GenericChannel* GenericChannel::gcPtr = nullptr; // necessary for static callbacks
 bool GenericChannel::loraActive = false;
-bool GenericChannel::lora_hf_enabled = false;
-uint16_t GenericChannel::lora_hf_timeout = 350;
-uint16_t GenericChannel::lora_lf_delay = 5000;
-uint64_t GenericChannel::lora_hf_enabled_time;
-uint16_t GenericChannel::lora_skip_counter = 0;
+bool GenericChannel::lora_high_speed_mode_enabled = true;
+uint16_t GenericChannel::lora_high_speed_duration = 15000;
+uint16_t GenericChannel::lora_low_speed_delay = 5000;
+uint64_t GenericChannel::lora_high_speed_enabled_time = STRHAL_Systick_GetTick();
+uint64_t GenericChannel::lora_send_time = STRHAL_Systick_GetTick();
 
 GenericChannel::GenericChannel(uint32_t nodeId, uint32_t firmwareVersion, uint32_t refreshDivider) :
 		AbstractChannel(CHANNEL_TYPE_NODE_GENERIC, GENERIC_CHANNEL_ID, refreshDivider), can(Can::instance(nodeId)), flash(W25Qxx_Flash::instance()), nodeId(nodeId), firmwareVersion(GIT_COMMIT_HASH_VALUE)
@@ -24,10 +24,6 @@ uint32_t GenericChannel::getNodeId() const
 
 int GenericChannel::init()
 {
-
-	lora_hf_enabled = false;
-	lora_hf_timeout = 350;
-	lora_lf_delay = 5000;
 	for (AbstractModule *module : modules)
 	{
 		if (module == nullptr)
@@ -66,9 +62,6 @@ int GenericChannel::exec()
 			continue;
 		if (channel->exec() != 0)
 			return -1;
-	}
-	if(STRHAL_Systick_GetTick() - lora_hf_enabled_time > lora_hf_timeout * 1000 && lora_hf_enabled){
-		lora_hf_enabled = false;
 	}
 	return 0;
 }
@@ -152,9 +145,10 @@ int GenericChannel::setVariable(uint8_t variableId, int32_t data)
 			{
 				setLoraActive(true);
 			}else{
-				lora_hf_enabled_time = STRHAL_Systick_GetTick();
-				lora_hf_enabled = true;
-				lora_hf_timeout = data;
+				lora_high_speed_enabled_time = STRHAL_Systick_GetTick();
+				lora_high_speed_duration = data*1000;
+				lora_high_speed_mode_enabled = true;
+				setLoraActive(true);
 			}
 			return 0;
 		default:
@@ -173,7 +167,7 @@ int GenericChannel::getVariable(uint8_t variableId, int32_t &data) const
 			data = (int32_t) loggingEnabled;
 			return 0;
 		case GENERIC_LORA_ENABLED:
-			if (lora_hf_enabled)
+			if (loraActive)
 				data = 1;
 			else
 				data = 0;
@@ -469,13 +463,22 @@ void GenericChannel::heartbeatLora()
 {
 	if (loraActive)
 	{
-		if(!lora_hf_enabled){
-			if(lora_skip_counter<10){
-				lora_skip_counter += 1;
-			}else{
-				LL_mDelay(lora_lf_delay);
+		if (lora_high_speed_mode_enabled)
+		{
+			// Check if it's time to disable high speed mode
+			if (STRHAL_Systick_GetTick() - lora_high_speed_enabled_time > lora_high_speed_duration)
+			{
+				lora_high_speed_mode_enabled = false;
 			}
 		}
+		else // Low speed mode
+		{
+			if (STRHAL_Systick_GetTick() - lora_send_time < lora_low_speed_delay)
+			{
+				return;
+			}
+		}
+		lora_send_time = STRHAL_Systick_GetTick();
 		Radio::send(0, Radio::msgArray, Radio::MSG_SIZE);
 	}
 	/*char buf[48] = { 0 };

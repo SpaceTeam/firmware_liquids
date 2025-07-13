@@ -222,7 +222,7 @@ int RCUv2::exec()
 		}
 		else
 		{
-			testGNSS();
+			//testGNSS();
 		}
 
 		if (GenericChannel::exec() != 0)
@@ -332,11 +332,11 @@ void RCUv2::startupBeep()
 
 void RCUv2::gnssBeep()
 {
-	beep(523,100,50);
-	beep(587,100,50);
-	beep(622,100,150);
-	//beep(932,400,100);
-	//beep(1046,100,100);
+	beep(523,150,50); //C
+	beep(587,300,50); //D
+	beep(660,300,50); //E
+	beep(880,300,00); //A
+	beep(784,600,50); //G
 	speaker.setPWM(500);
 }
 

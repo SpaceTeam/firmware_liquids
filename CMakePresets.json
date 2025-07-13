@@ -58,28 +58,28 @@
             }
         },
         {
-            "name": "debug (RCU_V2)",
+            "name": "debug_RCU_V2",
             "inherits": "RCU_V2",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
-            "name": "relWithDebInfo (RCU_V2)",
+            "name": "relWithDebInfo_RCU_V2",
             "inherits": "RCU_V2",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo"
             }
         },
         {
-            "name": "release (RCU_V2)",
+            "name": "release_RCU_V2",
             "inherits": "RCU_V2",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
         },
         {
-            "name": "minSizeRel (RCU_V2)",
+            "name": "minSizeRel_RCU_V2",
             "inherits": "RCU_V2",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "MinSizeRel"
@@ -104,20 +104,20 @@
             "configurePreset": "minSizeRel"
         },
         {
-            "name": "debug (RCU_V2)",
-            "configurePreset": "debug (RCU_V2)"
+            "name": "debug_RCU_V2",
+            "configurePreset": "debug_RCU_V2"
         },
         {
-            "name": "relWithDebInfo (RCU_V2)",
-            "configurePreset": "relWithDebInfo (RCU_V2)"
+            "name": "relWithDebInfo_RCU_V2",
+            "configurePreset": "relWithDebInfo_RCU_V2"
         },
         {
-            "name": "release (RCU_V2)",
-            "configurePreset": "release (RCU_V2)"
+            "name": "release_RCU_V2",
+            "configurePreset": "release_RCU_V2"
         },
         {
-            "name": "minSizeRel (RCU_V2)",
-            "configurePreset": "minSizeRel (RCU_V2)"
+            "name": "minSizeRel_RCU_V2",
+            "configurePreset": "minSizeRel_RCU_V2"
         }
     ]
 }

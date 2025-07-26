@@ -22,13 +22,13 @@ class Radio: public AbstractCom
 		static int send(uint32_t id, uint8_t *data, uint8_t n);
 
 		static constexpr uint8_t ENGINE_ECU_START_ADDR = 0;
-		static constexpr uint8_t ENGINE_ECU_MSG_SIZE = 49; //44 + 4 + 1
+		static constexpr uint8_t ENGINE_ECU_MSG_SIZE = 46; //44 + 4 + 1 OUTDATED
 		static constexpr uint8_t FUEL_ECU_START_ADDR = ENGINE_ECU_START_ADDR + ENGINE_ECU_MSG_SIZE;
-		static constexpr uint8_t FUEL_ECU_MSG_SIZE = 49; //44 + 4 + 1
+		static constexpr uint8_t FUEL_ECU_MSG_SIZE = 46; //44 + 4 + 1 OUTDATED
 		static constexpr uint8_t OX_ECU_START_ADDR = FUEL_ECU_START_ADDR + FUEL_ECU_MSG_SIZE;
-		static constexpr uint8_t OX_ECU_MSG_SIZE = 49; //44 + 4 + 1
+		static constexpr uint8_t OX_ECU_MSG_SIZE = 46; //44 + 4 + 1 OUTDATED
 		static constexpr uint8_t RCU_START_ADDR = OX_ECU_START_ADDR + FUEL_ECU_MSG_SIZE;
-		static constexpr uint8_t RCU_MSG_SIZE = 40;
+		static constexpr uint8_t RCU_MSG_SIZE = 43;
 		static constexpr uint32_t MSG_SIZE = ENGINE_ECU_MSG_SIZE + FUEL_ECU_MSG_SIZE + OX_ECU_MSG_SIZE + RCU_MSG_SIZE; //187
 		static uint8_t msgArray[MSG_SIZE];
 

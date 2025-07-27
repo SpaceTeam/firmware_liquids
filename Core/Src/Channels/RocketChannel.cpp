@@ -118,18 +118,10 @@ ROCKET_STATE RocketChannel::nextState(uint64_t time, uint64_t stateTime) const {
 		}
 		return RS_UNCHANGED;
 	case RS_IGNITION_OX_OPEN:
-		if (stateTime > 400) {
+		if (stateTime > 700) {
 			return RS_ABORT_IGNITION_TIMEOUT;
 		}
-		if (stateTime > 200) {
-			return RS_IGNITION_FUEL_PRESSURIZE;
-		}
-		return RS_UNCHANGED;
-	case RS_IGNITION_FUEL_PRESSURIZE:
 		if (stateTime > 500) {
-			return RS_ABORT_IGNITION_TIMEOUT;
-		}
-		if (stateTime > 10) {
 			return RS_IGNITION_FUEL_OPEN;
 		}
 		return RS_UNCHANGED;
@@ -137,7 +129,15 @@ ROCKET_STATE RocketChannel::nextState(uint64_t time, uint64_t stateTime) const {
 		if (stateTime > 700) {
 			return RS_ABORT_IGNITION_TIMEOUT;
 		}
+		if (stateTime > 270) {
+			return RS_IGNITION_FUEL_PRESSURIZE;
+		}
+		return RS_UNCHANGED;
+	case RS_IGNITION_FUEL_PRESSURIZE:
 		if (stateTime > 500) {
+			return RS_ABORT_IGNITION_TIMEOUT;
+		}
+		if (stateTime > 330) {
 			return RS_IGNITION_MAIN_OPEN;
 		}
 		return RS_UNCHANGED;
@@ -244,12 +244,12 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 	case RS_IGNITION_OX_OPEN: {
 		oxServoChannel.setTargetPos(32768); // 50%
 	} break;
-	case RS_IGNITION_FUEL_PRESSURIZE: {
-		sendRemoteCommand(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_INTERNAL_CONTROL);
-	} break;
 	case RS_IGNITION_FUEL_OPEN: {
 		fuelServoChannel.setTargetPos(32768); // 50%
 		timeSinceBothMainValvesOpen = time;
+	} break;
+	case RS_IGNITION_FUEL_PRESSURIZE: {
+		sendRemoteCommand(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_INTERNAL_CONTROL);
 	} break;
 	case RS_IGNITION_MAIN_OPEN: {
 		oxServoChannel.setTargetPos(65535);

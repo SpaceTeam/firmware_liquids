@@ -92,7 +92,7 @@ ROCKET_STATE RocketChannel::nextState(uint64_t time, uint64_t stateTime) const {
 		return RS_UNCHANGED;
 
 	case RS_IGNITION_INIT:
-		if (stateTime > 10000) {
+		if (stateTime > IGNITION_DELAY) {
 			return RS_IGNITION_IGNITE1;
 		}
 		return RS_UNCHANGED;
@@ -102,26 +102,46 @@ ROCKET_STATE RocketChannel::nextState(uint64_t time, uint64_t stateTime) const {
 		}
 		return RS_UNCHANGED;
 	case RS_IGNITION_IGNITE2:
-		if (stateTime > 1300) {
+		if (stateTime > 2200) {
+			return RS_ABORT_IGNITION_TIMEOUT;
+		}
+		if (stateTime > 2000) {
 			return RS_IGNITION_OX_PRESSURIZE;
 		}
 		return RS_UNCHANGED;
 	case RS_IGNITION_OX_PRESSURIZE:
-		if (stateTime > 200) {
+		if (stateTime > 500) {
+			return RS_ABORT_IGNITION_TIMEOUT;
+		}
+		if (stateTime > 10) {
 			return RS_IGNITION_OX_OPEN;
 		}
 		return RS_UNCHANGED;
 	case RS_IGNITION_OX_OPEN:
-		if (stateTime > 300) {
-			return RS_IGNITION_FUEL_PRESSURIZE;
+		if (stateTime > 700) {
+			return RS_ABORT_IGNITION_TIMEOUT;
 		}
-		return RS_UNCHANGED;
-	case RS_IGNITION_FUEL_PRESSURIZE:
-		if (stateTime > 200) {
+		if (stateTime > 500) {
 			return RS_IGNITION_FUEL_OPEN;
 		}
 		return RS_UNCHANGED;
 	case RS_IGNITION_FUEL_OPEN:
+		if (stateTime > 700) {
+			return RS_ABORT_IGNITION_TIMEOUT;
+		}
+		if (stateTime > 170) {
+			return RS_IGNITION_FUEL_PRESSURIZE;
+		}
+		return RS_UNCHANGED;
+	case RS_IGNITION_FUEL_PRESSURIZE:
+		if (stateTime > 500) {
+			return RS_ABORT_IGNITION_TIMEOUT;
+		}
+		if (stateTime > 330) {
+			return RS_IGNITION_MAIN_OPEN;
+		}
+		return RS_UNCHANGED;
+	case RS_IGNITION_MAIN_OPEN:
 		if (stateTime > HOLDDOWN_DELAY) {
 			return RS_IGNITION_IGNITER_OFF;
 		}
@@ -135,7 +155,7 @@ ROCKET_STATE RocketChannel::nextState(uint64_t time, uint64_t stateTime) const {
 				return RS_POWERED_ASCENT;
 			}
 		} else {
-			return RS_ABORT;
+			return RS_ABORT_HOLDDOWN;
 		}
 		return RS_UNCHANGED;
 
@@ -147,7 +167,7 @@ ROCKET_STATE RocketChannel::nextState(uint64_t time, uint64_t stateTime) const {
 		return RS_UNCHANGED;
 
 	case RS_UNPOWERED_ASCENT:
-		if (stateTime > 45000) {
+		if (stateTime > 15000) {
 			return RS_DEPRESSURIZE;
 		}
 		return RS_UNCHANGED;
@@ -174,7 +194,23 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 	} break;
 	case RS_ABORT: {
 		fuelServoChannel.setTargetPos(0);
-		piControlChannel.setEnabled(0);
+		oxServoChannel.setTargetPos(0);
+		sendRemoteCommand(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
+		sendRemoteCommand(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
+		(void) internalIgniter1Channel.setState(0);
+		(void) internalIgniter2Channel.setState(0);
+	} break;
+	case RS_ABORT_IGNITION_TIMEOUT: {
+		fuelServoChannel.setTargetPos(0);
+		oxServoChannel.setTargetPos(0);
+		sendRemoteCommand(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
+		sendRemoteCommand(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
+		(void) internalIgniter1Channel.setState(0);
+		(void) internalIgniter2Channel.setState(0);
+	} break;
+	case RS_ABORT_HOLDDOWN: {
+		fuelServoChannel.setTargetPos(0);
+		oxServoChannel.setTargetPos(0);
 		sendRemoteCommand(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
 		sendRemoteCommand(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
 		(void) internalIgniter1Channel.setState(0);
@@ -206,24 +242,28 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 		sendRemoteCommand(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_INTERNAL_CONTROL);
 	} break;
 	case RS_IGNITION_OX_OPEN: {
-		piControlChannel.setEnabled(1);
+		oxServoChannel.setTargetPos(32768); // 50%
+	} break;
+	case RS_IGNITION_FUEL_OPEN: {
+		fuelServoChannel.setTargetPos(32768); // 50%
+		timeSinceBothMainValvesOpen = time;
 	} break;
 	case RS_IGNITION_FUEL_PRESSURIZE: {
 		sendRemoteCommand(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_INTERNAL_CONTROL);
 	} break;
-	case RS_IGNITION_FUEL_OPEN: {
+	case RS_IGNITION_MAIN_OPEN: {
+		oxServoChannel.setTargetPos(65535);
 		fuelServoChannel.setTargetPos(65535);
-		timeSinceBothMainValvesOpen = time;
 	} break;
 	case RS_IGNITION_IGNITER_OFF: {
 		(void) internalIgniter1Channel.setState(0);
 		(void) internalIgniter2Channel.setState(0);
 	} break;
 	case RS_POWERED_ASCENT: {
-		can.SetRemoteVariable(DEVICE_ID_GSE_1_PNEU_HOLDDOWN, DIGITAL_OUT_STATE, 1);
+		can.SetRemoteVariable(DEVICE_ID_GSE_PNEU_1_HOLDDOWN, DIGITAL_OUT_STATE, 1);
 	} break;
 	case RS_UNPOWERED_ASCENT: {
-		piControlChannel.setEnabled(0);
+		oxServoChannel.setTargetPos(0);
 		can.SetRemoteVariable(DEVICE_ID_OX_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
 	} break;
 
@@ -281,12 +321,20 @@ ROCKET_STATE RocketChannel::nextState(uint64_t time, uint64_t stateTime) const {
 	case RS_INIT:
 		return RS_PAD_IDLE;
 	case RS_PRESSURIZE:
-		if (stateTime > 55000) {
-			return RS_ABORT;
+		if (stateTime > 35000) {
+			return RS_DEPRESSURIZE;
+		}
+		return RS_UNCHANGED;
+	case RS_DEPRESSURIZE:
+		if (stateTime > 500) {
+			return RS_PAD_IDLE;
 		}
 		return RS_UNCHANGED;
 	case RS_ABORT:
-		return RS_PAD_IDLE;
+		if (stateTime > 500) {
+			return RS_PAD_IDLE;
+		}
+		return RS_UNCHANGED;
 	default:
 		return RS_UNCHANGED;
 	}
@@ -307,8 +355,12 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 		ventValveChannel.setState(1);
 		piControlChannel.setEnabled(1);
 	} break;
+	case RS_DEPRESSURIZE: {
+		piControlChannel.setEnabled(0);
+		ventValveChannel.setState(0);
+	} break;
 	case RS_ABORT: {
-		piControlChannel.setEnabled(1);
+		piControlChannel.setEnabled(0);
 		ventValveChannel.setState(0);
 	} break;
 	default: break;
@@ -447,6 +499,8 @@ void RocketChannel::setRocketState(uint8_t *data, uint8_t &n)
 
 #if defined(IS_MAIN_ECU)
 	if ((state == RS_HOLDDOWN && requestedState == RS_POWERED_ASCENT)
+	||  (state == RS_ABORT_IGNITION_TIMEOUT && requestedState == RS_PAD_IDLE)
+	||  (state == RS_ABORT_HOLDDOWN && requestedState == RS_PAD_IDLE)
 	||  (state == RS_ABORT && requestedState == RS_PAD_IDLE))
 	{
 		stateOverride = requestedState;

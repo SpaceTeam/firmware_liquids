@@ -39,7 +39,11 @@ int IMUChannel::getSensorData(uint8_t *data, uint8_t &n)
 		uint16_t *out = (uint16_t*) (data + n);
 		uint16_t measurement = 0;
 		imu->getMeasurement(measurement, measurementType);
-		*out = measurement;
+
+		// apply bias before writing
+		uint16_t biased = (uint16_t)(measurement + 32768);
+
+		*out = biased;
 		n += ADC16_DATA_N_BYTES;
 		/*if (measurementType == IMUMeasurement::X_ACCEL)
 		{

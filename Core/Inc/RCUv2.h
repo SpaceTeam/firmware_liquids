@@ -13,7 +13,7 @@
 #include <Radio.h>
 #include <Channels/IMUChannel.h>
 #include "../Modules/W25Qxx_Flash.h"
-#include "../Modules/LoRa1276F30_Radio.h"
+#include "../Modules/SX1276.h"
 #include "../Modules/SAM_M8Q_GNSS.h"
 #include <Speaker.h>
 
@@ -29,9 +29,12 @@ class RCUv2: public GenericChannel
 		int init() override;
 		//int reset() override;
 		int exec() override;
-
 		void testIMU();
 		void testGNSS();
+		void beep(int frequency, int length, int delay);
+		void startupBeep();
+		void superMario();
+		void gnssBeep();
 
 	private:
 		STRHAL_GPIO_t led1, led2;
@@ -39,7 +42,7 @@ class RCUv2: public GenericChannel
 		// Modules
 		LPS25HB_Baro baro;
 		ICM2060x_IMU imu;
-		LoRa1276F30_Radio lora;
+		SX1276 lora;
 		SAM_M8Q_GNSS gnss;
 
 		// Channels
@@ -48,6 +51,7 @@ class RCUv2: public GenericChannel
 		IMUChannel x_accel, y_accel, z_accel, x_gyro, y_gyro, z_gyro;
 		Data32Channel gps_longitude, gps_latitude, gps_altitude, gps_status;
 		DigitalOutChannel out0, out1, out2, out3;
+
 		// Coms
 		Radio &radio;
 

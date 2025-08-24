@@ -155,7 +155,7 @@ ROCKET_STATE RocketChannel::nextState(uint64_t time, uint64_t stateTime) const {
 				return RS_POWERED_ASCENT;
 			}
 		} else {
-			return RS_ABORT_HOLDDOWN;
+			return RS_POWERED_ASCENT;
 		}
 		return RS_UNCHANGED;
 
@@ -246,7 +246,6 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 	} break;
 	case RS_IGNITION_FUEL_OPEN: {
 		fuelServoChannel.setTargetPos(32768); // 50%
-		timeSinceBothMainValvesOpen = time;
 	} break;
 	case RS_IGNITION_FUEL_PRESSURIZE: {
 		sendRemoteCommand(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL, ROCKET_REQ_INTERNAL_CONTROL);
@@ -258,6 +257,7 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 	case RS_IGNITION_IGNITER_OFF: {
 		(void) internalIgniter1Channel.setState(0);
 		(void) internalIgniter2Channel.setState(0);
+		timeSinceBothMainValvesOpen = time;
 	} break;
 	case RS_POWERED_ASCENT: {
 		can.SetRemoteVariable(DEVICE_ID_GSE_PNEU_1_HOLDDOWN, DIGITAL_OUT_STATE, 1);

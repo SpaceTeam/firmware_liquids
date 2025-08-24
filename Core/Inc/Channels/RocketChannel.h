@@ -47,7 +47,7 @@ class RocketChannel: public AbstractChannel
 		static constexpr uint16_t AUTO_CHECK_BAD_COUNT_MAX = 10;
 		
 		static constexpr uint16_t FLIGHT_BURN_TIME = 15000;
-		static constexpr uint16_t HOLDDOWN_DELAY = 500;
+		static constexpr uint16_t HOLDDOWN_DELAY = 200;
 		static constexpr uint16_t IGNITION_DELAY = 100;
 
 		ROCKET_STATE nextState(uint64_t time, uint64_t stateTime) const;
@@ -77,7 +77,7 @@ class RocketChannel: public AbstractChannel
 
 	    double sensor_slope = 0.01888275146;
 	    double sensor_offset = -15;
-		double chamberPressureMin = 9.5;
+		double chamberPressureMin = 12;
 		double fuelPressureMin = 0;
 		double oxPressureMin = 0;
 

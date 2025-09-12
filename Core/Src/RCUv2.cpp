@@ -37,7 +37,7 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 {
 	// set pointer to radio object for static callbacks, enable Lora
 	//GenericChannel::radioPtr = &radio; <- this might cause hardfault later on
-	setLoraActive(false); // has to be enabled by request TODO Change to false
+	setLoraActive(true); // has to be enabled by request TODO Change to false
 
 	registerChannel(&sense_5V);
 	registerChannel(&sense_12V);
@@ -81,7 +81,7 @@ int RCUv2::init()
 	lora_settings.spreadingFactor = 10;
 	lora_settings.syncword = 0xE4;
 	lora_settings.txPower = 17;
-	lora_settings.messageSize = 187;
+	lora_settings.messageSize = Radio::MSG_SIZE;
 
 	if (STRHAL_Init(STRHAL_SYSCLK_SRC_EXT, 8000000) != STRHAL_NOICE)
 		return -1;

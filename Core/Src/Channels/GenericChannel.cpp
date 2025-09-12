@@ -346,7 +346,7 @@ void GenericChannel::receptorLora(uint32_t id, uint8_t *data, uint32_t n)
 		}
 		return;
 	}
-	else if (nodeid == NODE_ID_LAMARR_FUEL_ECU)
+	else if (nodeid == NODE_ID_LAMARR_OX_ECU)
 	{
 		if (loraActive)
 		{

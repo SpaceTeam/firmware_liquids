@@ -36,6 +36,13 @@ int RocketChannel::reset() {
 }
 
 int RocketChannel::exec() {
+	#if defined(IS_NOT_MAIN_ECU)
+		if(fuelPressureMin>0){
+			if(fuelPressureChannel.getMeasurement() > fuelPressureMin) {
+				ventValveChannel.setState(0);
+			}
+		}
+    #endif
 	uint64_t time = STRHAL_Systick_GetTick();
 	if ((time - timeLastSample) < EXEC_SAMPLE_TICKS) {
 		return 0;

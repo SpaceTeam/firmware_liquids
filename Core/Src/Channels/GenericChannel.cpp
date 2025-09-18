@@ -6,8 +6,8 @@
 GenericChannel* GenericChannel::gcPtr = nullptr; // necessary for static callbacks
 bool GenericChannel::loraActive = false;
 bool GenericChannel::lora_high_speed_mode_enabled = true;
-uint16_t GenericChannel::lora_high_speed_duration = 15000;
-uint16_t GenericChannel::lora_low_speed_delay = 5000;
+uint64_t GenericChannel::lora_high_speed_duration = 15000;
+uint64_t GenericChannel::lora_low_speed_delay = 5000;
 uint64_t GenericChannel::lora_high_speed_enabled_time = STRHAL_Systick_GetTick();
 uint64_t GenericChannel::lora_send_time = STRHAL_Systick_GetTick();
 

@@ -64,8 +64,8 @@ class GenericChannel: public AbstractChannel
 		uint8_t loggingEnabled = 0;
 		uint8_t moduleIndex = 0;
 		static bool lora_high_speed_mode_enabled;
-		static uint16_t lora_high_speed_duration;
-		static uint16_t lora_low_speed_delay;
+		static uint64_t lora_high_speed_duration;
+		static uint64_t lora_low_speed_delay;
 		static uint64_t lora_high_speed_enabled_time;
 		static uint64_t lora_send_time;
 };

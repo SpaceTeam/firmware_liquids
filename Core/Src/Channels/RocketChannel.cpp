@@ -37,12 +37,15 @@ int RocketChannel::reset() {
 
 int RocketChannel::exec() {
 	#if defined(IS_NOT_MAIN_ECU)
-		if(fuelPressureMin>0){
-			if(fuelPressureChannel.getMeasurement() > fuelPressureMin) {
+		if(tankPressureMax>0){
+			//For Not main ECU's (Fuel/Ox ECU), the fuelPressurChannel is the tank pressure sensor
+            //If the tank pressure exceeds the max allowed value, open the vent valve
+			if(fuelPressureChannel.getMeasurement() > tankPressureMax) {
 				ventValveChannel.setState(0);
 			}
 		}
     #endif
+
 	uint64_t time = STRHAL_Systick_GetTick();
 	if ((time - timeLastSample) < EXEC_SAMPLE_TICKS) {
 		return 0;
@@ -476,7 +479,10 @@ int RocketChannel::setVariable(uint8_t variableId, int32_t data) {
 	case ROCKET_HOLDDOWN_TIMEOUT:
 		holdDownTimeout = data;
 		return 0;
-	case ROCKET_GSE_CONNECTION_ABORT_ENABLED:
+    case ROCKET_MAXIMUM_TANK_PRESSURE: // Only for Not Main ECU's (Fuel/Ox ECU)
+		tankPressureMax = (double) data / 1000.0;
+		return 0;
+    case ROCKET_GSE_CONNECTION_ABORT_ENABLED:
 		gse_connection_abort_enabled = data;
 		return 0;
 	case ROCKET_GSE_CONNECTION_ABORT_POLL_VARIABLE:

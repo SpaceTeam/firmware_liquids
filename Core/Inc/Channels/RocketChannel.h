@@ -80,6 +80,7 @@ class RocketChannel: public AbstractChannel
 		double chamberPressureMin = 12;
 		double fuelPressureMin = 0;
 		double oxPressureMin = 0;
+		double tankPressureMax = 0;
 
 		uint16_t chamberPressureLowCounter = 0;
 		uint16_t chamberPressureGoodCounter = 0;

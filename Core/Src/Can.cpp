@@ -109,9 +109,9 @@ int Can::init(Com_Receptor_t receptor, Com_Heartbeat_t heartbeat, COMMode mode)
 
 		Can_MessageId_t id5 =
 		{ 0 };
-		id4.info.direction = NODE2MASTER_DIRECTION;
-		id4.info.special_cmd = STANDARD_SPECIAL_CMD;
-		id4.info.node_id = NODE_ID_LAMARR_OX_ECU;
+		id5.info.direction = NODE2MASTER_DIRECTION;
+		id5.info.special_cmd = STANDARD_SPECIAL_CMD;
+		id5.info.node_id = NODE_ID_LAMARR_OX_ECU;
 
 		STRHAL_FDCAN_Filter_t mainFilter[] =
 		{

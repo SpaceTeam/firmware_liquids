@@ -517,6 +517,9 @@ int RocketChannel::getVariable(uint8_t variableId, int32_t &data) const {
 	case ROCKET_HOLDDOWN_TIMEOUT:
 		data = (int32_t) holdDownTimeout;
 		return 0;
+	case ROCKET_MAXIMUM_TANK_PRESSURE: // Only for Not Main ECU's (Fuel/Ox ECU)
+		data = (int32_t) (tankPressureMax * 1000);
+		return 0;
 	case ROCKET_GSE_CONNECTION_ABORT_ENABLED:
 		data = (int32_t) gse_connection_abort_enabled;
 		return 0;

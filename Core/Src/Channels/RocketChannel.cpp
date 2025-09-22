@@ -40,7 +40,7 @@ int RocketChannel::exec() {
 		if(tankPressureMax>0){
 			//For Not main ECU's (Fuel/Ox ECU), the fuelPressurChannel is the tank pressure sensor
             //If the tank pressure exceeds the max allowed value, open the vent valve
-			if(fuelPressureChannel.getMeasurement() > tankPressureMax) {
+			if(getSensorReading(fuelPressureChannel) > tankPressureMax) {
 				ventValveChannel.setState(0);
 			}
 		}

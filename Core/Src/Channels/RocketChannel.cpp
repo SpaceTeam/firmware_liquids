@@ -32,6 +32,7 @@ int RocketChannel::reset() {
 	chamberPressureLowCounter = 0;
 	chamberPressureGoodCounter = 0;
 	tankPressureMax = 0;
+	tankPressureHighCounter = 
 	autoCheckBadCounter = 0;
 	return 0;
 }

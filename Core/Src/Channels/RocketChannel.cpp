@@ -32,7 +32,7 @@ int RocketChannel::reset() {
 	chamberPressureLowCounter = 0;
 	chamberPressureGoodCounter = 0;
 	tankPressureMax = 0;
-	tankPressureHighCounter = 
+	tankPressureHighCounter = 0;
 	autoCheckBadCounter = 0;
 	return 0;
 }
@@ -42,8 +42,17 @@ int RocketChannel::exec() {
 		if(tankPressureMax>0){
 			//For Not main ECU's (Fuel/Ox ECU), the fuelPressurChannel is the tank pressure sensor
             //If the tank pressure exceeds the max allowed value, open the vent valve
-			if(getSensorReading(fuelPressureChannel) > tankPressureMax) {
+			if(getSensorReading(fuelPressureChannel) < tankPressureMax && tankPressureHighCounter > 0) {
+				tankPressureHighCounter--;
+			}else{
+				tankPressureHighCounter++;
+			}
+
+			if(tankPressureHighCounter > 50) {
 				ventValveChannel.setState(0);
+			}
+			if(tankPressureHighCounter > 5000) {
+				tankPressureHighCounter = 51;
 			}
 		}
     #endif

@@ -362,6 +362,8 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 	case RS_ABORT: {
 		piControlChannel.setEnabled(0);
 		ventValveChannel.setState(0);
+		internalIgniter1Channel.setState(0);
+		internalIgniter2Channel.setState(0);
 	} break;
 	default: break;
 	}

@@ -322,7 +322,7 @@ ROCKET_STATE RocketChannel::nextState(uint64_t time, uint64_t stateTime) const {
 	case RS_INIT:
 		return RS_PAD_IDLE;
 	case RS_PRESSURIZE:
-		if (stateTime > 35000) {
+		if (stateTime > 55000) {
 			return RS_DEPRESSURIZE;
 		}
 		return RS_UNCHANGED;

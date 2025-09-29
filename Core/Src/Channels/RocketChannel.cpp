@@ -155,7 +155,7 @@ ROCKET_STATE RocketChannel::nextState(uint64_t time, uint64_t stateTime) const {
 				return RS_POWERED_ASCENT;
 			}
 		} else {
-			return RS_POWERED_ASCENT;
+			return RS_ABORT_HOLDDOWN;
 		}
 		return RS_UNCHANGED;
 

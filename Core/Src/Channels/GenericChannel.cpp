@@ -480,6 +480,7 @@ void GenericChannel::heartbeatLora()
 		}
 		lora_send_time = STRHAL_Systick_GetTick();
 		Radio::send(0, Radio::msgArray, Radio::MSG_SIZE);
+		memset(Radio::msgArray, 0, Radio::MSG_SIZE);
 	}
 	/*char buf[48] = { 0 };
 	memcpy(buf, Radio::msgArray, Radio::MSG_SIZE);

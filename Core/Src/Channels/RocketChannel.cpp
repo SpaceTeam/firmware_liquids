@@ -199,6 +199,8 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 		sendRemoteCommand(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
 		(void) internalIgniter1Channel.setState(0);
 		(void) internalIgniter2Channel.setState(0);
+		can.SetRemoteVariable(DEVICE_ID_RCU_CAM_2, DIGITAL_OUT_STATE, 0);
+		can.SetRemoteVariable(DEVICE_ID_RCU_CAM_1, DIGITAL_OUT_STATE, 0);
 	} break;
 	case RS_ABORT_IGNITION_TIMEOUT: {
 		fuelServoChannel.setTargetPos(0);
@@ -207,6 +209,8 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 		sendRemoteCommand(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
 		(void) internalIgniter1Channel.setState(0);
 		(void) internalIgniter2Channel.setState(0);
+		can.SetRemoteVariable(DEVICE_ID_RCU_CAM_2, DIGITAL_OUT_STATE, 0);
+		can.SetRemoteVariable(DEVICE_ID_RCU_CAM_1, DIGITAL_OUT_STATE, 0);
 	} break;
 	case RS_ABORT_HOLDDOWN: {
 		fuelServoChannel.setTargetPos(0);
@@ -215,6 +219,8 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 		sendRemoteCommand(DEVICE_ID_OX_ECU_ROCKET_CHANNEL, ROCKET_REQ_ABORT);
 		(void) internalIgniter1Channel.setState(0);
 		(void) internalIgniter2Channel.setState(0);
+		can.SetRemoteVariable(DEVICE_ID_RCU_CAM_2, DIGITAL_OUT_STATE, 0);
+		can.SetRemoteVariable(DEVICE_ID_RCU_CAM_1, DIGITAL_OUT_STATE, 0);
 	} break;
 
 	case RS_IGNITION_INIT: {
@@ -228,6 +234,7 @@ void RocketChannel::stateEnter(ROCKET_STATE state, uint64_t time) {
 		can.SetRemoteVariable(DEVICE_ID_OX_ECU_PRESSURE_CONTROLLER, PI_CONTROL_ENABLED, 0);
 		can.SetRemoteVariable(DEVICE_ID_RCU_CAM_2, DIGITAL_OUT_STATE, 1);
 		can.SetRemoteVariable(DEVICE_ID_RCU_CAM_1, DIGITAL_OUT_STATE, 1);
+		can.SetRemoteVariable(DEVICE_ID_RCU_GENERIC_CHANNEL, GENERIC_LORA_ENABLED, 300);
 
 		can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_VENT_VALVE, DIGITAL_OUT_STATE, 1);
 		can.SetRemoteVariable(DEVICE_ID_OX_ECU_VENT_VALVE, DIGITAL_OUT_STATE, 1);

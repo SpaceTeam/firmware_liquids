@@ -131,6 +131,13 @@ int ECU_Lamarr::exec()
 		//testServo(servo_0);
 		//testChannels();
 		//detectReadoutMode();
+#if LAMARR_ECU_NODE_ID == NODE_ID_LAMARR_GSE_PNEU_2
+		uint64_t time = STRHAL_Systick_GetTick();
+		if (time - timeWhenLastPingSent > 1000 ) {
+			timeWhenLastPingSent = time;
+			can.SetRemoteVariable(DEVICE_ID_ENGINE_ECU_ROCKET_CHANNEL,ROCKET_GSE_CONNECTION_ABORT_POLL_VARIABLE,1);
+		}
+#endif
 #ifdef UART_DEBUG
 
 		uint8_t tempBuf[64] =

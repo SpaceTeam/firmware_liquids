@@ -59,6 +59,8 @@ class ECU_Lamarr: public GenericChannel
 		Speaker speaker;
 		//Modules
 		MAX31865_Temp max_temp_0, max_temp_1;
+
+		uint64_t timeWhenLastPingSent = 0;
 };
 
 #endif /*ECU_LAMARR_H*/

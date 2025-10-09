@@ -50,6 +50,8 @@ class RocketChannel: public AbstractChannel
 		static constexpr uint16_t HOLDDOWN_DELAY = 200;
 		static constexpr uint16_t IGNITION_DELAY = 100;
 
+		static constexpr u_int32_t GSE_CONNECTION_ABORT_MESSAGE_TIMEOUT = 300000;
+
 		ROCKET_STATE nextState(uint64_t time, uint64_t stateTime) const;
 		void stateEnter(ROCKET_STATE state, uint64_t time);
 		void stateExit(ROCKET_STATE state, uint64_t time);
@@ -88,6 +90,11 @@ class RocketChannel: public AbstractChannel
 		uint64_t timeLastSample = 0;
 		uint64_t timeLastTransition = 0;
 		uint64_t timeSinceBothMainValvesOpen = 0;
+
+		bool gse_connection_abort_enabled = false;
+		uint64_t timeLastGSEConnectionMessage = 0;
+
+
 };
 
 #endif /*ADCCHANNEL_H*/

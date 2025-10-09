@@ -44,6 +44,14 @@ int RocketChannel::exec() {
 
 	uint64_t stateTime = time - timeLastTransition;
 
+#ifdef IS_MAIN_ECU
+	//ACHTUNG! euroc Pfush!! bitte danach entfernen <3
+	if (gse_connection_abort_enabled && state == RS_PAD_IDLE) {
+			if (time - timeLastGSEConnectionMessage > GSE_CONNECTION_ABORT_MESSAGE_TIMEOUT) {
+				stateOverride = RS_ABORT;
+			}
+	}
+#endif
 	// An external state override always takes precedence over any internal state transitions.
 	// If there is no external override, the next state is computed internally via nextState.
 	ROCKET_STATE newState;
@@ -460,6 +468,13 @@ int RocketChannel::setVariable(uint8_t variableId, int32_t data) {
 	case ROCKET_HOLDDOWN_TIMEOUT:
 		holdDownTimeout = data;
 		return 0;
+	case ROCKET_GSE_CONNECTION_ABORT_ENABLED:
+		gse_connection_abort_enabled = data;
+		return 0;
+	case ROCKET_GSE_CONNECTION_ABORT_POLL_VARIABLE:
+		if (data ==1) {
+			timeLastGSEConnectionMessage = STRHAL_Systick_GetTick();
+		}
 	default:
 		return -1;
 	}
@@ -488,6 +503,11 @@ int RocketChannel::getVariable(uint8_t variableId, int32_t &data) const {
 	case ROCKET_HOLDDOWN_TIMEOUT:
 		data = (int32_t) holdDownTimeout;
 		return 0;
+	case ROCKET_GSE_CONNECTION_ABORT_ENABLED:
+		data = (int32_t) gse_connection_abort_enabled;
+		return 0;
+	case ROCKET_GSE_CONNECTION_ABORT_TIMER:
+		data = (int32_t)(STRHAL_Systick_GetTick()-timeLastGSEConnectionMessage);
 	default:
 		return -1;
 	}

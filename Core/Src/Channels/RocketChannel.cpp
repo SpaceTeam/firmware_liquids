@@ -69,7 +69,7 @@ int RocketChannel::exec() {
 	stateDo(state, time, stateTime);
 
 	// Beep if we are in the abort state
-	beepForAbortState();
+	beepForAbortState(time);
 
 	return 0;
 }
@@ -543,12 +543,12 @@ double RocketChannel::getSensorReading(const ADCChannel &sensor_channel) const {
 	return ((double) data * sensor_slope + sensor_offset);
 }
 
-void RocketChannel::beepForAbortState() {
+void RocketChannel::beepForAbortState(uint64_t current_time) {
 	if (state == ROCKET_STATE::RS_ABORT) {
 		// 500ms beeps, every 3s.
 		uint64_t toggleDuration = isBeepForAbortStateOn ? 500 : 2500;
-		if (STRHAL_Systick_GetTick() - beepForAbortStateOnOffChangedAt > toggleDuration) {
-			beepForAbortStateOnOffChangedAt = STRHAL_Systick_GetTick();
+		if (current_time - beepForAbortStateOnOffChangedAt > toggleDuration) {
+			beepForAbortStateOnOffChangedAt = current_time;
 			isBeepForAbortStateOn = !isBeepForAbortStateOn;
 			speaker.enable(isBeepForAbortStateOn);
 		}

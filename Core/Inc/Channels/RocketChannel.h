@@ -62,7 +62,7 @@ class RocketChannel: public AbstractChannel
 		void sendRemoteCommand(DeviceIds device_id, ROCKET_CMDs command);
 		double getSensorReading(const ADCChannel &sensor_channel) const;
 
-		void beepForAbortState();
+		void beepForAbortState(uint64_t current_time);
 
 		const ADCChannel &fuelPressureChannel;
 		const ADCChannel &oxPressureChannel;

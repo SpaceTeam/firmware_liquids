@@ -506,6 +506,8 @@ int RocketChannel::getVariable(uint8_t variableId, int32_t &data) const {
 	case ROCKET_GSE_CONNECTION_ABORT_ENABLED:
 		data = (int32_t) gse_connection_abort_enabled;
 		return 0;
+	case ROCKET_GSE_CONNECTION_ABORT_TIMER:
+		data = (int32_t)(STRHAL_Systick_GetTick()-timeLastGSEConnectionMessage);
 	default:
 		return -1;
 	}

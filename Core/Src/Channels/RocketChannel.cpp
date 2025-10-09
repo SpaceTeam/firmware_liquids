@@ -6,14 +6,14 @@ RocketChannel::RocketChannel(
 	uint8_t id, const ADCChannel &fuelPressureChannel, const ADCChannel &oxPressureChannel,
 	const ADCChannel &chamberPressureChannel, ServoChannel &fuelServoChannel,
 	ServoChannel &oxServoChannel, PIControlChannel &piControlChannel, PyroChannel &internalIgniter1Channel,
-	PyroChannel &internalIgniter2Channel, PyroChannel &ventValveChannel, uint32_t refreshDivider
+	PyroChannel &internalIgniter2Channel, PyroChannel &ventValveChannel, Speaker &speaker, uint32_t refreshDivider
 ) :
 	AbstractChannel(CHANNEL_TYPE_ROCKET, id, refreshDivider),
 	fuelPressureChannel(fuelPressureChannel), oxPressureChannel(oxPressureChannel),
 	chamberPressureChannel(chamberPressureChannel), fuelServoChannel(fuelServoChannel),
 	oxServoChannel(oxServoChannel), piControlChannel(piControlChannel),
 	internalIgniter1Channel(internalIgniter1Channel), internalIgniter2Channel(internalIgniter2Channel),
-	ventValveChannel(ventValveChannel), state(RS_INIT), stateOverride(RS_UNCHANGED),
+	ventValveChannel(ventValveChannel), speaker(speaker), state(RS_INIT), stateOverride(RS_UNCHANGED),
 	can(Can::instance(0))
 {
 }
@@ -67,6 +67,9 @@ int RocketChannel::exec() {
 	// In any case, the do action of the current state after any possible state transitions
 	// is performed.
 	stateDo(state, time, stateTime);
+
+	// Beep if we are in the abort state
+	beepForAbortState();
 
 	return 0;
 }
@@ -538,4 +541,20 @@ void RocketChannel::sendRemoteCommand(DeviceIds device_id, ROCKET_CMDs command) 
 double RocketChannel::getSensorReading(const ADCChannel &sensor_channel) const {
 	uint16_t data = sensor_channel.getMeasurement();
 	return ((double) data * sensor_slope + sensor_offset);
+}
+
+void RocketChannel::beepForAbortState() {
+	if (state == ROCKET_STATE::RS_ABORT) {
+		// 500ms beeps, every 3s.
+		uint64_t toggleDuration = isBeepForAbortStateOn ? 500 : 2500;
+		if (STRHAL_Systick_GetTick() - beepForAbortStateOnOffChangedAt > toggleDuration) {
+			beepForAbortStateOnOffChangedAt = STRHAL_Systick_GetTick();
+			isBeepForAbortStateOn = !isBeepForAbortStateOn;
+			speaker.enable(isBeepForAbortStateOn);
+		}
+	} else {
+		isBeepForAbortStateOn = false;
+		beepForAbortStateOnOffChangedAt = 0;
+		speaker.enable(false);
+	}
 }

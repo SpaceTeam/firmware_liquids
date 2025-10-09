@@ -11,6 +11,7 @@
 #include <STRHAL_UART.h>
 #include <cstring>
 #include <cstdio>
+#include <Speaker.h>
 
 class RocketChannel: public AbstractChannel
 {
@@ -20,6 +21,7 @@ class RocketChannel: public AbstractChannel
 			const ADCChannel &chamberPressureChannel, ServoChannel &fuelServoChannel, ServoChannel &oxServoChannel,
 			PIControlChannel &piControlChannel, PyroChannel &internalIgniter1Channel,
 			PyroChannel &internalIgniter2Channel, PyroChannel &ventValveChannel,
+			Speaker &speaker,
 			uint32_t refreshDivider
 		);
 		RocketChannel(const RocketChannel &other) = delete;
@@ -60,6 +62,8 @@ class RocketChannel: public AbstractChannel
 		void sendRemoteCommand(DeviceIds device_id, ROCKET_CMDs command);
 		double getSensorReading(const ADCChannel &sensor_channel) const;
 
+		void beepForAbortState();
+
 		const ADCChannel &fuelPressureChannel;
 		const ADCChannel &oxPressureChannel;
 		const ADCChannel &chamberPressureChannel;
@@ -69,6 +73,8 @@ class RocketChannel: public AbstractChannel
 		PyroChannel &internalIgniter1Channel;
 		PyroChannel &internalIgniter2Channel;
 		PyroChannel &ventValveChannel;
+
+		Speaker &speaker;
 
 		ROCKET_STATE state;
 		ROCKET_STATE stateOverride;
@@ -88,6 +94,11 @@ class RocketChannel: public AbstractChannel
 		uint64_t timeLastSample = 0;
 		uint64_t timeLastTransition = 0;
 		uint64_t timeSinceBothMainValvesOpen = 0;
+		
+		// Whether we are currently emitting sound due to us being in the abort state.
+		bool isBeepForAbortStateOn = false;
+		// When we last changed whether we are beeping or not beeping while in the abort state.
+		uint64_t beepForAbortStateOnOffChangedAt = 0;
 };
 
-#endif /*ADCCHANNEL_H*/
+#endif /*ROCKETCHANNEL_H*/

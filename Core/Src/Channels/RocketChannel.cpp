@@ -45,6 +45,7 @@ int RocketChannel::exec() {
 	uint64_t stateTime = time - timeLastTransition;
 
 #ifdef IS_MAIN_ECU
+	//ACHTUNG! euroc Pfush!! bitte danach entfernen <3
 	if (gse_connection_abort_enabled && state == RS_PAD_IDLE) {
 			if (time - timeLastGSEConnectionMessage > GSE_CONNECTION_ABORT_MESSAGE_TIMEOUT) {
 				stateOverride = RS_ABORT;

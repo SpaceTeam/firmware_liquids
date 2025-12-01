@@ -6,14 +6,14 @@ RocketChannel::RocketChannel(
 	uint8_t id, const ADCChannel &fuelPressureChannel, const ADCChannel &oxPressureChannel,
 	const ADCChannel &chamberPressureChannel, ServoChannel &fuelServoChannel,
 	ServoChannel &oxServoChannel, PIControlChannel &piControlChannel, PyroChannel &internalIgniter1Channel,
-	PyroChannel &internalIgniter2Channel, PyroChannel &ventValveChannel, uint32_t refreshDivider
+	PyroChannel &internalIgniter2Channel, PyroChannel &ventValveChannel, Speaker &speaker, uint32_t refreshDivider
 ) :
 	AbstractChannel(CHANNEL_TYPE_ROCKET, id, refreshDivider),
 	fuelPressureChannel(fuelPressureChannel), oxPressureChannel(oxPressureChannel),
 	chamberPressureChannel(chamberPressureChannel), fuelServoChannel(fuelServoChannel),
 	oxServoChannel(oxServoChannel), piControlChannel(piControlChannel),
 	internalIgniter1Channel(internalIgniter1Channel), internalIgniter2Channel(internalIgniter2Channel),
-	ventValveChannel(ventValveChannel), state(RS_INIT), stateOverride(RS_UNCHANGED),
+	ventValveChannel(ventValveChannel), speaker(speaker), state(RS_INIT), stateOverride(RS_UNCHANGED),
 	can(Can::instance(0))
 {
 }
@@ -44,6 +44,12 @@ int RocketChannel::exec() {
 
 	uint64_t stateTime = time - timeLastTransition;
 
+	//ACHTUNG! euroc Pfush!! bitte danach entfernen <3
+	if (gse_connection_abort_enabled && state == RS_PAD_IDLE) {
+			if (time - timeLastGSEConnectionMessage > GSE_CONNECTION_ABORT_MESSAGE_TIMEOUT) {
+				stateOverride = RS_ABORT;
+			}
+	}
 	// An external state override always takes precedence over any internal state transitions.
 	// If there is no external override, the next state is computed internally via nextState.
 	ROCKET_STATE newState;
@@ -67,6 +73,9 @@ int RocketChannel::exec() {
 	// In any case, the do action of the current state after any possible state transitions
 	// is performed.
 	stateDo(state, time, stateTime);
+
+	// Beep if we are in the abort state
+	beepForAbortState(time);
 
 	return 0;
 }
@@ -460,6 +469,13 @@ int RocketChannel::setVariable(uint8_t variableId, int32_t data) {
 	case ROCKET_HOLDDOWN_TIMEOUT:
 		holdDownTimeout = data;
 		return 0;
+	case ROCKET_GSE_CONNECTION_ABORT_ENABLED:
+		gse_connection_abort_enabled = data;
+		return 0;
+	case ROCKET_GSE_CONNECTION_ABORT_POLL_VARIABLE:
+		if (data ==1) {
+			timeLastGSEConnectionMessage = STRHAL_Systick_GetTick();
+		}
 	default:
 		return -1;
 	}
@@ -488,6 +504,11 @@ int RocketChannel::getVariable(uint8_t variableId, int32_t &data) const {
 	case ROCKET_HOLDDOWN_TIMEOUT:
 		data = (int32_t) holdDownTimeout;
 		return 0;
+	case ROCKET_GSE_CONNECTION_ABORT_ENABLED:
+		data = (int32_t) gse_connection_abort_enabled;
+		return 0;
+	case ROCKET_GSE_CONNECTION_ABORT_TIMER:
+		data = (int32_t)(STRHAL_Systick_GetTick()-timeLastGSEConnectionMessage);
 	default:
 		return -1;
 	}
@@ -538,4 +559,20 @@ void RocketChannel::sendRemoteCommand(DeviceIds device_id, ROCKET_CMDs command) 
 double RocketChannel::getSensorReading(const ADCChannel &sensor_channel) const {
 	uint16_t data = sensor_channel.getMeasurement();
 	return ((double) data * sensor_slope + sensor_offset);
+}
+
+void RocketChannel::beepForAbortState(uint64_t current_time) {
+	if (state == ROCKET_STATE::RS_ABORT) {
+		// 500ms beeps, every 3s.
+		uint64_t toggleDuration = isBeepForAbortStateOn ? 500 : 2500;
+		if (current_time - beepForAbortStateOnOffChangedAt > toggleDuration) {
+			beepForAbortStateOnOffChangedAt = current_time;
+			isBeepForAbortStateOn = !isBeepForAbortStateOn;
+			speaker.enable(isBeepForAbortStateOn);
+		}
+	} else {
+		isBeepForAbortStateOn = false;
+		beepForAbortStateOnOffChangedAt = 0;
+		speaker.enable(false);
+	}
 }

@@ -36,7 +36,7 @@ pyro_igniter3(ECU_LAMARR_IGNITER3, { ADC1, STRHAL_ADC_CHANNEL_9 }, { GPIOD, 2, S
 #endif
 //pressure_control(16, (GenericChannel&)*this, 1, solenoid_0, 1),
 
-rocket(ECU_LAMARR_ROCKET, press_0, press_1, press_2, servo_0, servo_1, pi_control, pyro_igniter1, pyro_igniter2, pyro_igniter0, 1),
+rocket(ECU_LAMARR_ROCKET, press_0, press_1, press_2, servo_0, servo_1, pi_control, pyro_igniter1, pyro_igniter2, pyro_igniter0, speaker, 1),
 sense_5V(ECU_LAMARR_SENSE_5V, { ADC4, STRHAL_ADC_CHANNEL_12 }, 1),
 sense_12V(ECU_LAMARR_SENSE_12V, { ADC4, STRHAL_ADC_CHANNEL_13 }, 1),
 sense_12VA(ECU_LAMARR_SENSE_12VA, { ADC4, STRHAL_ADC_CHANNEL_4 }, 1),
@@ -131,6 +131,15 @@ int ECU_Lamarr::exec()
 		//testServo(servo_0);
 		//testChannels();
 		//detectReadoutMode();
+#if LAMARR_ECU_NODE_ID == NODE_ID_LAMARR_GSE_PNEU_2
+		uint64_t time = STRHAL_Systick_GetTick();
+		if (time - timeWhenLastPingSent > 1000 ) {
+			timeWhenLastPingSent = time;
+			can.SetRemoteVariable(DEVICE_ID_ENGINE_ECU_ROCKET_CHANNEL,ROCKET_GSE_CONNECTION_ABORT_POLL_VARIABLE,1);
+			can.SetRemoteVariable(DEVICE_ID_FUEL_ECU_ROCKET_CHANNEL,ROCKET_GSE_CONNECTION_ABORT_POLL_VARIABLE,1);
+			can.SetRemoteVariable(DEVICE_ID_OX_ECU_ROCKET_CHANNEL,ROCKET_GSE_CONNECTION_ABORT_POLL_VARIABLE,1);
+		}
+#endif
 #ifdef UART_DEBUG
 
 		uint8_t tempBuf[64] =

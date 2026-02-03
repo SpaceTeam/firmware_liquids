@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <cstdio>
+#include <cmath>
 
 LPS25HB_Baro::LPS25HB_Baro(const STRHAL_SPI_Id_t &spiId, const STRHAL_SPI_Config_t &spiConf, const STRHAL_GPIO_t &dataReadyPin) :
 		spiId(spiId), spiConf(spiConf), dataReadyPin(dataReadyPin)
@@ -153,18 +154,55 @@ int LPS25HB_Baro::read()
 	//measDataNum++;
 	//measDataNum %= BUF_DATA_SIZE;
 
+
+	uint64_t now = STRHAL_Systick_GetTick();
+	float dt = (now - lastTime) * 0.001f;
+	lastTime = now;
+
+	// LPS25HB: 4096 LSB = 1 hPa
+	float pressurePa = (float)measurementData / 4096.0f * 100.0f;
+
+	// convert to altitude
+	altitude = pressureToAltitude(pressurePa);
+
+	// vertical speed (m/s)
+	if(dt > 0.001f)
+	    verticalSpeed = (altitude - lastAltitude) / dt;
+
+	lastAltitude = altitude;
+
+
 	return 0;
 }
 
-void LPS25HB_Baro::getMeasurement(int32_t &measurement)
+void LPS25HB_Baro::getMeasurement(int32_t &measurement, BaroMeasurement measurementType)
 {
 	//measurement = measData[measDataTail++];
 	//measurement = measData[0];
-	measurement = measurementData;
+
+	//measurement = measurementData;
+
 	//measDataTail %= BUF_DATA_SIZE;
 	//measDataNum--;
+
+	switch (measurementType)
+	{
+		case BaroMeasurement::PRESSURE:
+			measurement = measurementData;
+			break;
+		case BaroMeasurement::VERTICAL_SPEED:
+			measurement = (int32_t) verticalSpeed;
+			break;
+		case BaroMeasurement::ALTITUDE:
+			measurement = (int32_t) altitude;
+			break;
+	}
 }
 
+float LPS25HB_Baro::pressureToAltitude(float p)
+{
+    return 44330.0f * (1.0f - powf(p / 101325.0f, 0.1903f));
+}
 /*
  void EXTI3_IRQHandler(void) {
  if(LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_3)) {

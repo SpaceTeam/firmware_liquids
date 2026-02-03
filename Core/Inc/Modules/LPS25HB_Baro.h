@@ -25,6 +25,13 @@ enum class BaroAddr : uint8_t
 	FIFO_CTRL = 0x2E,
 };
 
+enum class BaroMeasurement : uint8_t
+{
+	PRESSURE = 0,
+	VERTICAL_SPEED,
+	ALTITUDE,
+};
+
 class LPS25HB_Baro: public AbstractModule
 {
 	public:
@@ -38,7 +45,7 @@ class LPS25HB_Baro: public AbstractModule
 
 		int read();
 		bool measurementReady();
-		void getMeasurement(int32_t &measurement);
+		void getMeasurement(int32_t &measurement, BaroMeasurement measurementType);
 		uint8_t whoAmI() const;
 
 		static constexpr uint32_t BUF_DATA_SIZE = 64;
@@ -51,6 +58,7 @@ class LPS25HB_Baro: public AbstractModule
 	private:
 		bool readReg(const BaroAddr &address, uint8_t *reg, uint8_t n = 0);
 		bool writeReg(const BaroAddr &address, uint8_t reg, uint16_t delay = 0);
+		float pressureToAltitude(float p);
 
 		STRHAL_SPI_Id_t spiId;
 		STRHAL_SPI_Config_t spiConf;
@@ -62,6 +70,12 @@ class LPS25HB_Baro: public AbstractModule
 		uint32_t measDataNum = 0;
 
 		uint64_t timeLastSample = 0;
+
+		float lastAltitude = 0;
+		float verticalSpeed = 0;
+		uint64_t lastTime = 0;
+		float altitude = 0;
+
 
 };
 

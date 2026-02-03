@@ -23,7 +23,7 @@ PMU::PMU(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		out2(11,{ GPIOC, 8, STRHAL_GPIO_TYPE_OPP }, 1),
 		out3(12,{ GPIOC, 9, STRHAL_GPIO_TYPE_OPP }, 1),
 		payload(13,{ GPIOC, 1, STRHAL_GPIO_TYPE_OPP }, 1),
-		baro_channel(14, &baro, 1),
+		baro_channel(14, &baro, BaroMeasurement::PRESSURE, 1),
 		x_accel(15, &imu, IMUMeasurement::X_ACCEL, 1),
 		y_accel(16, &imu, IMUMeasurement::Y_ACCEL, 1),
 		z_accel(17, &imu, IMUMeasurement::Z_ACCEL, 1),

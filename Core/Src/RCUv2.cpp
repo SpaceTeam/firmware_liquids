@@ -16,7 +16,9 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		gnss(STRHAL_UART1,{ GPIOC, 7, STRHAL_GPIO_TYPE_OPP }),
 		sense_5V(RCUv2_SENSE_5V,{ ADC1, STRHAL_ADC_CHANNEL_2 }, 1),
 		sense_12V(RCUv2_SENSE_12V,{ ADC1, STRHAL_ADC_CHANNEL_3 }, 1),
-		baro_channel(RCUv2_BARO, &baro, 1),
+		baro_channel(RCUv2_BARO, &baro, BaroMeasurement::PRESSURE, 1),
+		verticalSpeed(RCUv2_VERTICAL_SPEED, &baro, BaroMeasurement::VERTICAL_SPEED, 1),
+		baroAltitude(RCUv2_BARO_ALTITUDE, &baro, BaroMeasurement::ALTITUDE, 1),
 		x_accel(RCUv2_ACCEL_X, &imu, IMUMeasurement::X_ACCEL, 1),
 		y_accel(RCUv2_ACCEL_Y, &imu, IMUMeasurement::Y_ACCEL, 1),
 		z_accel(RCUv2_ACCEL_Z, &imu, IMUMeasurement::Z_ACCEL, 1),
@@ -60,6 +62,8 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	registerChannel(&out1);
 	registerChannel(&out2);
 	registerChannel(&out3);
+	registerChannel(&verticalSpeed);
+	registerChannel(&baroAltitude);
 	registerChannel(&x_vel);
 	registerChannel(&y_vel);
 	registerChannel(&z_vel);
@@ -247,7 +251,7 @@ void RCUv2::testBaro()
 	baro.read();
 
 	int32_t measurement = 0;
-	baro.getMeasurement(measurement);
+	baro.getMeasurement(measurement, BaroMeasurement::PRESSURE);
 
 	sprintf(buf, "measurement: %ld\n", measurement);
 	STRHAL_UART_Debug_Write_Blocking(buf, strlen(buf), 100);

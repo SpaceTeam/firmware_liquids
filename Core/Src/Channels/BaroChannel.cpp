@@ -3,8 +3,8 @@
 #include <cstring>
 #include <cstdio>
 
-BaroChannel::BaroChannel(uint8_t id, LPS25HB_Baro *baro, uint32_t refreshDivider) :
-		AbstractChannel(CHANNEL_TYPE_ADC24, id, refreshDivider), baro(baro)
+BaroChannel::BaroChannel(uint8_t id, LPS25HB_Baro *baro, BaroMeasurement measurementType, uint32_t refreshDivider) :
+		AbstractChannel(CHANNEL_TYPE_ADC24, id, refreshDivider), baro(baro), measurementType(measurementType)
 {
 }
 
@@ -28,7 +28,8 @@ int BaroChannel::getSensorData(uint8_t *data, uint8_t &n)
 	//if (baro.measurementReady())
 	//{
 		uint8_t *out = data + n;
-		int32_t measurement = baro->measurementData;
+		int32_t measurement = 0;
+		baro->getMeasurement(measurement, measurementType);
 		//baro.getMeasurement(measurement);
 		out[0] = (uint8_t) (measurement >> 0) & 0xFF;
 		out[1] = (uint8_t) (measurement >> 8) & 0xFF;

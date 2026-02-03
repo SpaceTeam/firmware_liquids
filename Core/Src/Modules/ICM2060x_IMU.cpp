@@ -25,6 +25,7 @@ int ICM2060x_IMU::init()
 	if (whoAmI() != deviceID)
 		return -1;
 
+	lastVelTime = STRHAL_Systick_GetTick();
 	return 0;
 }
 
@@ -118,6 +119,40 @@ int ICM2060x_IMU::read()
 	//sprintf(buf,"%d\n",measData[i].accel.z);
 	//STRHAL_UART_Debug_Write(buf, strlen(buf));
 
+
+	uint64_t now = STRHAL_Systick_GetTick();
+
+	if (lockVelocityMeasurement && (now-lastVelTime) > 5000.0f)
+	{
+		lockVelocityMeasurement = false;
+	}
+	if (!lockVelocityMeasurement)
+	{
+		float dt = (now - lastVelTime) * 0.001f;
+		lastVelTime = now;
+
+		// ----- SCALE RAW DATA -----
+		// accel ±16g -> 2048 LSB/g
+		float ax = measData[i].accel.x / 2048.0f;
+		float ay = measData[i].accel.y / 2048.0f;
+		float az = measData[i].accel.z / 2048.0f;
+
+
+		if (fabs(ax) < 1.5f && fabs(ay) < 1.5f && fabs(az) < 1.5f) {
+		    ax = ay = az = 0;
+		    //velX = velY = velZ = 0;
+		}
+
+		// ----- VELOCITY INTEGRATION -----
+		velX += ax * dt;
+		velY += ay * dt;
+		velZ += az * dt;
+
+	    measData[i].velocity.x = velX,
+		measData[i].velocity.y = velY;
+		measData[i].velocity.z = velZ;
+	}
+
 	measDataNum++;
 	measDataNum %= BUF_DATA_SIZE;
 
@@ -147,6 +182,15 @@ void ICM2060x_IMU::getMeasurement(uint16_t &measurement, IMUMeasurement measurem
 			break;
 		case IMUMeasurement::Z_GYRO:
 			measurement = (uint16_t) allMeasurements.alpha.z;
+			break;
+		case IMUMeasurement::X_VEL:
+			measurement = (uint16_t) allMeasurements.velocity.x;
+			break;
+		case IMUMeasurement::Y_VEL:
+			measurement = (uint16_t) allMeasurements.velocity.y;
+			break;
+		case IMUMeasurement::Z_VEL:
+			measurement = (uint16_t) allMeasurements.velocity.z;
 			measDataTail++;
 			measDataTail %= BUF_DATA_SIZE;
 			measDataNum--;

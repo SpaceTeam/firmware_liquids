@@ -23,6 +23,9 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		x_gyro(RCUv2_GYRO_X, &imu, IMUMeasurement::X_GYRO, 1),
 		y_gyro(RCUv2_GYRO_Y, &imu, IMUMeasurement::Y_GYRO, 1),
 		z_gyro(RCUv2_GYRO_Z, &imu, IMUMeasurement::Z_GYRO, 1),
+		x_vel(RCUv2_VEL_X, &imu, IMUMeasurement::X_VEL, 1),
+		y_vel(RCUv2_VEL_Y, &imu, IMUMeasurement::Y_VEL, 1),
+		z_vel(RCUv2_VEL_Z, &imu, IMUMeasurement::Z_VEL, 1),
 		gps_longitude(RCUv2_GNSS_LONG, &gnss.gnssData.longitude, 1),
 		gps_latitude(RCUv2_GNSS_LAT, &gnss.gnssData.latitude, 1),
 		gps_altitude(RCUv2_GNSS_ALT, &gnss.gnssData.altitude, 1),
@@ -57,6 +60,9 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	registerChannel(&out1);
 	registerChannel(&out2);
 	registerChannel(&out3);
+	registerChannel(&x_vel);
+	registerChannel(&y_vel);
+	registerChannel(&z_vel);
 
 
 	registerModule(&flash);

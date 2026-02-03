@@ -2,14 +2,18 @@
 #define ICM2060X_IMU_H
 
 #include <STRHAL.h>
+#include <cmath>
 #include "./Modules/AbstractModule.h"
+
+#define DEG_TO_RAD 0.01745329251f
+
 
 struct IMUData
 {
 		struct
 		{
 				int16_t x, y, z;
-		} accel, alpha;
+		} accel, alpha, velocity;
 		int16_t temp;
 };
 
@@ -21,6 +25,9 @@ enum class IMUMeasurement : uint8_t
 	X_GYRO,
 	Y_GYRO,
 	Z_GYRO,
+	X_VEL,
+	Y_VEL,
+	Z_VEL,
 };
 
 enum class IMUAddr : uint8_t
@@ -75,6 +82,15 @@ class ICM2060x_IMU: public AbstractModule
 		uint32_t measDataNum = 0;
 
 		uint64_t timeLastSample = 0;
+
+		float velX=0, velY=0, velZ=0;
+		float roll=0, pitch=0;
+		uint64_t lastVelTime=0;
+
+		// tune this
+		const float alpha = 0.98f; // complementary filter
+		bool lockVelocityMeasurement = true;
+
 
 };
 

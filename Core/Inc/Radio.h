@@ -28,8 +28,8 @@ class Radio: public AbstractCom
 		static constexpr uint8_t OX_ECU_START_ADDR = FUEL_ECU_START_ADDR + FUEL_ECU_MSG_SIZE;
 		static constexpr uint8_t OX_ECU_MSG_SIZE = 47;
 		static constexpr uint8_t RCU_START_ADDR = OX_ECU_START_ADDR + OX_ECU_MSG_SIZE;
-		static constexpr uint8_t RCU_MSG_SIZE = 44;
-		static constexpr uint32_t MSG_SIZE = ENGINE_ECU_MSG_SIZE + FUEL_ECU_MSG_SIZE + OX_ECU_MSG_SIZE + RCU_MSG_SIZE; //185
+		static constexpr uint8_t RCU_MSG_SIZE = 65;
+		static constexpr uint32_t MSG_SIZE = ENGINE_ECU_MSG_SIZE + FUEL_ECU_MSG_SIZE + OX_ECU_MSG_SIZE + RCU_MSG_SIZE;
 		static uint8_t msgArray[MSG_SIZE];
 
 	private:

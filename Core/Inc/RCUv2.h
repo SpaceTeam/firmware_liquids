@@ -9,9 +9,10 @@
 #include <Channels/DigitalInChannel.h>
 #include <Channels/GenericChannel.h>
 #include <Channels/BaroChannel.h>
+#include <Channels/IMUChannel.h>
+#include <Channels/FlightControlChannel.h>
 #include <Can.h>
 #include <Radio.h>
-#include <Channels/IMUChannel.h>
 #include "../Modules/W25Qxx_Flash.h"
 #include "../Modules/SX1276.h"
 #include "../Modules/SAM_M10Q_GNSS.h"
@@ -36,6 +37,7 @@ class RCUv2: public GenericChannel
 		void superMario();
 		void gnssBeep();
 		void testBaro();
+		void testFlightChannel(FlightStateResMsg_t lastStateMsg);
 
 	private:
 		STRHAL_GPIO_t led1, led2;
@@ -57,6 +59,7 @@ class RCUv2: public GenericChannel
 		Radio &radio;
 
 		Speaker speaker;
+		FlightControlChannel flight;
 };
 
 #endif /*RCU_V2_H*/

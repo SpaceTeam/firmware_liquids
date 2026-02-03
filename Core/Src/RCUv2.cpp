@@ -37,8 +37,12 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 		out1(RCUv2_OUT1, { GPIOC, 2, STRHAL_GPIO_TYPE_IHZ }, 0),
 		out2(RCUv2_OUT2, { GPIOC, 0, STRHAL_GPIO_TYPE_IHZ }, 0),
 		out3(RCUv2_OUT3, { GPIOC, 13, STRHAL_GPIO_TYPE_IHZ }, 0),
+
+
 		radio(Radio::instance(node_id, lora)),
-		speaker(STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PB10)
+		speaker(STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PB10),
+		flight(RCUv2_FLIGHTCONTROL, baro_channel, x_accel, y_accel, z_accel, x_gyro, y_gyro, z_gyro, out0, out1, out2, out3, verticalSpeed, baroAltitude, 1)
+
 {
 	// set pointer to radio object for static callbacks, enable Lora
 	//GenericChannel::radioPtr = &radio; <- this might cause hardfault later on
@@ -67,6 +71,8 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	registerChannel(&x_vel);
 	registerChannel(&y_vel);
 	registerChannel(&z_vel);
+
+	registerChannel(&flight);
 
 
 	registerModule(&flash);
@@ -148,6 +154,9 @@ int RCUv2::exec()
 	STRHAL_UART_Listen(STRHAL_UART_DEBUG);
 	bool gnssFix = false;
 
+	//FlightStateResMsg_t lastStateMsg{};
+	//lastStateMsg.state = static_cast<FLIGHT_STATE>(-1); // invalid initial state
+
 #ifdef UART_DEBUG
 	STRHAL_UART_Listen(STRHAL_UART_DEBUG);
 
@@ -163,6 +172,7 @@ int RCUv2::exec()
 		//testBaro();
 		//testIMU();
 		//testGNSS();
+		//testFlightChannel(lastStateMsg);
 
 #ifdef UART_DEBUG
 
@@ -221,6 +231,7 @@ int RCUv2::exec()
 			can.sendAsMaster(8, 1, 4, (uint8_t*) &setMsg, 5 + sizeof(uint32_t));
 			*/
 		}
+
 
 		if(!gnssFix)
 		{
@@ -317,6 +328,77 @@ void RCUv2::testGNSS()
 		speaker.beep(2, 400, 500);
 	}
 }
+
+ void RCUv2::testFlightChannel(FlightStateResMsg_t lastStateMsg){
+
+	uint8_t buffer[sizeof(FlightStateResMsg_t)];
+	uint8_t n = 0;
+
+	// Get current flight state
+	flight.getFlightState(buffer, n);
+
+	auto *currentStateMsg =
+		reinterpret_cast<FlightStateResMsg_t*>(buffer);
+
+	// Check for change
+	if (currentStateMsg->state != lastStateMsg.state)
+	{
+		// ---- State changed! ----
+		lastStateMsg = *currentStateMsg;
+
+		// Do something based on new state
+		switch (currentStateMsg->state)
+		{
+			case FLIGHT_STATE::PAD:
+				break;
+
+			case FLIGHT_STATE::BOOST:
+				speaker.setPWM(440);
+				speaker.beep(BOOST, 100, 50);
+				break;
+
+			case FLIGHT_STATE::COAST:
+				speaker.beep(COAST, 100, 50);
+				break;
+
+			case FLIGHT_STATE::DESCEND_DROGUE:
+				speaker.beep(DESCEND_DROGUE, 100, 50);
+				break;
+
+			case FLIGHT_STATE::DESCEND_MAIN:
+				speaker.beep(DESCEND_MAIN, 100, 50);
+				break;
+			case FLIGHT_STATE::DESCEND_NO_MAIN:
+				speaker.beep(DESCEND_NO_MAIN, 100, 50);
+				break;
+			case FLIGHT_STATE::LANDED:
+				// Disable cameras
+
+				speaker.setPWM(440);		//A4
+				speaker.beep(1, 100, 50);
+				speaker.setPWM(523);		//C5
+				speaker.beep(1, 100, 50);
+				speaker.setPWM(659);		//E5
+				speaker.beep(1, 100, 50);
+				speaker.setPWM(784);		//G5
+				speaker.beep(1, 100, 100);
+				speaker.setPWM(659);		//E5
+				speaker.beep(1, 80, 50);
+				speaker.setPWM(784);		//G5
+				speaker.beep(1, 300, 500);
+				speaker.setPWM(440);
+				STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_L);
+				STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_L);
+				//STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_L);
+
+				break;
+			default:
+				// handle other states
+				break;
+		}
+	}
+ }
+
 void RCUv2::beep(int freq, int length, int delay)
 {
 	speaker.setPWM(freq);

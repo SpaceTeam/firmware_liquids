@@ -48,29 +48,29 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	//GenericChannel::radioPtr = &radio; <- this might cause hardfault later on
 	setLoraActive(true); // has to be enabled by request TODO Change to false
 
-	registerChannel(&sense_5V);
-	registerChannel(&sense_12V);
-	registerChannel(&baro_channel);
-	registerChannel(&x_accel);
-	registerChannel(&y_accel);
-	registerChannel(&z_accel);
-	registerChannel(&x_gyro);
-	registerChannel(&y_gyro);
-	registerChannel(&z_gyro);
-	registerChannel(&gps_longitude);
-	registerChannel(&gps_latitude);
-	registerChannel(&gps_altitude);
-	registerChannel(&gps_status);
-
-	registerChannel(&out0);
-	registerChannel(&out1);
-	registerChannel(&out2);
-	registerChannel(&out3);
+	registerChannel(&sense_5V);			//  0 + 2 = 2
+	registerChannel(&sense_12V);		//  2 + 2 = 4
+	registerChannel(&baro_channel);		//  4 + 3 = 7
 	registerChannel(&verticalSpeed);
 	registerChannel(&baroAltitude);
-	registerChannel(&x_vel);
-	registerChannel(&y_vel);
-	registerChannel(&z_vel);
+	registerChannel(&x_accel);			// 13 + 2 = 15
+	registerChannel(&y_accel);			// 15 + 2 = 17
+	registerChannel(&z_accel);			// 17 + 2 = 19
+	registerChannel(&x_gyro);			// 19 + 2 = 21
+	registerChannel(&y_gyro);			// 21 + 2 = 23
+	registerChannel(&z_gyro);			// 23 + 2 = 25
+	registerChannel(&x_vel);			// 25 + 2 = 27
+	registerChannel(&y_vel);			// 27 + 2 = 29
+	registerChannel(&z_vel);			// 29 + 2 = 31
+	registerChannel(&gps_longitude);	// 31 + 4 = 35
+	registerChannel(&gps_latitude);		// 35 + 4 = 39
+	registerChannel(&gps_altitude);		// 39 + 4 = 43
+	registerChannel(&gps_status);		// 43 + 4 = 47
+
+	registerChannel(&out0);				// 47 + 2 = 49
+	registerChannel(&out1);				// 49 + 2 = 51
+	registerChannel(&out2);				// 51 + 2 = 53
+	registerChannel(&out3);				// 53 + 2 = 55
 
 	registerChannel(&flight);
 

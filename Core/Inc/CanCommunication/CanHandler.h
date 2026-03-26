@@ -41,10 +41,12 @@ class CanHandler {
     uint8_t nodeId;
     CanHandlerStatus status;
 
-    std::map<uint8_t, CanField> canFields;
-    std::map<int8_t, uint8_t> fieldNameIdMap;
-    std::map<uint8_t, CanProcess> processes;
-    std::map<uint8_t, std::vector<uint8_t>> telemetryGroups;
+
+    std::tuple<uint8_t, CanField> canFields[16];
+    std::tuple<int8_t, uint8_t> fieldNameIdMap[16];
+    std::tuple<uint8_t, CanProcess> processes[16];
+    // TODO: replace with array of TelemetryGroupDefinition
+    std::tuple<uint8_t, uint8_t[62]> telemetryGroups;
     RingBuf<std::tuple<Can_Identifier_t, uint8_t[64]>, 32> buffer;
 };
 

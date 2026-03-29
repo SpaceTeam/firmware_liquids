@@ -24,7 +24,7 @@ FlightControlChannel::FlightControlChannel(
 }
 
 int FlightControlChannel::init() {
-	flag = true;
+	flag = false;
 	return 0;
 }
 

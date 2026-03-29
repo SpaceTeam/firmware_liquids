@@ -48,31 +48,31 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 	//GenericChannel::radioPtr = &radio; <- this might cause hardfault later on
 	setLoraActive(true); // has to be enabled by request TODO Change to false
 
-	registerChannel(&sense_5V);			//  0 + 2 = 2
-	registerChannel(&sense_12V);		//  2 + 2 = 4
-	registerChannel(&baro_channel);		//  4 + 3 = 7
-	registerChannel(&verticalSpeed);
-	registerChannel(&baroAltitude);
-	registerChannel(&x_accel);			// 13 + 2 = 15
-	registerChannel(&y_accel);			// 15 + 2 = 17
-	registerChannel(&z_accel);			// 17 + 2 = 19
-	registerChannel(&x_gyro);			// 19 + 2 = 21
-	registerChannel(&y_gyro);			// 21 + 2 = 23
-	registerChannel(&z_gyro);			// 23 + 2 = 25
-	registerChannel(&x_vel);			// 25 + 2 = 27
-	registerChannel(&y_vel);			// 27 + 2 = 29
-	registerChannel(&z_vel);			// 29 + 2 = 31
-	registerChannel(&gps_longitude);	// 31 + 4 = 35
-	registerChannel(&gps_latitude);		// 35 + 4 = 39
-	registerChannel(&gps_altitude);		// 39 + 4 = 43
-	registerChannel(&gps_status);		// 43 + 4 = 47
+	registerChannel(&sense_5V);			//  0 + 2 = 2		4
+	registerChannel(&sense_12V);		//  2 + 2 = 4		6
+	registerChannel(&baro_channel);		//  4 + 3 = 7		8
+	registerChannel(&verticalSpeed);	//  7 + 3 = 10		11
+	registerChannel(&baroAltitude);		// 10 + 3 = 13		14
+	registerChannel(&x_accel);			// 13 + 2 = 15		17
+	registerChannel(&y_accel);			// 15 + 2 = 17		19
+	registerChannel(&z_accel);			// 17 + 2 = 19		21
+	registerChannel(&x_gyro);			// 19 + 2 = 21		23
+	registerChannel(&y_gyro);			// 21 + 2 = 23		25
+	registerChannel(&z_gyro);			// 23 + 2 = 25		27
+	registerChannel(&x_vel);			// 25 + 2 = 27		29
+	registerChannel(&y_vel);			// 27 + 2 = 29		31
+	registerChannel(&z_vel);			// 29 + 2 = 31		33
+	registerChannel(&gps_longitude);	// 31 + 4 = 35		37
+	registerChannel(&gps_latitude);		// 35 + 4 = 39		39
+	registerChannel(&gps_altitude);		// 39 + 4 = 43		43
+	registerChannel(&gps_status);		// 43 + 4 = 47		47
 
-	registerChannel(&out0);				// 47 + 2 = 49
-	registerChannel(&out1);				// 49 + 2 = 51
-	registerChannel(&out2);				// 51 + 2 = 53
-	registerChannel(&out3);				// 53 + 2 = 55
+	registerChannel(&out0);				// 47 + 2 = 49		51
+	registerChannel(&out1);				// 49 + 2 = 51		53
+	registerChannel(&out2);				// 51 + 2 = 53		55
+	registerChannel(&out3);				// 53 + 2 = 55		57
 
-	registerChannel(&flight);
+	registerChannel(&flight);			// 55 + 2 = 57		59
 
 
 	registerModule(&flash);
@@ -91,7 +91,7 @@ int RCUv2::init()
 
 	lora_settings.codingRateDenominator = 6;
 	lora_settings.crc = 1;
-	lora_settings.frequency = 868e6;
+	lora_settings.frequency = 8694e5;
 	lora_settings.preambleLength = 8;
 	lora_settings.signalBandwith = 500e3;
 	lora_settings.spreadingFactor = 10;
@@ -148,6 +148,12 @@ int RCUv2::exec()
 
 	//speaker.beep(1,100,100);
 	LL_mDelay(2000);
+
+	// Set all outputs high for recovery filght
+	out0.setState(1);
+	out1.setState(1);
+	out2.setState(1);
+	out3.setState(1);
 
 	//superMario();
 

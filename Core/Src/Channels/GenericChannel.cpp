@@ -5,9 +5,9 @@
 
 GenericChannel* GenericChannel::gcPtr = nullptr; // necessary for static callbacks
 bool GenericChannel::loraActive = false;
-bool GenericChannel::lora_high_speed_mode_enabled = true;
-uint64_t GenericChannel::lora_high_speed_duration = 15000;
-uint64_t GenericChannel::lora_low_speed_delay = 5000;
+bool GenericChannel::lora_high_speed_mode_enabled = false;
+uint64_t GenericChannel::lora_high_speed_duration = 1000;
+uint64_t GenericChannel::lora_low_speed_delay = 30000;
 uint64_t GenericChannel::lora_high_speed_enabled_time = STRHAL_Systick_GetTick();
 uint64_t GenericChannel::lora_send_time = STRHAL_Systick_GetTick();
 
@@ -47,7 +47,6 @@ int GenericChannel::init()
 
 int GenericChannel::exec()
 {
-    can.handleBufferedMessages();
     for (AbstractModule *module : modules)
 	{
 		if (module == nullptr)
@@ -330,7 +329,7 @@ void GenericChannel::receptorLora(uint32_t id, uint8_t *data, uint32_t n)
 
 	if (nodeid == NODE_ID_LAMARR_ENGINE_ECU)
 	{
-		if (loraActive)
+		if (false)
 		{
 			Radio::msgArray[Radio::ENGINE_ECU_START_ADDR] = 1;
 			memcpy(&Radio::msgArray[Radio::ENGINE_ECU_START_ADDR + 1], msgData.bit.data.uint8, Radio::ENGINE_ECU_MSG_SIZE - 1);
@@ -339,7 +338,7 @@ void GenericChannel::receptorLora(uint32_t id, uint8_t *data, uint32_t n)
 	}
 	else if (nodeid == NODE_ID_LAMARR_FUEL_ECU)
 	{
-		if (loraActive)
+		if (false)
 		{
 			Radio::msgArray[Radio::FUEL_ECU_START_ADDR] = 1;
 			memcpy(&Radio::msgArray[Radio::FUEL_ECU_START_ADDR + 1], msgData.bit.data.uint8, Radio::FUEL_ECU_MSG_SIZE - 1);
@@ -348,7 +347,7 @@ void GenericChannel::receptorLora(uint32_t id, uint8_t *data, uint32_t n)
 	}
 	else if (nodeid == NODE_ID_LAMARR_OX_ECU)
 	{
-		if (loraActive)
+		if (false)
 		{
 			Radio::msgArray[Radio::OX_ECU_START_ADDR] = 1;
 			memcpy(&Radio::msgArray[Radio::OX_ECU_START_ADDR + 1], msgData.bit.data.uint8, Radio::OX_ECU_MSG_SIZE - 1);
@@ -478,6 +477,8 @@ void GenericChannel::heartbeatLora()
 				return;
 			}
 		}
+		uint8_t debugBuffer[Radio::MSG_SIZE];
+		memcpy(debugBuffer, Radio::msgArray, Radio::MSG_SIZE);
 		lora_send_time = STRHAL_Systick_GetTick();
 		Radio::send(0, Radio::msgArray, Radio::MSG_SIZE);
 		memset(Radio::msgArray, 0, Radio::MSG_SIZE);

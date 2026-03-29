@@ -72,6 +72,13 @@ int BaroChannel::getVariable(uint8_t variableId, int32_t &data) const
 	}
 }
 
+uint16_t BaroChannel::getMeasurement() const
+{
+	int32_t measurement = 0;
+	baro->getMeasurement(measurement, measurementType);
+	return static_cast<uint16_t>(measurement);
+}
+
 BaroChannel::~BaroChannel()
 {
 

@@ -23,6 +23,7 @@ class BaroChannel: public AbstractChannel
 		int exec() override;
 
 		int getSensorData(uint8_t *data, uint8_t &n) override;
+		uint16_t getMeasurement() const;
 
 		int processMessage(uint8_t commandId, uint8_t *returnData, uint8_t &n) override;
 

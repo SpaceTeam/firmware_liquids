@@ -76,7 +76,7 @@ FLIGHT_STATE FlightControlChannel::nextState(uint64_t time, uint64_t stateTime) 
 		case INIT:
 			return PAD;
 		case PAD:
-			if (flag){			// Either measure or get command from LLServer or from main ECU
+			if (verticalSpeed.getMeasurement() > 18){			// Either measure or get command from LLServer or from main ECU
 				return BOOST;
 			}
 			return UNCHANGED;
@@ -86,7 +86,7 @@ FLIGHT_STATE FlightControlChannel::nextState(uint64_t time, uint64_t stateTime) 
 			}
 			return UNCHANGED;
 		case COAST:
-			if (verticalSpeed.getMeasurement() > 30) {			// Measure Apogee // TODO: USE KALMAN FILTER
+			if (abs(verticalSpeed.getMeasurement()) > 5) {			// Measure Apogee // TODO: USE KALMAN FILTER
 				return DESCEND_DROGUE;
 			}
 			return UNCHANGED;
@@ -96,15 +96,15 @@ FLIGHT_STATE FlightControlChannel::nextState(uint64_t time, uint64_t stateTime) 
 			}
 			return UNCHANGED;
 		case DESCEND_MAIN:
-			if (verticalSpeed.getMeasurement() < LANDING_SPEED) {			// Measure speed/altitude
+			if (abs(verticalSpeed.getMeasurement()) < LANDING_SPEED) {			// Measure speed/altitude
 				return LANDED;
 			}
-			if (verticalSpeed.getMeasurement() > NO_MAIN_THRESHOLD) {			// Measure speed/altitude after timeout
+			if (abs(verticalSpeed.getMeasurement()) > NO_MAIN_THRESHOLD) {			// Measure speed/altitude after timeout
 				return DESCEND_NO_MAIN;
 			}
 			return UNCHANGED;
 		case DESCEND_NO_MAIN:
-			if (verticalSpeed.getMeasurement() < LANDING_SPEED) {			// Measure speed/altitude
+			if (abs(verticalSpeed.getMeasurement()) < LANDING_SPEED) {			// Measure speed/altitude
 				return LANDED;
 			}
 			return UNCHANGED;

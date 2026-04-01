@@ -76,6 +76,10 @@ class LPS25HB_Baro: public AbstractModule
 		uint64_t lastTime = 0;
 		float altitude = 0;
 
+		// Variables for SIL tests
+		//bool flag = false;
+		//float pressurePa = 101325;
+
 
 };
 

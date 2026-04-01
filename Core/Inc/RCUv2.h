@@ -37,7 +37,7 @@ class RCUv2: public GenericChannel
 		void superMario();
 		void gnssBeep();
 		void testBaro();
-		void testFlightChannel(FlightStateResMsg_t lastStateMsg);
+		void testFlightChannel(FlightStateResMsg_t& lastStateMsg);
 
 	private:
 		STRHAL_GPIO_t led1, led2;

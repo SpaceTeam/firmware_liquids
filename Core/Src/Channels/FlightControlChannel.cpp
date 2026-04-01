@@ -9,6 +9,7 @@ FlightControlChannel::FlightControlChannel(
 		DigitalOutChannel &out2Channel, DigitalOutChannel &out3Channel,
 		BaroChannel &verticalSpeed, BaroChannel &baroAltitude,
 		//Speaker speaker,
+		W25Qxx_Flash &flash,
 		uint32_t refreshDivider
 ) :
 	AbstractChannel(CHANNEL_TYPE_FLIGHT, id, refreshDivider),
@@ -18,6 +19,7 @@ FlightControlChannel::FlightControlChannel(
 	out2Channel(out2Channel), out3Channel(out3Channel),
 	verticalSpeed(verticalSpeed), baroAltitude(baroAltitude),
 	//speaker(speaker),
+	flash(flash),
 	state(INIT), stateOverride(UNCHANGED),
 	can(Can::instance(0))
 {
@@ -72,11 +74,15 @@ int FlightControlChannel::exec() {
 
 FLIGHT_STATE FlightControlChannel::nextState(uint64_t time, uint64_t stateTime) const {
 
+	uint16_t speed;
+	uint16_t alt;
+	speed = static_cast<int16_t>(verticalSpeed.getMeasurement());
+	alt = static_cast<int16_t>(baroAltitude.getMeasurement());
 	switch (state) {
 		case INIT:
 			return PAD;
 		case PAD:
-			if (verticalSpeed.getMeasurement() > 18){			// Either measure or get command from LLServer or from main ECU
+			if (static_cast<int16_t>(verticalSpeed.getMeasurement()) > 10){			// Either measure or get command from LLServer or from main ECU
 				return BOOST;
 			}
 			return UNCHANGED;
@@ -86,30 +92,30 @@ FLIGHT_STATE FlightControlChannel::nextState(uint64_t time, uint64_t stateTime) 
 			}
 			return UNCHANGED;
 		case COAST:
-			if (abs(verticalSpeed.getMeasurement()) > 5) {			// Measure Apogee // TODO: USE KALMAN FILTER
+			if (static_cast<int16_t>(verticalSpeed.getMeasurement()) < 0) {			// Measure Apogee // TODO: USE KALMAN FILTER
 				return DESCEND_DROGUE;
 			}
 			return UNCHANGED;
 		case DESCEND_DROGUE:
-			if (baroAltitude.getMeasurement() > MAIN_DEPLOYMENT_ALTITUDE) {			// Measure altitude
+			if (static_cast<int16_t>(baroAltitude.getMeasurement()) < MAIN_DEPLOYMENT_ALTITUDE) {			// Measure altitude
 				return DESCEND_MAIN;
 			}
 			return UNCHANGED;
 		case DESCEND_MAIN:
-			if (abs(verticalSpeed.getMeasurement()) < LANDING_SPEED) {			// Measure speed/altitude
+			if (abs(static_cast<int16_t>(verticalSpeed.getMeasurement())) < LANDING_SPEED) {			// Measure speed/altitude
 				return LANDED;
 			}
-			if (abs(verticalSpeed.getMeasurement()) > NO_MAIN_THRESHOLD) {			// Measure speed/altitude after timeout
+			if (abs(static_cast<int16_t>(verticalSpeed.getMeasurement())) > NO_MAIN_THRESHOLD) {			// Measure speed/altitude after timeout
 				return DESCEND_NO_MAIN;
 			}
 			return UNCHANGED;
 		case DESCEND_NO_MAIN:
-			if (abs(verticalSpeed.getMeasurement()) < LANDING_SPEED) {			// Measure speed/altitude
+			if (abs(static_cast<int16_t>(verticalSpeed.getMeasurement())) < LANDING_SPEED) {			// Measure speed/altitude
 				return LANDED;
 			}
 			return UNCHANGED;
 		case LANDED:
-			if (stateTime > 2000) {			// Wait for command from LLServer to reset or timeout based
+			if (stateTime > 20000) {			// Wait for command from LLServer to reset or timeout based
 				return PAD;
 			}
 			return UNCHANGED;
@@ -120,42 +126,25 @@ FLIGHT_STATE FlightControlChannel::nextState(uint64_t time, uint64_t stateTime) 
 
 void FlightControlChannel::stateEnter(FLIGHT_STATE state, uint64_t time) {
 
-	// LEDs for visible status
-	STRHAL_GPIO_t led1 = { GPIOC, 8, STRHAL_GPIO_TYPE_OPP };
-	STRHAL_GPIO_t led2 = { GPIOC, 9, STRHAL_GPIO_TYPE_OPP };
-
 
 	switch (state) {
 		case INIT:
-			STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_L);
-			STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_L);
 			break;
 		case PAD:
-			STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
-			STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_H);
 			break;
 		case BOOST:
-			STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_L);
-			STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_L);
+			flash.setState(FlashState::LOGGING);
 			break;
 		case COAST:
-			STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
-			STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_H);
 			break;
 		case DESCEND_DROGUE:
 			// FIRE DROGUE PYRO CHARGES
-			STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_L);
-			STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_L);
 			break;
 		case DESCEND_MAIN:
 			// FIRE MAIN PYRO CHARGES
-			STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_H);
-			STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_H);
 			break;
 		case LANDED:
 			// Disable cameras
-			STRHAL_GPIO_Write(&led1, STRHAL_GPIO_VALUE_L);
-			STRHAL_GPIO_Write(&led2, STRHAL_GPIO_VALUE_L);
 			break;
 		default: break;
 	}

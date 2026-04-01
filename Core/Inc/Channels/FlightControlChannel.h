@@ -24,6 +24,7 @@ class FlightControlChannel: public AbstractChannel
 			DigitalOutChannel &out2Channel, DigitalOutChannel &out3Channel,
 			BaroChannel &vertcalSpeed, BaroChannel &baroAltitude,
 			//Speaker speaker,
+			W25Qxx_Flash &flash,
 			uint32_t refreshDivider
 		);
 		FlightControlChannel(const FlightControlChannel &other) = delete;
@@ -67,6 +68,7 @@ class FlightControlChannel: public AbstractChannel
 		DigitalOutChannel &out3Channel;
 		BaroChannel &verticalSpeed, &baroAltitude;
 		//Speaker speaker = Speaker(STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PB10);
+		W25Qxx_Flash &flash;
 
 		FLIGHT_STATE state;
 		FLIGHT_STATE stateOverride;
@@ -78,10 +80,10 @@ class FlightControlChannel: public AbstractChannel
 	    double sensor_slope = 0.01888275146;
 	    double sensor_offset = -15;
 
-	    uint16_t MAIN_DEPLOYMENT_ALTITUDE = 450;
+	    uint16_t MAIN_DEPLOYMENT_ALTITUDE = 250;
 	    uint16_t NO_MAIN_THRESHOLD = 45;
-	    uint16_t BOOST_DURATION = 10000;
-	    uint16_t LANDING_SPEED = 5;
+	    uint16_t BOOST_DURATION = 3000;
+	    uint16_t LANDING_SPEED = 1;
 
 		uint64_t timeLastSample = 0;
 		uint64_t timeLastTransition = 0;

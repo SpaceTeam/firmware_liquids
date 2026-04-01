@@ -159,15 +159,54 @@ int LPS25HB_Baro::read()
 	float dt = (now - lastTime) * 0.001f;
 	lastTime = now;
 
+
 	// LPS25HB: 4096 LSB = 1 hPa
 	float pressurePa = (float)measurementData / 4096.0f * 100.0f;
+	/*
+	// Code for SIL tests
+	if(!flag){
+		pressurePa -= 15.0f;
+		if(altitude > 500){
+			flag = true;
+		}
+	}else{
+		if(altitude > 250){
+			pressurePa += 15.0f;
+		}else{
+			if(altitude > 0){
+				pressurePa += 35.0f;
+			}
+		}
+	}*/
+
+
+	// --- Low-pass filter ---
+	static float filteredPressure = 0.0f;
+	static bool initialized = false;
+	const float alpha = 0.1f;
+
+	if (!initialized) {
+	    filteredPressure = pressurePa;
+	    initialized = true;
+	} else {
+	    filteredPressure = alpha * pressurePa + (1.0f - alpha) * filteredPressure;
+	}
 
 	// convert to altitude
-	altitude = pressureToAltitude(pressurePa);
+	altitude = pressureToAltitude(filteredPressure);
+
+	if (fabs(altitude - lastAltitude) < 0.5f)
+	    altitude = lastAltitude;
 
 	// vertical speed (m/s)
-	if(dt > 0.001f)
-	    verticalSpeed = (altitude - lastAltitude) / dt;
+	static float filteredVSpeed = 0.0f;
+	const float alphaVS = 0.2f;
+
+	if(dt > 0.001f) {
+	    float rawVS = (altitude - lastAltitude) / dt;
+	    filteredVSpeed = alphaVS * rawVS + (1.0f - alphaVS) * filteredVSpeed;
+	    verticalSpeed = filteredVSpeed;
+	}
 
 	lastAltitude = altitude;
 
@@ -191,10 +230,10 @@ void LPS25HB_Baro::getMeasurement(int32_t &measurement, BaroMeasurement measurem
 			measurement = measurementData;
 			break;
 		case BaroMeasurement::VERTICAL_SPEED:
-			measurement = (int32_t) verticalSpeed;
+			measurement = static_cast<int32_t>(verticalSpeed);
 			break;
 		case BaroMeasurement::ALTITUDE:
-			measurement = (int32_t) altitude;
+			measurement = static_cast<int32_t>(altitude);
 			break;
 	}
 }

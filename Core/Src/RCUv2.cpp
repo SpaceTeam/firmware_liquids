@@ -41,7 +41,7 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 
 		radio(Radio::instance(node_id, lora)),
 		speaker(STRHAL_TIM_TIM2, STRHAL_TIM_TIM2_CH3_PB10),
-		flight(RCUv2_FLIGHTCONTROL, baro_channel, x_accel, y_accel, z_accel, x_gyro, y_gyro, z_gyro, out0, out1, out2, out3, verticalSpeed, baroAltitude, 1)
+		flight(RCUv2_FLIGHTCONTROL, baro_channel, x_accel, y_accel, z_accel, x_gyro, y_gyro, z_gyro, out0, out1, out2, out3, verticalSpeed, baroAltitude, flash, 1)
 
 {
 	// set pointer to radio object for static callbacks, enable Lora
@@ -160,8 +160,8 @@ int RCUv2::exec()
 	STRHAL_UART_Listen(STRHAL_UART_DEBUG);
 	bool gnssFix = false;
 
-	//FlightStateResMsg_t lastStateMsg{};
-	//lastStateMsg.state = static_cast<FLIGHT_STATE>(-1); // invalid initial state
+	FlightStateResMsg_t lastStateMsg{};
+	lastStateMsg.state = static_cast<FLIGHT_STATE>(-1); // invalid initial state
 
 #ifdef UART_DEBUG
 	STRHAL_UART_Listen(STRHAL_UART_DEBUG);
@@ -178,7 +178,7 @@ int RCUv2::exec()
 		//testBaro();
 		//testIMU();
 		//testGNSS();
-		//testFlightChannel(lastStateMsg);
+		testFlightChannel(lastStateMsg);
 
 #ifdef UART_DEBUG
 
@@ -335,7 +335,7 @@ void RCUv2::testGNSS()
 	}
 }
 
- void RCUv2::testFlightChannel(FlightStateResMsg_t lastStateMsg){
+ void RCUv2::testFlightChannel(FlightStateResMsg_t& lastStateMsg){
 
 	uint8_t buffer[sizeof(FlightStateResMsg_t)];
 	uint8_t n = 0;

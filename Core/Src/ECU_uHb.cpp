@@ -16,9 +16,9 @@ ECU_uHb::ECU_uHb(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider
 		temp_0(6,{ ADC1, STRHAL_ADC_CHANNEL_6 }, 1),
 		temp_1(7,{ ADC1, STRHAL_ADC_CHANNEL_7 }, 1),
 		temp_2(8,{ ADC1, STRHAL_ADC_CHANNEL_8 }, 1),
-		servo_0(9, 0, STRHAL_TIM_TIM4, STRHAL_TIM_TIM4_CH2_PB7,{ ADC1, STRHAL_ADC_CHANNEL_9 },{ ADC1, STRHAL_ADC_CHANNEL_1 },{ GPIOC, 13, STRHAL_GPIO_TYPE_OPP }, 1),
-		servo_1(10, 1, STRHAL_TIM_TIM4, STRHAL_TIM_TIM4_CH3_PB8,{ ADC1, STRHAL_ADC_CHANNEL_2 },{ ADC1, STRHAL_ADC_CHANNEL_3 },{ GPIOC, 14, STRHAL_GPIO_TYPE_OPP }, 1),
-		servo_2(11, 2, STRHAL_TIM_TIM4, STRHAL_TIM_TIM4_CH4_PB9,{ ADC1, STRHAL_ADC_CHANNEL_4 },{ ADC2, STRHAL_ADC_CHANNEL_17 },{ GPIOC, 15, STRHAL_GPIO_TYPE_OPP }, 1),
+		servo_0(9, 0, STRHAL_TIM_TIM4, STRHAL_TIM_TIM4_CH2_PB7,{ ADC1, STRHAL_ADC_CHANNEL_9 },{ GPIOC, 13, STRHAL_GPIO_TYPE_OPP }, 1),
+		servo_1(10, 1, STRHAL_TIM_TIM4, STRHAL_TIM_TIM4_CH3_PB8,{ ADC1, STRHAL_ADC_CHANNEL_2 },{ GPIOC, 14, STRHAL_GPIO_TYPE_OPP }, 1),
+		servo_2(11, 2, STRHAL_TIM_TIM4, STRHAL_TIM_TIM4_CH4_PB9,{ ADC1, STRHAL_ADC_CHANNEL_4 },{ GPIOC, 15, STRHAL_GPIO_TYPE_OPP }, 1),
 		pyro0_cont(13,{ GPIOA, 10, STRHAL_GPIO_TYPE_IHZ }, 1),
 		pyro1_cont(15,{ GPIOA, 8, STRHAL_GPIO_TYPE_IHZ }, 1),
 		pyro2_cont(17,{ GPIOC, 8, STRHAL_GPIO_TYPE_IHZ }, 1),
@@ -177,7 +177,7 @@ void ECU_uHb::testServo(ServoChannel &servo)
 			}
 
 		}
-		sprintf(buf, "%d, %d, %d\n", servo.getCurrentMeasurement(), servo.getFeedbackMeasurement(), servo.getPos());
+		sprintf(buf, "%d, %d\n", servo.getFeedbackMeasurement(), servo.getPos());
 		STRHAL_UART_Debug_Write_DMA(buf, strlen(buf));
 		if (GenericChannel::exec() != 0)
 			return;

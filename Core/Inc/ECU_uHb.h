@@ -6,7 +6,7 @@
 #include <Channels/DigitalInChannel.h>
 #include <Channels/PyroChannel.h>
 #include <Channels/PressureControlChannel.h>
-#include <Channels/ServoChannel.h>
+#include <Channels/ServoChannel.hpp>
 #include <Channels/GenericChannel.h>
 #include <Channels/RocketChannel.h>
 #include <Can.h>

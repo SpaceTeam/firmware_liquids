@@ -3,7 +3,7 @@
 
 #include "./Channels/AbstractChannel.h"
 #include "./Channels/ADCChannel.h"
-#include "./Channels/ServoChannel.h"
+#include "./Channels/ServoChannel.hpp"
 #include "./Channels/PyroChannel.h"
 #include "./Channels/PIControlChannel.h"
 #include <can_houbolt/channels/rocket_channel_def.h>

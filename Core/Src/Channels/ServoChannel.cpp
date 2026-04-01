@@ -1,378 +1,286 @@
-#include "../Inc/Channels/ServoChannel.h"
 
-#include <STRHAL.h>
-#include <cstring>
-#include <cstdio>
+#include "Channels/ServoChannel.hpp"
 
-constexpr ServoRefPos ServoChannel::com0Ref;
-constexpr ServoRefPos ServoChannel::pwm0Ref;
-constexpr ServoRefPos ServoChannel::adc0Ref;
-
-
-ServoChannel::ServoChannel(uint8_t id, uint8_t servoId, const STRHAL_TIM_TimerId_t &pwmTimer, const STRHAL_TIM_ChannelId_t &control, const STRHAL_ADC_Channel_t &feedbackChannel, const STRHAL_ADC_Channel_t &currentChannel, const STRHAL_GPIO_t &led, uint32_t refreshDivider) :
-		AbstractChannel(CHANNEL_TYPE_SERVO, id, refreshDivider), servoId(servoId), pwmTimer(pwmTimer), ctrlChannelId(control), feedbackChannel(feedbackChannel), currentChannel(currentChannel), led(led), flash(W25Qxx_Flash::instance()), servoState(ServoState::IDLE), reqCalib(false)
+ServoChannel::ServoChannel(
+    const uint8_t id,
+    const uint8_t servoId,
+    const STRHAL_TIM_TimerId_t &pwmTimer,
+    const STRHAL_TIM_ChannelId_t &control,
+    const STRHAL_ADC_Channel_t &feedbackChannel,
+    const STRHAL_GPIO_t &led,
+    const int32_t refreshDivider) :
+    AbstractChannel(CHANNEL_TYPE_SERVO, id, refreshDivider),
+    servoId(servoId),
+    pwmTimer(pwmTimer),
+    ctrlChannelId(control),
+    feedbackChannel(feedbackChannel),
+    led(led),
+    servoState(ServoState::IDLE),
+    calibrationReqeusted(false),
+    flash(W25Qxx_Flash::instance())
 {
 }
 
 int ServoChannel::init()
 {
-	STRHAL_GPIO_SingleInit(&led, STRHAL_GPIO_TYPE_OPP);
+    STRHAL_GPIO_SingleInit(&led, STRHAL_GPIO_TYPE_OPP);
 
-	if (STRHAL_TIM_PWM_Init(pwmTimer, PWM_PSC, PWM_RES) < 0)
-		return -1;
+    if (STRHAL_TIM_PWM_Init(pwmTimer, PWM_PSC, PWM_RES) < 0)
+    {
+        return -1;
+    }
+    if (STRHAL_TIM_PWM_AddChannel(&pwmChannel, ctrlChannelId, STRHAL_TIM_PWM_CHANNELTYPE_SO) < 0)
+    {
+        return -1;
+    }
 
-	if (STRHAL_TIM_PWM_AddChannel(&pwmChannel, ctrlChannelId, STRHAL_TIM_PWM_CHANNELTYPE_SO) < 0)
-		return -1;
+    // get data pointer from feedback ADC
+    feedbackMeasurement = STRHAL_ADC_SubscribeChannel(&feedbackChannel, STRHAL_ADC_INTYPE_REGULAR);
+    if (feedbackMeasurement == nullptr)
+    {
+        return -1;
+    }
 
+    // Load and assign config
+    if (!flash.readConfig())
+    {
+        return -1;
+    }
 
-	feedbackMeasurement = STRHAL_ADC_SubscribeChannel(&feedbackChannel, STRHAL_ADC_INTYPE_REGULAR);
-	if(currentChannel.ADCx != nullptr)
-	currentMeasurement = STRHAL_ADC_SubscribeChannel(&currentChannel, STRHAL_ADC_INTYPE_REGULAR);
+    // Read config and set frame sizes
+    // TODO: update (when saver flash handler is implemented!)
+    const uint32_t configAddrStart = SERVOCONFIG_OFFSET + servoId + SERVOCONFIG_N_EACH;
+    adcRef.start = flash.readConfigReg(configAddrStart);
+    adcRef.end = flash.readConfigReg(configAddrStart + 1);
+    pwmRef.start = flash.readConfigReg(configAddrStart + 2);
+    pwmRef.start = flash.readConfigReg(configAddrStart + 3);
 
-	// Load and assign config
-	if (!flash.readConfig())
-		return -1;
+    // If the pwmRef frame is not initialised in flash use default values
+    if (pwmRef.start == UINT16_MAX && pwmRef.end == UINT16_MAX)
+    {
+        pwmRef = pwm0Ref;
+    }
 
-	// Read config values starting from the servos config register start address
-	uint32_t configAddrStart = SERVOCONFIG_OFFSET + servoId * SERVOCONFIG_N_EACH;
-	adcRef.start = flash.readConfigReg(configAddrStart);
-	adcRef.end = flash.readConfigReg(configAddrStart + 1);
-	pwmRef.start = flash.readConfigReg(configAddrStart + 2);
-	pwmRef.end = flash.readConfigReg(configAddrStart + 3);
+    // If the adcRef frame is not initialised in flash use default values
+    if (adcRef.start == UINT16_MAX && adcRef.end == UINT16_MAX)
+    {
+        adcRef = adc0Ref;
+    }
 
-	if (pwmRef.start == 65535 && pwmRef.end == 65535) // flash never written -> init default
-	{
-		uint32_t vals[4] =
-		{ (uint32_t) adc0Ref.start, (uint32_t) adc0Ref.end, (uint32_t) pwm0Ref.start, (uint32_t) pwm0Ref.end };
-		flash.writeConfigRegsFromAddr(SERVOCONFIG_OFFSET + servoId * SERVOCONFIG_N_EACH, vals, 4);
-		adcRef = adc0Ref;
-		pwmRef = pwm0Ref;
-
-		if(!flash.writeTempConfig())
-			return -1;;
-	}
-
-	if (feedbackMeasurement == nullptr)// || currentMeasurement == nullptr)
-		return -1;
-
-	servoState = ServoState::READY;
-	return 0;
+    servoState = ServoState::READY;
+    return 0;
 }
 
 int ServoChannel::exec()
 {
-	uint64_t time = STRHAL_Systick_GetTick();
-	if ((time - timeLastSample) < EXEC_SAMPLE_TICKS)
-		return 0;
+    if ((STRHAL_Systick_GetTick() - lastExecTick) < EXEC_SAMPLE_TICKS)
+    {
+        return 0;
+    }
 
-	timeLastSample = time;
+    lastExecTick = STRHAL_Systick_GetTick();
+    lastFeedbackPosition = feedbackPosition;
+    feedbackPosition = tPosToCanonic(*feedbackMeasurement, adcRef);
 
-	feedbackPositionLast = feedbackPosition;
-	feedbackPosition = tPosToCanonic(*feedbackMeasurement, adcRef);
-	if (step != 0)
-	{
-		if (finalPosition != targetPosition)
-		{
-			targetPosition += step;
-			if (step > 0)
-				targetPosition = (targetPosition > finalPosition) ? finalPosition : targetPosition;
-			else
-				targetPosition = (targetPosition < finalPosition) ? finalPosition : targetPosition;
-		}
-		else
-		{
-			step = 0;
-		}
-	}
-	if (targetPosition != targetPositionLast)
-	{
+    // TODO: check if values have changed
 
-		STRHAL_TIM_PWM_SetDuty(&pwmChannel, tPosFromCanonic(targetPosition, pwmRef));
-		STRHAL_TIM_PWM_Enable(&pwmChannel, true);
-		STRHAL_GPIO_Write(&led, STRHAL_GPIO_VALUE_H);
-		targetPositionLast = targetPosition;
-		targetHitCount = 0;
-		timeLastCommand = time;
-		servoState = ServoState::MOVIN;
+    if (targetPosition != lastTargetPosition)
+    {
+        STRHAL_TIM_PWM_SetDuty(&pwmChannel, tPosFromCanonic(targetPosition, pwmRef));
+        STRHAL_TIM_PWM_Enable(&pwmChannel, true);
+        STRHAL_GPIO_Write(&led, STRHAL_GPIO_VALUE_H);
+        lastTargetPosition = targetPosition;
+        positionStabilityCounter = 0;
+        timeLastCommand = lastExecTick;
+        servoState = ServoState::MOVING;
+    }
 
-		if (reqCalib)
-		{
-			servoState = ServoState::CALIB;
-			//reqCalib = false;
-		}
-	}
+    switch (servoState)
+    {
+        case ServoState::IDLE:
+            break;
+        case ServoState::READY:
+            STRHAL_TIM_PWM_SetDuty(&pwmChannel, 0);
+            STRHAL_GPIO_Write(&led, STRHAL_GPIO_VALUE_L);
+            break;
+        case ServoState::MOVING:
+            checkPositionStability();
 
-	switch (servoState)
-	{
-		case ServoState::IDLE:
-		case ServoState::READY:
-			STRHAL_TIM_PWM_SetDuty(&pwmChannel, 0);
-			STRHAL_GPIO_Write(&led, STRHAL_GPIO_VALUE_L);
-			break;
+            // Check if position is stable
+            // TODO: check if 800 tick requirement is sensical
+            if (positionStabilityCounter >= TARG_HIT_MIN || lastExecTick - timeLastCommand > 800)
+            {
+                servoState = ServoState::IDLE;
+            }
+            break;
+        case ServoState::CALIB:
+            checkPositionStability(true);
 
-		case ServoState::MOVIN:
-			if (distPos(targetPosition, feedbackPosition) < POS_DEV)
-			{
-				targetHitCount++;
-			}
+            if (positionStabilityCounter >= TARG_HIT_MIN)
+            {
+                // TODO: update (when saver flash handler is implemented!)
+                const uint32_t configAddrStart = SERVOCONFIG_OFFSET + servoId + SERVOCONFIG_N_EACH;
 
-			if (targetHitCount >= TARG_HIT_MIN || time - timeLastCommand > 800)
-			{
-				servoState = ServoState::IDLE;
-			}
-			break;
+                Config regs[2];
+                uint32_t values[2];
 
-		case ServoState::CALIB: //TODO make config load/save more efficient
-			if (distPos(feedbackPosition, feedbackPositionLast) < POS_DEV)
-			{
-				targetHitCount++;
-			}
-			else
-			{
-				targetHitCount = 0;
-			}
+                // TODO: check condition
+                if (targetPosition == 0)
+                {
+                    adcRef.start = *feedbackMeasurement;
+                    regs[0] = static_cast<Config>(configAddrStart);
+                    regs[1] = static_cast<Config>(configAddrStart + 2);
+                    values[0] = adcRef.start;
+                    values[1] = adcRef.end;
+                }
+                else
+                {
+                    adcRef.end = *feedbackMeasurement;
+                    regs[0] = static_cast<Config>(configAddrStart + 1);
+                    regs[1] = static_cast<Config>(configAddrStart + 3);
+                    values[0] = adcRef.end;
+                    values[1] = adcRef.start;
+                }
 
-			if (targetHitCount >= CALIB_HIT_MIN)
-			{
-				uint32_t configAddrStart = SERVOCONFIG_OFFSET + servoId * SERVOCONFIG_N_EACH;
-
-				if (targetPosition == 0)
-				{
-					adcRef.start = *feedbackMeasurement;
-					Config regs[2] =
-					{ static_cast<Config>(configAddrStart), static_cast<Config>(configAddrStart + 2) };
-					uint32_t vals[2] =
-					{ (uint32_t) adcRef.start, (uint32_t) pwmRef.start };
-					flash.writeConfigRegs(regs, vals, 2);
-				}
-				else
-				{
-					adcRef.end = *feedbackMeasurement;
-					Config regs[2] =
-					{ static_cast<Config>(configAddrStart + 1), static_cast<Config>(configAddrStart + 3) };
-					uint32_t vals[2] =
-					{ (uint32_t) adcRef.end, (uint32_t) pwmRef.end };
-					flash.writeConfigRegs(regs, vals, 2);
-				}
-				servoState = ServoState::IDLE;
-				reqCalib = false;
-			}
-			break;
-		default:
-			return -1;
-	}
-	return 0;
+                flash.writeConfigRegs(regs, values, 2);
+                servoState = ServoState::IDLE;
+                calibrationReqeusted = false;
+            }
+            break;
+        default:
+            return -1;
+    }
+    return 0;
 }
 
 int ServoChannel::reset()
 {
-	return 0;
+    return 0;
 }
 
-int ServoChannel::processMessage(uint8_t cmd_id, uint8_t *ret_data, uint8_t &ret_n)
+int ServoChannel::setVariable(uint8_t variableId, int32_t data)
 {
-	switch (cmd_id)
-	{
-		case SERVO_REQ_RESET_SETTINGS:
-		{
-			uint32_t vals[4] =
-			{ (uint32_t) adc0Ref.start, (uint32_t) adc0Ref.end, (uint32_t) pwm0Ref.start, (uint32_t) pwm0Ref.end };
-			flash.writeConfigRegsFromAddr(SERVOCONFIG_OFFSET + servoId * SERVOCONFIG_N_EACH, vals, 4);
-			adcRef = adc0Ref;
-			pwmRef = pwm0Ref;
-			return 0;
-		}
-		default:
-			return AbstractChannel::processMessage(cmd_id, ret_data, ret_n);
-	}
+    switch (variableId)
+    {
+        case SERVO_TARGET_POSITION:
+            targetPosition = data & 0xFFFF;
+            break;
+        case SERVO_POSITION_STARTPOINT:
+            pwmRef.start = tPosFromCanonic(data & 0xFFFF, pwm0Ref);
+            // TODO: validate procedure
+            targetPosition = 0;
+            calibrationReqeusted = true;
+            break;
+        case SERVO_POSITION_ENDPOINT:
+            pwmRef.end = tPosFromCanonic(data & 0xFFFF, pwm0Ref);
+            // TODO: validate procedure
+            targetPosition = UINT16_MAX;
+            calibrationReqeusted = true;
+            break;
+        case SERVO_SENSOR_REFRESH_DIVIDER:
+            refreshDivider = data;
+            refreshCounter = 0;
+            break;
+        case SERVO_POSITION:
+        case SERVO_POSITION_RAW:
+            return -2;
+        default:
+            return -1;
+    }
+    return 0;
 }
 
-
-
-int ServoChannel::getSensorData(uint8_t *data, uint8_t &n)
+int ServoChannel::getVariable(uint8_t variableId, int32_t &data) const
 {
-	uint32_t *out = (uint32_t*) (data + n);
-	*out = (uint32_t) getPos();
-
-	n += SERVO_DATA_N_BYTES;
-	return 0;
+    switch (variableId) {
+        case SERVO_TARGET_POSITION:
+            data = targetPosition;
+            break;
+        case SERVO_POSITION_STARTPOINT:
+            data = tPosFromCanonic(pwmRef.start, pwmRef);
+            break;
+        case SERVO_POSITION_ENDPOINT:
+            data = tPosFromCanonic(pwmRef.end, pwmRef);
+            break;
+        case SERVO_SENSOR_REFRESH_DIVIDER:
+            data = static_cast<int32_t>(refreshDivider);
+            break;
+        case SERVO_POSITION:
+            data = feedbackPosition;
+            break;
+        case SERVO_POSITION_RAW:
+            data = *feedbackMeasurement << 4;
+            break;
+        default:
+            return -1;
+    }
+    return 0;
 }
 
-uint32_t ServoChannel::getState() const
+// TODO: check if conversion is needed
+uint16_t ServoChannel::tPosToCanonic(const uint16_t pos, const ServoRefPos &ref)
 {
-	int32_t data = 0;
-	getVariable(SERVO_TARGET_POSITION, data);
-	return data;
+    if (ref.end == ref.start)
+    {
+        return UINT16_MAX;
+    }
+
+    // check if servo is reversed
+    if (ref.end < ref.start)
+    {
+        // check if out of bounds
+        if (pos <= ref.end)
+        {
+            return UINT16_MAX;
+        }
+        if (pos >= ref.start)
+        {
+            return 0;
+        }
+        return UINT16_MAX - (pos - ref.end) * (UINT16_MAX / (ref.start - ref.end));
+    }
+
+    // check if out of bounds
+    if (pos <= ref.end)
+    {
+        return 0;
+    }
+    if (pos >= ref.start)
+    {
+        return UINT16_MAX;
+    }
+
+    return (pos - ref.start) * (UINT16_MAX / (ref.end - ref.start));
 }
 
-int ServoChannel::setState(uint32_t state)
+// TODO: check if conversion is needed
+uint16_t ServoChannel::tPosFromCanonic(const uint16_t pos, const ServoRefPos &ref)
 {
-	setVariable(SERVO_TARGET_POSITION, state);
-	return 0;
+    if (ref.end == ref.start)
+    {
+        return ref.end;
+    }
+    if (ref.end < ref.start)
+    {
+        // reverse servo
+        return (UINT16_MAX - pos) / (UINT16_MAX / (ref.start - ref.end)) + ref.end;
+    }
+    return pos / (UINT16_MAX / (ref.start - ref.end)) + ref.start;
 }
 
-
-bool ServoChannel::isAnalog()
+void ServoChannel::checkPositionStability(const bool reset)
 {
-	return true;
+    if (targetPosition < feedbackPosition
+                ? feedbackPosition - targetPosition
+                : targetPosition - feedbackPosition
+                < POS_DEV)
+    {
+        positionStabilityCounter++;
+    }
+    else if (reset)
+    {
+        positionStabilityCounter = 0;
+    }
 }
 
-int ServoChannel::setVariable(uint8_t variable_id, int32_t data)
-{
-	uint16_t pos_data;
-	switch (variable_id)
-	{
-		case SERVO_TARGET_POSITION:
-			targetPosition = (uint16_t) (data & 0xFFFF);
-			return 0;
 
-		case SERVO_POSITION_STARTPOINT:
-			pos_data = (uint16_t) (data & 0xFFFF);
-			pwmRef.start = tPosFromCanonic(pos_data, pwm0Ref);
-			targetPosition = 0;
-			reqCalib = true;
-
-			return 0;
-
-		case SERVO_POSITION_ENDPOINT:
-			pos_data = (uint16_t) (data & 0xFFFF);
-			pwmRef.end = tPosFromCanonic(pos_data, pwm0Ref);
-			targetPosition = UINT16_MAX;
-			reqCalib = true;
-
-			return 0;
-
-		case SERVO_POSITION:
-			return -2;
-
-		case SERVO_POSITION_RAW:
-			return -2;
-
-		case SERVO_SENSOR_REFRESH_DIVIDER:
-			refreshDivider = data;
-			refreshCounter = 0;
-			return 0;
-
-		default:
-			return -1;
-	}
-}
-
-int ServoChannel::getVariable(uint8_t variable_id, int32_t &data) const
-{
-	switch (variable_id)
-	{
-		case SERVO_POSITION:
-			data = feedbackPosition;
-			return 0;
-
-		case SERVO_POSITION_RAW:
-			data = *feedbackMeasurement << 4;
-			return 0;
-
-		case SERVO_TARGET_POSITION:
-			data = targetPosition;
-			return 0;
-
-		case SERVO_POSITION_STARTPOINT:
-			data = tPosToCanonic(pwmRef.start, pwm0Ref);
-			return 0;
-
-		case SERVO_POSITION_ENDPOINT:
-			data = tPosToCanonic(pwmRef.end, pwm0Ref);
-			return 0;
-
-		case SERVO_SENSOR_REFRESH_DIVIDER:
-			data = (int32_t) refreshDivider;
-			return 0;
-
-		default:
-			return -1;
-	}
-}
-
-void ServoChannel::setTargetPos(uint16_t pos)
-{
-	targetPosition = pos;
-}
-
-void ServoChannel::moveToPosInInterval(uint16_t position, uint16_t interval)
-{
-	step = (position - targetPosition) / interval * EXEC_SAMPLE_TICKS;
-	finalPosition = position;
-}
-
-uint16_t ServoChannel::getTargetPos() const
-{
-	return targetPosition;
-}
-
-uint16_t ServoChannel::getPos() const
-{
-	return tPosToCanonic(*feedbackMeasurement, adcRef);
-}
-
-uint16_t ServoChannel::getFeedbackMeasurement() const
-{
-	return *feedbackMeasurement;
-}
-
-uint16_t ServoChannel::getCurrentMeasurement() const
-{
-	if(currentMeasurement == nullptr)
-		return 0;
-	return *currentMeasurement;
-}
-
-uint16_t ServoChannel::tPosToCanonic(uint16_t pos, const ServoRefPos &frame)
-{
-	if (frame.end == frame.start)
-	{
-		return UINT16_MAX;
-	}
-	else if (frame.end < frame.start)
-	{ // reversed servo
-		// check if out of bounds
-		if (pos <= frame.end)
-		{
-			return UINT16_MAX;
-		}
-		else if (pos >= frame.start)
-		{
-			return 0;
-		}
-		return UINT16_MAX - ((pos - frame.end) * (UINT16_MAX / (frame.start - frame.end)));
-	}
-
-	// check if out of bounds
-	if (pos <= frame.start)
-	{
-		return 0;
-	}
-	else if (pos >= frame.end)
-	{
-		return UINT16_MAX;
-	}
-
-	return (pos - frame.start) * (UINT16_MAX / (frame.end - frame.start));
-}
-
-uint16_t ServoChannel::tPosFromCanonic(uint16_t pos, const ServoRefPos &frame)
-{
-	if (frame.end == frame.start)
-	{
-		return frame.end;
-	}
-	else if (frame.end < frame.start)
-	{ // reversed servo
-		uint16_t reversedPosition = UINT16_MAX - pos;
-		return (reversedPosition / (UINT16_MAX / (frame.start - frame.end))) + frame.end;
-	}
-
-	return (pos / (UINT16_MAX / (frame.end - frame.start))) + frame.start;
-}
-
-uint16_t ServoChannel::distPos(uint16_t pos1, uint16_t pos2)
-{
-	return pos1 < pos2 ? pos2 - pos1 : pos1 - pos2;
-}

@@ -3,7 +3,7 @@
 
 #include "./Channels/AbstractChannel.h"
 #include "./Channels/GenericChannel.h"
-#include "./Channels/ServoChannel.h"
+#include "./Channels/ServoChannel.hpp"
 #include "./Channels/ADCChannel.h"
 #include <can_houbolt/channels/pi_control_channel_def.h>
 #include <STRHAL.h>

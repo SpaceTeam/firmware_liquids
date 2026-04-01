@@ -8,46 +8,54 @@
 #include <STRHAL.h>
 #include "../Modules/W25Qxx_Flash.h"
 
+// TODO: remove when real sevice can be injected
+class CanFieldHandler {
+public:
+};
+
+// TODO: move to its own file when architecture provides location
 struct ServoRefPos
 {
 		uint16_t start;
 		uint16_t end;
 };
 
+// TODO: move to its own file when architecture provides location
 enum class ServoState : int
 {
 	IDLE = 0,
-	READY,
-	FAULT,
-	MOVIN,
-	CALIB,
+	READY = 1,
+	FAULT = 2,
+	MOVING = 3,
+	CALIB = 4,
 };
 
-class ServoChannel: public AbstractChannel
+// TODO: comment
+class ServoChannel : public AbstractChannel
 {
 	public:
-		ServoChannel(uint8_t id, uint8_t servoId, const STRHAL_TIM_TimerId_t &pwmTimer, const STRHAL_TIM_ChannelId_t &control, const STRHAL_ADC_Channel_t &feedbackChannel, const STRHAL_ADC_Channel_t &currentChannel, const STRHAL_GPIO_t &led, uint32_t refreshDivider);
+		ServoChannel(
+			uint8_t id,
+			uint8_t servoId,
+			const STRHAL_TIM_TimerId_t &pwmTimer,
+			const STRHAL_TIM_ChannelId_t &control,
+			const STRHAL_ADC_Channel_t &feedbackChannel,
+			const STRHAL_GPIO_t &led,
+			int32_t refreshDivider);
 
 		int init() override;
 		int reset() override;
 		int exec() override;
 
-		int processMessage(uint8_t commandId, uint8_t *returnData, uint8_t &n) override;
 		int getSensorData(uint8_t *data, uint8_t &n) override;
 
-
-
 		uint32_t getState() const;
-		int setState(uint32_t state);
-		bool isAnalog();
 
 		void setTargetPos(uint16_t pos);
-		void moveToPosInInterval(uint16_t position, uint16_t interval);
 		uint16_t getTargetPos() const;
 
 		uint16_t getPos() const;
 		uint16_t getFeedbackMeasurement() const;
-		uint16_t getCurrentMeasurement() const;
 
 		static constexpr uint16_t PWM_FREQ = 50;
 		static constexpr uint16_t PWM_RES = (1000 / PWM_FREQ) * 1800; //36.000
@@ -62,14 +70,8 @@ class ServoChannel: public AbstractChannel
 		//static constexpr ServoRefPos pwm0Ref = {1800, 3600};
 		static constexpr ServoRefPos pwm0Ref =
 		{ 900, 4500 };
-		static constexpr ServoRefPos com0Ref =
-		{ 0, UINT16_MAX };
 		static constexpr ServoRefPos adc0Ref =
 		{ 0, 0xFFF };
-
-		static uint16_t tPosFromCanonic(uint16_t pos, const ServoRefPos &frame);
-		static uint16_t tPosToCanonic(uint16_t pos, const ServoRefPos &frame);
-		static uint16_t distPos(uint16_t pos1, uint16_t pos2);
 
 	protected:
 		int setVariable(uint8_t variableId, int32_t data) override;
@@ -81,30 +83,29 @@ class ServoChannel: public AbstractChannel
 		STRHAL_TIM_ChannelId_t ctrlChannelId;
 		STRHAL_TIM_PWM_Channel_t pwmChannel;
 
-		STRHAL_ADC_Data_t *feedbackMeasurement = nullptr;
-		STRHAL_ADC_Data_t *currentMeasurement = nullptr;
-
 		STRHAL_ADC_Channel_t feedbackChannel;
-		STRHAL_ADC_Channel_t currentChannel;
 
+		STRHAL_ADC_Data_t *feedbackMeasurement = nullptr;
 		STRHAL_GPIO_t led;
 
+		ServoState servoState;
 		uint16_t targetPosition = 0;
+		bool calibrationReqeusted;
 		uint16_t feedbackPosition = 0;
-		uint16_t finalPosition = 0;
-		int16_t step = 0;
 
 		ServoRefPos adcRef = adc0Ref;
 		ServoRefPos pwmRef = pwm0Ref;
 
 		W25Qxx_Flash &flash;
 
-		ServoState servoState;
-		bool reqCalib;
+		uint16_t lastTargetPosition = 0, lastFeedbackPosition = 0;
+		uint16_t positionStabilityCounter = 0;
+		uint64_t lastExecTick = 0, timeLastCommand = 0;
 
-		uint16_t targetPositionLast = 0, feedbackPositionLast = 0;
-		uint16_t targetHitCount = 0;
-		uint64_t timeLastSample = 0, timeLastCommand = 0;
+		void checkPositionStability(bool reset = false);
+
+		static uint16_t tPosFromCanonic(uint16_t pos, const ServoRefPos &ref);
+		static uint16_t tPosToCanonic(uint16_t pos, const ServoRefPos &ref);
 };
 
 #endif /*SERVOCHANNEL_H*/

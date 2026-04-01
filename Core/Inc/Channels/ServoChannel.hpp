@@ -49,13 +49,13 @@ class ServoChannel : public AbstractChannel
 
 		int getSensorData(uint8_t *data, uint8_t &n) override;
 
-		uint32_t getState() const;
+		[[nodiscard]] uint32_t getState() const;
 
 		void setTargetPos(uint16_t pos);
-		uint16_t getTargetPos() const;
+		[[nodiscard]] uint16_t getTargetPos() const;
 
-		uint16_t getPos() const;
-		uint16_t getFeedbackMeasurement() const;
+		[[nodiscard]] uint16_t getPos() const;
+		[[nodiscard]] uint16_t getFeedbackMeasurement() const;
 
 		static constexpr uint16_t PWM_FREQ = 50;
 		static constexpr uint16_t PWM_RES = (1000 / PWM_FREQ) * 1800; //36.000

@@ -158,7 +158,45 @@ int ServoChannel::reset()
     return 0;
 }
 
-int ServoChannel::setVariable(uint8_t variableId, int32_t data)
+int ServoChannel::getSensorData(uint8_t *data, uint8_t &n)
+{
+    // convert to 32 bit pointer
+    auto *out = reinterpret_cast<uint32_t *>(data + n);
+    *out = getPos();
+
+    n += SERVO_DATA_N_BYTES;
+    return 0;
+}
+
+uint32_t ServoChannel::getState() const
+{
+    int32_t data = 0;
+    getVariable(SERVO_TARGET_POSITION, data);
+    return data;
+}
+
+
+uint16_t ServoChannel::getTargetPos() const
+{
+    return targetPosition;
+}
+
+void ServoChannel::setTargetPos(const uint16_t pos)
+{
+    targetPosition = pos;
+}
+
+uint16_t ServoChannel::getPos() const
+{
+    return tPosToCanonic(*feedbackMeasurement, adcRef);
+}
+
+uint16_t ServoChannel::getFeedbackMeasurement() const {
+    return *feedbackMeasurement;
+}
+
+
+int ServoChannel::setVariable(const uint8_t variableId, const int32_t data)
 {
     switch (variableId)
     {

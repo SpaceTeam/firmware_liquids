@@ -16,7 +16,7 @@ ServoChannel::ServoChannel(
     feedbackChannel(feedbackChannel),
     led(led),
     servoState(ServoState::IDLE),
-    calibrationReqeusted(false),
+    calibrationRequested(false),
     flash(W25Qxx_Flash::instance())
 {
 }
@@ -29,6 +29,7 @@ int ServoChannel::init()
     {
         return -1;
     }
+
     if (STRHAL_TIM_PWM_AddChannel(&pwmChannel, ctrlChannelId, STRHAL_TIM_PWM_CHANNELTYPE_SO) < 0)
     {
         return -1;
@@ -55,13 +56,13 @@ int ServoChannel::init()
     pwmRef.start = flash.readConfigReg(configAddrStart + 2);
     pwmRef.start = flash.readConfigReg(configAddrStart + 3);
 
-    // If the pwmRef frame is not initialised in flash use default values
+    // If the pwmRef frame is not initialized in flash use default values
     if (pwmRef.start == UINT16_MAX && pwmRef.end == UINT16_MAX)
     {
         pwmRef = pwm0Ref;
     }
 
-    // If the adcRef frame is not initialised in flash use default values
+    // If the adcRef frame is not initialized in flash use default values
     if (adcRef.start == UINT16_MAX && adcRef.end == UINT16_MAX)
     {
         adcRef = adc0Ref;
@@ -144,7 +145,7 @@ int ServoChannel::exec()
 
                 flash.writeConfigRegs(regs, values, 2);
                 servoState = ServoState::IDLE;
-                calibrationReqeusted = false;
+                calibrationRequested = false;
             }
             break;
         default:
@@ -207,13 +208,13 @@ int ServoChannel::setVariable(const uint8_t variableId, const int32_t data)
             pwmRef.start = tPosFromCanonic(data & 0xFFFF, pwm0Ref);
             // TODO: validate procedure
             targetPosition = 0;
-            calibrationReqeusted = true;
+            calibrationRequested = true;
             break;
         case SERVO_POSITION_ENDPOINT:
             pwmRef.end = tPosFromCanonic(data & 0xFFFF, pwm0Ref);
             // TODO: validate procedure
             targetPosition = UINT16_MAX;
-            calibrationReqeusted = true;
+            calibrationRequested = true;
             break;
         case SERVO_SENSOR_REFRESH_DIVIDER:
             refreshDivider = data;

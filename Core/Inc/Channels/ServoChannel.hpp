@@ -8,11 +8,6 @@
 #include <STRHAL.h>
 #include "../Modules/W25Qxx_Flash.h"
 
-// TODO: remove when real sevice can be injected
-class CanFieldHandler {
-public:
-};
-
 // TODO: move to its own file when architecture provides location
 struct ServoRefPos
 {
@@ -30,7 +25,6 @@ enum class ServoState : int
 	CALIB = 4,
 };
 
-// TODO: comment
 class ServoChannel : public AbstractChannel
 {
 	public:
@@ -89,8 +83,14 @@ class ServoChannel : public AbstractChannel
 		STRHAL_GPIO_t led;
 
 		ServoState servoState;
+
+		// TODO: change to LiquidCAN Parameter
 		uint16_t targetPosition = 0;
-		bool calibrationReqeusted;
+
+		// TODO: change to LiquidCAN Parameter
+		bool calibrationRequested;
+
+		// TODO: change to LiquidCAN Telemetry
 		uint16_t feedbackPosition = 0;
 
 		ServoRefPos adcRef = adc0Ref;

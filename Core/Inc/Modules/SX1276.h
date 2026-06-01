@@ -12,6 +12,9 @@
 #include <mutex>
 #include <climits>
 
+#include "FrequencyHop.h"
+
+
 #define SX1276_OK 0
 #define SX1276_ERROR 1
 
@@ -84,6 +87,7 @@ public:
 	uint8_t Send(uint8_t* buffer, size_t len);
 	template <const size_t dataToSend>
 	uint8_t SendReceive(std::array<uint8_t, dataToSend> &data, std::array<uint8_t, dataToSend> &recv, const size_t toSend = dataToSend);
+    uint16_t getHopCounter() const;
 
 private:
 	uint8_t singleTransfer(uint8_t address, uint8_t value);
@@ -93,6 +97,8 @@ private:
 	void writeRegisterSafe(uint8_t address, uint8_t value);
 	void Reset(bool reconfigure);
 	void ConfigureLora();
+    void updateHop();
+
 
 	loraSettings_t currentSettings;
 	uint32_t _frequency;
@@ -107,6 +113,11 @@ private:
 	volatile uint8_t loraLocked;
 
 	volatile bool messagePending = false;
+
+    uint16_t hopCounter = 0;
+    uint8_t currentHopIndex = 0;
+    uint8_t dwellCounter = 0;
+
 };
 
 #endif

@@ -76,7 +76,7 @@ RCUv2::RCUv2(uint32_t node_id, uint32_t fw_version, uint32_t refresh_divider) :
 
 
 	registerModule(&flash);
-	registerModule(&gnss);
+	//registerModule(&gnss);
 	registerModule(&baro);
 	registerModule(&imu);
 
@@ -89,15 +89,39 @@ int RCUv2::init()
 
 	memset(&lora_settings, 0, sizeof(loraSettings_t));
 
+	// SETTINGS FOR TESTING
+	lora_settings.codingRateDenominator = 5;
+	lora_settings.crc = 1;
+	lora_settings.preambleLength = 8;
+	lora_settings.signalBandwith = 125e3;
+	lora_settings.spreadingFactor = 7;
+	lora_settings.syncword = 0x45;
+	lora_settings.txPower = 2;
+	lora_settings.messageSize = Radio::MSG_SIZE;
+
+	/*//OLD SETTINGS
 	lora_settings.codingRateDenominator = 6;
 	lora_settings.crc = 1;
-	lora_settings.frequency = 8694e5;
+	lora_settings.frequency = 868e6;
 	lora_settings.preambleLength = 8;
 	lora_settings.signalBandwith = 500e3;
 	lora_settings.spreadingFactor = 10;
 	lora_settings.syncword = 0xE4;
 	lora_settings.txPower = 17;
 	lora_settings.messageSize = Radio::MSG_SIZE;
+	 */
+
+	/*//LONG RANGE SETTINGS
+	lora_settings.codingRateDenominator = 5;
+	lora_settings.crc = 1;
+	lora_settings.frequency = 868e6;
+	lora_settings.preambleLength = 8;
+	lora_settings.signalBandwith = 125e3;
+	lora_settings.spreadingFactor = 10;
+	lora_settings.syncword = 0x45;
+	lora_settings.txPower = 17;
+	lora_settings.messageSize = Radio::MSG_SIZE;
+	 */
 
 	if (STRHAL_Init(STRHAL_SYSCLK_SRC_EXT, 8000000) != STRHAL_NOICE)
 		return -1;

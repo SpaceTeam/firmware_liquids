@@ -12,6 +12,8 @@
 #include <ctime>
 #include <time.h>
 
+#include "FrequencyHop.h"
+
 
 
 // Interface functions
@@ -79,13 +81,17 @@ unsigned char SX1276::init(const loraSettings_t *settings)
 	memcpy(&currentSettings, settings, sizeof(loraSettings_t));
 	ConfigureLora();
 
+	currentHopIndex = 0;
+	dwellCounter = 0;
+	hopCounter = 0;
+
 	return 1;
 }
 
 void SX1276::ConfigureLora()
 {
 	setSleep();
-	setFrequency(currentSettings.frequency);
+	setFrequency(HopTable[0].frequency);
 	writeRegister(REG_FIFO_TX_BASE_ADDR, 0);
 	writeRegister(REG_FIFO_RX_BASE_ADDR, 0);
 	writeRegister(REG_OCP, 0x0B);
@@ -120,6 +126,10 @@ void SX1276::Reset(bool reconfigure)
 	{
 		ConfigureLora();
 	}
+
+	currentHopIndex = 0;
+	dwellCounter = 0;
+	hopCounter = 0;
 }
 
 loraStatus_e SX1276::getStatus()
@@ -167,6 +177,8 @@ int SX1276::sendBytes( uint8_t *buffer, uint8_t length)
 		}
 	}
 	writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);
+
+	updateHop();
 	stat = idle;
 	return ret;
 }
@@ -197,8 +209,7 @@ void SX1276::setReceive()
 	{
 		writeRegister(REG_OP_MODE, MODE_STDBY);
 		writeRegister(REG_DIO_MAPPING_1, 0);
-		// writeRegister(LR_RegHopPeriod, 0xFF);	//No FHSS
-		writeRegister(LR_RegHopPeriod, 0x00); // No FHSS
+		writeRegister(LR_RegHopPeriod, 0x00); // No hardware FHSS
 		writeRegister(REG_PAYLOAD_LENGTH, getMessageSize());
 		writeRegister(REG_FIFO_ADDR_PTR, 0);
 		writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE);
@@ -372,17 +383,18 @@ void SX1276::setTxPower(uint8_t level)
 
 void SX1276::setFrequency(uint32_t frequency)
 {
-	_frequency = frequency;
+    setIdle();
 
-	uint64_t frf = ((uint64_t)frequency << 19) / 32000000;
-	uint8_t mode = getMode();
-	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
-		setSleep();
-	writeRegister(REG_FRF_MSB, (uint8_t)(frf >> 16));
-	writeRegister(REG_FRF_MID, (uint8_t)(frf >> 8));
-	writeRegister(REG_FRF_LSB, (uint8_t)(frf >> 0));
-	if (mode != (MODE_LONG_RANGE_MODE | MODE_SLEEP))
-		writeRegister(REG_OP_MODE, mode);
+    while (getMode() != (MODE_LONG_RANGE_MODE | MODE_STDBY));
+
+    _frequency = frequency;
+
+    uint64_t frf =
+        ((uint64_t)frequency << 19) / 32000000;
+
+    writeRegister(REG_FRF_MSB, frf >> 16);
+    writeRegister(REG_FRF_MID, frf >> 8);
+    writeRegister(REG_FRF_LSB, frf);
 }
 
 void SX1276::setSpreadingFactor(uint8_t sf)
@@ -537,4 +549,30 @@ bool SX1276::messageReceived()
 {
 	return messagePending;
 }
+
+
+
+uint16_t SX1276::getHopCounter() const
+{
+    return hopCounter;
+}
+
+void SX1276::updateHop()
+{
+    dwellCounter++;
+    if (dwellCounter >= HopTable[currentHopIndex].dwellPackets)
+    {
+        dwellCounter = 0;
+        currentHopIndex++;
+        if (currentHopIndex >= HopTable.size())
+        {
+            currentHopIndex = 0;
+        }
+
+        setFrequency(HopTable[currentHopIndex].frequency);
+        LL_mDelay(20);
+    }
+    hopCounter++;
+}
+
 

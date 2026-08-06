@@ -105,6 +105,11 @@ class ServoChannel: public AbstractChannel
 		uint16_t targetPositionLast = 0, feedbackPositionLast = 0;
 		uint16_t targetHitCount = 0;
 		uint64_t timeLastSample = 0, timeLastCommand = 0;
+
+		uint16_t correctedPosition = 0;
+
+		uint16_t iValue = 1;
+
 };
 
 #endif /*SERVOCHANNEL_H*/

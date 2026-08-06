@@ -86,8 +86,7 @@ int ServoChannel::exec()
 	}
 	if (targetPosition != targetPositionLast)
 	{
-
-		STRHAL_TIM_PWM_SetDuty(&pwmChannel, tPosFromCanonic(targetPosition, pwmRef));
+		STRHAL_TIM_PWM_SetDuty(&pwmChannel, tPosFromCanonic(correctedPosition, pwmRef));
 		STRHAL_TIM_PWM_Enable(&pwmChannel, true);
 		STRHAL_GPIO_Write(&led, STRHAL_GPIO_VALUE_H);
 		targetPositionLast = targetPosition;
@@ -114,6 +113,26 @@ int ServoChannel::exec()
 			if (distPos(targetPosition, feedbackPosition) < POS_DEV)
 			{
 				targetHitCount++;
+			}else{
+
+
+				int32_t error = static_cast<int32_t>(targetPosition) - static_cast<int32_t>(feedbackPosition);
+
+				int32_t correct = (error * iValue) / 350;
+
+				int32_t newPosition = static_cast<int32_t>(correctedPosition) + correct;
+
+				if (newPosition < 0) {
+				    newPosition = 0;
+				} else if (newPosition > UINT16_MAX) {
+				    newPosition = UINT16_MAX;
+				}
+
+				correctedPosition = static_cast<uint16_t>(newPosition);
+
+				//correctedPosition += correct;
+
+				STRHAL_TIM_PWM_SetDuty(&pwmChannel, tPosFromCanonic(correctedPosition, pwmRef));
 			}
 
 			if (targetHitCount >= TARG_HIT_MIN || time - timeLastCommand > 800)

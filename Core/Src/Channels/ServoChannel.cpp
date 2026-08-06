@@ -360,7 +360,7 @@ uint16_t ServoChannel::tPosToCanonic(uint16_t pos, const ServoRefPos &frame)
 		{
 			return 0;
 		}
-		return UINT16_MAX - ((pos - frame.end) * (UINT16_MAX / (frame.start - frame.end)));
+		return UINT16_MAX - (((pos - frame.end) * UINT16_MAX) / (frame.start - frame.end));
 	}
 
 	// check if out of bounds
@@ -373,7 +373,7 @@ uint16_t ServoChannel::tPosToCanonic(uint16_t pos, const ServoRefPos &frame)
 		return UINT16_MAX;
 	}
 
-	return (pos - frame.start) * (UINT16_MAX / (frame.end - frame.start));
+	return ((pos - frame.start) * UINT16_MAX) / (frame.end - frame.start);
 }
 
 uint16_t ServoChannel::tPosFromCanonic(uint16_t pos, const ServoRefPos &frame)
@@ -388,7 +388,7 @@ uint16_t ServoChannel::tPosFromCanonic(uint16_t pos, const ServoRefPos &frame)
 		return (reversedPosition / (UINT16_MAX / (frame.start - frame.end))) + frame.end;
 	}
 
-	return (pos / (UINT16_MAX / (frame.end - frame.start))) + frame.start;
+	return ((pos * (frame.end - frame.start))/UINT16_MAX) + frame.start;
 }
 
 uint16_t ServoChannel::distPos(uint16_t pos1, uint16_t pos2)
